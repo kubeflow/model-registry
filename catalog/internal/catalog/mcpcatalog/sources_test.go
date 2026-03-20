@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -384,7 +385,7 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 			},
 		},
 		{
-			name:        "defaults applied: nil Enabled defaults to true, nil Labels defaults to empty slice",
+			name:        "defaults applied: nil Enabled defaults to true, nil Labels defaults to empty slice, nil AssetType defaults to mcp_servers",
 			originOrder: []string{"community.yaml"},
 			mergeSequence: []struct {
 				origin  string
@@ -397,18 +398,19 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 							ID:   "mcp_github",
 							Name: "GitHub MCP Server",
 							Type: "sse",
-							// Enabled and Labels are nil - defaults should be applied
+							// Enabled, Labels, and AssetType are nil - defaults should be applied
 						},
 					},
 				},
 			},
 			expectedSources: map[string]basecatalog.MCPSource{
 				"mcp_github": {
-					ID:      "mcp_github",
-					Name:    "GitHub MCP Server",
-					Type:    "sse",
-					Enabled: apiutils.Of(true), // Default applied
-					Labels:  []string{},        // Default applied
+					ID:        "mcp_github",
+					Name:      "GitHub MCP Server",
+					Type:      "sse",
+					Enabled:   apiutils.Of(true),                        // Default applied
+					Labels:    []string{},                               // Default applied
+					AssetType: model.CATALOGASSETTYPE_MCP_SERVERS.Ptr(), // Default applied
 				},
 			},
 		},
@@ -505,6 +507,11 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got.Properties, expected.Properties) {
 					t.Errorf("source %s: Properties = %v, want %v", id, got.Properties, expected.Properties)
+				}
+				if got.AssetType == nil {
+					t.Errorf("source %s: AssetType is nil, expected mcp_servers default", id)
+				} else if *got.AssetType != model.CATALOGASSETTYPE_MCP_SERVERS {
+					t.Errorf("source %s: AssetType = %s, want %s", id, *got.AssetType, model.CATALOGASSETTYPE_MCP_SERVERS)
 				}
 			}
 		})
@@ -855,6 +862,84 @@ func TestMCPSourceCollection_GetNamedQuery_SliceDeepCopy(t *testing.T) {
 	assert.Equal(t, "active", filters2["status"].Value.([]any)[0])
 }
 
+func TestMCPSourceCollection_ByLabel(t *testing.T) {
+	makeCollection := func(sources map[string]basecatalog.MCPSource) *MCPSourceCollection {
+		coll := NewMCPSourceCollection()
+		_ = coll.Merge("test", sources)
+		return coll
+	}
+
+	t.Run("returns source with matching label", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"github"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("returns multiple sources matching any label (OR semantics)", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"github"}, Enabled: apiutils.Of(true)},
+			"src3": {ID: "src3", Labels: []string{"other"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai", "github"})
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("matching is case insensitive", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"OpenAI"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("skips disabled sources", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(false)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		assert.Empty(t, result)
+	})
+
+	t.Run("null label matches sources with no labels", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"null"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("non-matching label returns empty slice", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"no-match"})
+		assert.Empty(t, result)
+	})
+
+	t.Run("deduplicates by source ID", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai", "ai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai", "ai"})
+		assert.Len(t, result, 1)
+	})
+}
+
 func TestMCPSourceCollection_Merge_WithoutNamedQueries(t *testing.T) {
 	// Verify the regular Merge path still works after refactoring.
 	coll := NewMCPSourceCollection()
@@ -868,4 +953,101 @@ func TestMCPSourceCollection_Merge_WithoutNamedQueries(t *testing.T) {
 	all := coll.AllSources()
 	assert.Contains(t, all, "src1")
 	assert.Empty(t, coll.GetNamedQueries())
+}
+
+func TestMergeMCPSources_IncludedExcludedServers(t *testing.T) {
+	tests := []struct {
+		name         string
+		base         basecatalog.MCPSource
+		override     basecatalog.MCPSource
+		wantIncluded []string
+		wantExcluded []string
+	}{
+		{
+			name: "override replaces includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"slack*"},
+			},
+			wantIncluded: []string{"slack*"},
+			wantExcluded: nil,
+		},
+		{
+			name: "override replaces excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"private*"},
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{"private*"},
+		},
+		{
+			name: "nil override inherits base includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID: "src",
+				// IncludedServers nil -> inherit from base
+			},
+			wantIncluded: []string{"github*"},
+			wantExcluded: nil,
+		},
+		{
+			name: "nil override inherits base excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID: "src",
+				// ExcludedServers nil -> inherit from base
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{"internal*"},
+		},
+		{
+			name: "empty slice override clears includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{}, // explicitly clear
+			},
+			wantIncluded: []string{},
+			wantExcluded: nil,
+		},
+		{
+			name: "empty slice override clears excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{}, // explicitly clear
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := mergeMCPSources(tt.base, tt.override)
+			assert.Equal(t, tt.wantIncluded, result.IncludedServers)
+			assert.Equal(t, tt.wantExcluded, result.ExcludedServers)
+		})
+	}
 }

@@ -2,9 +2,12 @@ package mcpcatalog
 
 import (
 	"maps"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 )
 
@@ -147,8 +150,8 @@ func mergeMCPSources(base, override basecatalog.MCPSource) basecatalog.MCPSource
 
 	// Merge shared fields using the common helper
 	common := basecatalog.MergeCommonSourceFields(
-		basecatalog.CommonSourceFields{Name: base.Name, Enabled: base.Enabled, Labels: base.Labels, Type: base.Type, Properties: base.Properties, Origin: base.Origin},
-		basecatalog.CommonSourceFields{Name: override.Name, Enabled: override.Enabled, Labels: override.Labels, Type: override.Type, Properties: override.Properties, Origin: override.Origin},
+		basecatalog.CommonSourceFields{Name: base.Name, Enabled: base.Enabled, Labels: base.Labels, Type: base.Type, Properties: base.Properties, Origin: base.Origin, AssetType: base.AssetType},
+		basecatalog.CommonSourceFields{Name: override.Name, Enabled: override.Enabled, Labels: override.Labels, Type: override.Type, Properties: override.Properties, Origin: override.Origin, AssetType: override.AssetType},
 	)
 	result.Name = common.Name
 	result.Enabled = common.Enabled
@@ -156,22 +159,29 @@ func mergeMCPSources(base, override basecatalog.MCPSource) basecatalog.MCPSource
 	result.Type = common.Type
 	result.Properties = common.Properties
 	result.Origin = common.Origin
+	result.AssetType = common.AssetType
+
+	if override.IncludedServers != nil {
+		result.IncludedServers = override.IncludedServers
+	}
+	if override.ExcludedServers != nil {
+		result.ExcludedServers = override.ExcludedServers
+	}
 
 	return result
 }
 
 // applyMCPDefaults applies default values to an MCPSource for fields that are not set.
 func applyMCPDefaults(source basecatalog.MCPSource) basecatalog.MCPSource {
-	// Default Enabled to true if not set
 	if source.Enabled == nil {
 		source.Enabled = apiutils.Of(true)
 	}
-
-	// Default Labels to empty slice if not set
 	if source.Labels == nil {
 		source.Labels = []string{}
 	}
-
+	if source.AssetType == nil {
+		source.AssetType = model.CATALOGASSETTYPE_MCP_SERVERS.Ptr()
+	}
 	return source
 }
 
@@ -207,4 +217,47 @@ func (msc *MCPSourceCollection) AllSources() map[string]basecatalog.MCPSource {
 	defer msc.mu.RUnlock()
 
 	return msc.merged()
+}
+
+// ByLabel returns enabled sources that have any of the labels provided. The matching
+// is case insensitive.
+//
+// If a label is "null", every source without a label is returned.
+func (msc *MCPSourceCollection) ByLabel(labels []string) []basecatalog.MCPSource {
+	msc.mu.RLock()
+	defer msc.mu.RUnlock()
+
+	labelMap := make(map[string]struct{}, len(labels))
+	for _, label := range labels {
+		labelMap[strings.ToLower(label)] = struct{}{}
+	}
+
+	matches := map[string]basecatalog.MCPSource{}
+	sources := msc.merged()
+
+	if _, hasNull := labelMap["null"]; hasNull {
+		for _, source := range sources {
+			if source.Enabled == nil || !*source.Enabled {
+				continue
+			}
+			if len(source.Labels) == 0 {
+				matches[source.ID] = source
+			}
+		}
+	}
+
+OUTER:
+	for _, source := range sources {
+		if source.Enabled == nil || !*source.Enabled {
+			continue
+		}
+		for _, label := range source.Labels {
+			if _, match := labelMap[strings.ToLower(label)]; match {
+				matches[source.ID] = source
+				continue OUTER
+			}
+		}
+	}
+
+	return slices.Collect(maps.Values(matches))
 }

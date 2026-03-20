@@ -170,6 +170,7 @@ paths:
       tags:
         - ModelCatalogService
       parameters:
+        - $ref: "#/components/parameters/assetType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/labelOrderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -2071,7 +2072,7 @@ components:
       required: false
     assetType:
       name: assetType
-      description: Filter sources by asset type.
+      description: Filter by asset type.
       schema:
         $ref: "#/components/schemas/CatalogAssetType"
       in: query

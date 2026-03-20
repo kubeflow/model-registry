@@ -15,10 +15,11 @@ on:
     paths:
       - "cmd/controller/**"
       - ".github/workflows/**"
-      - "internal/controller/**"
+      - "pkg/inferenceservice-controller/**"
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"
-      - "go.mod"
+      - "cmd/controller/go.mod"
+      - "pkg/inferenceservice-controller/go.mod"
 
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
@@ -39,16 +40,17 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
 
       - name: Clone the code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
           go-version: "1.25.7"
 
       - name: Running Tests
         run: |
-          go mod tidy
+          (cd cmd/controller && go mod tidy)
+          (cd pkg/inferenceservice-controller && go mod tidy)
           make controller/test
 
       - name: Build controller

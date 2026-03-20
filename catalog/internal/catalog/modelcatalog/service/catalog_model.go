@@ -59,10 +59,21 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 
 	attr := model.GetAttributes()
 	if model.GetID() == nil && attr != nil && attr.Name != nil {
-		existing, err := r.lookupModelByName(*attr.Name)
+		lookupName := *attr.Name
+		// When source_id is present, use namespaced name (sourceId:modelName) for uniqueness and storage.
+		// Only prefix if not already in sourceId:modelName form (avoid double-prefix; allow display names containing ":").
+		if sourceID := getSourceIDFromProperties(model); sourceID != "" {
+			prefix := sourceID + ":"
+			if !strings.HasPrefix(lookupName, prefix) {
+				namespacedName := prefix + lookupName
+				attr.Name = &namespacedName
+				lookupName = namespacedName
+			}
+		}
+		existing, err := r.lookupModelByName(lookupName)
 		if err != nil {
 			if !errors.Is(err, ErrCatalogModelNotFound) {
-				return nil, fmt.Errorf("error finding existing model named %s: %w", *attr.Name, err)
+				return nil, fmt.Errorf("error finding existing model named %s: %w", lookupName, err)
 			}
 		} else {
 			model.SetID(existing.ID)
@@ -70,6 +81,44 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 	}
 
 	return r.GenericRepository.Save(model, nil)
+}
+
+// getSourceIDFromProperties returns the source_id property value if present.
+func getSourceIDFromProperties(model models.CatalogModel) string {
+	if model.GetProperties() == nil {
+		return ""
+	}
+	for _, p := range *model.GetProperties() {
+		if p.Name == "source_id" && p.StringValue != nil {
+			return *p.StringValue
+		}
+	}
+	return ""
+}
+
+// getSourceIDFromContextProperties returns the source_id property value from DB context properties.
+func getSourceIDFromContextProperties(propertiesCtx []schema.ContextProperty) string {
+	for _, p := range propertiesCtx {
+		if p.Name == "source_id" && p.StringValue != nil {
+			return *p.StringValue
+		}
+	}
+	return ""
+}
+
+// escapeLike escapes SQL LIKE metacharacters (%, _, \) in s so it can be used safely as a literal in a LIKE pattern.
+func escapeLike(s string) string {
+	var b strings.Builder
+	for _, c := range s {
+		switch c {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+			b.WriteRune(c)
+		default:
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
 }
 
 // ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns
@@ -263,7 +312,11 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 	if listOptions.Name != nil {
 		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where(fmt.Sprintf("%s.external_id = ?", contextTable), listOptions.ExternalID)
+		extID := *listOptions.ExternalID
+		// Match both exact and namespaced (sourceId:externalId) so existing integrations
+		// that filter by external_id without source prefix still return all matching models.
+		namespacedPattern := "%:" + escapeLike(extID)
+		query = query.Where(fmt.Sprintf("(%s.external_id = ? OR %s.external_id LIKE ?)", contextTable, contextTable), extID, namespacedPattern)
 	}
 
 	if listOptions.Query != nil && *listOptions.Query != "" {
@@ -326,6 +379,17 @@ func mapCatalogModelToContext(model models.CatalogModel) schema.Context {
 			context.Name = *attrs.Name
 		}
 		context.ExternalID = attrs.ExternalID
+		// When source_id is present, namespace external_id (sourceId:externalId) so the same
+		// model in multiple sources does not violate UNIQUE(external_id) on Context.
+		if context.ExternalID != nil && *context.ExternalID != "" {
+			if sourceID := getSourceIDFromProperties(model); sourceID != "" {
+				prefix := sourceID + ":"
+				if !strings.HasPrefix(*context.ExternalID, prefix) {
+					namespacedExtID := prefix + *context.ExternalID
+					context.ExternalID = &namespacedExtID
+				}
+			}
+		}
 		if attrs.CreateTimeSinceEpoch != nil {
 			context.CreateTimeSinceEpoch = *attrs.CreateTimeSinceEpoch
 		}
@@ -356,12 +420,23 @@ func mapCatalogModelToContextProperties(model models.CatalogModel, contextID int
 }
 
 func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.ContextProperty) models.CatalogModel {
+	externalID := modelCtx.ExternalID
+	// When stored external_id is namespaced (sourceId:externalId), strip prefix for display/API.
+	if externalID != nil && *externalID != "" {
+		if sourceID := getSourceIDFromContextProperties(propertiesCtx); sourceID != "" {
+			prefix := sourceID + ":"
+			if strings.HasPrefix(*externalID, prefix) {
+				displayExtID := (*externalID)[len(prefix):]
+				externalID = &displayExtID
+			}
+		}
+	}
 	catalogModel := &models.CatalogModelImpl{
 		ID:     &modelCtx.ID,
 		TypeID: &modelCtx.TypeID,
 		Attributes: &models.CatalogModelAttributes{
 			Name:                     &modelCtx.Name,
-			ExternalID:               modelCtx.ExternalID,
+			ExternalID:               externalID,
 			CreateTimeSinceEpoch:     &modelCtx.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &modelCtx.LastUpdateTimeSinceEpoch,
 		},
@@ -395,7 +470,7 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 
 	// Handle NAME ordering specially (catalog-specific)
 	if orderBy == "NAME" {
-		return catpagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return catpagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize(), true)
 	}
 
 	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
@@ -420,11 +495,13 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 	nextPageToken := listOptions.GetNextPageToken()
 	if nextPageToken != "" {
 		// Parse the cursor from the token
-		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
+		cursor, err := scopes.DecodeCursor(nextPageToken)
+		if err != nil {
+			_ = query.AddError(fmt.Errorf("invalid nextPageToken: %w", err))
+		} else {
 			// Apply WHERE clause for cursor-based pagination with ACCURACY
 			query = r.applyCursorPagination(query, cursor, sortColumn, sortOrder)
 		}
-		// If token parsing fails, fall back to no cursor (first page)
 	}
 
 	// Apply pagination limit
@@ -459,7 +536,11 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 func (r *CatalogModelRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.CatalogModelListOptions) string {
 	// Handle NAME ordering (catalog-specific)
 	if listOptions.GetOrderBy() == "NAME" {
-		return catpagination.CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+		displayName := lastItem.Name
+		if _, after, ok := strings.Cut(lastItem.Name, ":"); ok {
+			displayName = after
+		}
+		return catpagination.CreateNamePaginationToken(lastItem.ID, &displayName)
 	}
 
 	sortValueQuery, column := r.sortValueQuery(listOptions)

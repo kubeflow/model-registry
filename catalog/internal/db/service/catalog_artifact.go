@@ -164,7 +164,7 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	// Handle NAME ordering specially (catalog-specific) to avoid string-to-integer cast issues
 	if orderBy == "NAME" {
 		artifactTable := utils.GetTableName(query, &schema.Artifact{})
-		query = catpagination.ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
+		query = catpagination.ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize, false)
 	} else if _, isAllowedColumn := catpagination.CatalogOrderByColumns[orderBy]; isAllowedColumn {
 		// Handle standard allowed columns (ID, CREATE_TIME, LAST_UPDATE_TIME)
 		pagination := &dbmodels.Pagination{
@@ -383,7 +383,7 @@ func (r *CatalogArtifactRepositoryImpl) applyCustomOrdering(query *gorm.DB, list
 
 	// Handle NAME ordering specially (catalog-specific)
 	if orderBy == "NAME" {
-		return catpagination.ApplyNameOrdering(query, artifactTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize()), nil
+		return catpagination.ApplyNameOrdering(query, artifactTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize(), false), nil
 	}
 
 	subquery, sortColumn, err := r.sortValueQuery(listOptions, artifactTable+".id")

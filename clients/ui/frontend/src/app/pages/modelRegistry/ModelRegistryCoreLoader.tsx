@@ -5,16 +5,17 @@ import {
   ProjectObjectType,
   typedEmptyImage,
   TitleWithIcon,
-  WhosMyAdministrator,
-  KubeflowDocs,
   ApplicationsPage,
 } from 'mod-arch-shared';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
+import { isRegistryUnavailable } from '~/app/types';
+import AdminHelpAction from './screens/components/AdminHelpAction';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';
+import UnavailableModelRegistry from './screens/UnavailableModelRegistry';
 import { modelRegistryUrl } from './screens/routeUtils';
 
 type ApplicationPageProps = React.ComponentProps<typeof ApplicationsPage>;
@@ -78,7 +79,7 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
           headerIcon={() => (
             <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
           )}
-          customAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
+          customAction={<AdminHelpAction />}
         />
       ),
       headerContent: null,
@@ -86,18 +87,36 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
   } else if (modelRegistry) {
     const foundModelRegistry = modelRegistries.find((mr) => mr.name === modelRegistry);
     if (foundModelRegistry) {
-      // Render the content
-      return (
-        <ModelRegistryContextProvider modelRegistryName={modelRegistry}>
-          <Outlet />
-        </ModelRegistryContextProvider>
-      );
+      if (isRegistryUnavailable(foundModelRegistry)) {
+        renderStateProps = {
+          empty: true,
+          emptyStatePage: (
+            <UnavailableModelRegistry
+              registryDisplayName={foundModelRegistry.displayName || foundModelRegistry.name}
+            />
+          ),
+          headerContent: (
+            <ModelRegistrySelectorNavigator
+              getRedirectPath={(modelRegistryName) => modelRegistryUrl(modelRegistryName)}
+              hasError
+            />
+          ),
+        };
+      } else {
+        // Render the content
+        return (
+          <ModelRegistryContextProvider modelRegistryName={modelRegistry}>
+            <Outlet />
+          </ModelRegistryContextProvider>
+        );
+      }
+    } else {
+      // They ended up on a non-valid project path
+      renderStateProps = {
+        empty: true,
+        emptyStatePage: <InvalidModelRegistry modelRegistry={modelRegistry} />,
+      };
     }
-    // They ended up on a non-valid project path
-    renderStateProps = {
-      empty: true,
-      emptyStatePage: <InvalidModelRegistry modelRegistry={modelRegistry} />,
-    };
   } else {
     // Redirect the namespace suffix into the URL
     const redirectModelRegistry = preferredModelRegistry ?? modelRegistries[0];

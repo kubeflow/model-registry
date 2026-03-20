@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -14,33 +13,52 @@ import (
 // MCPCatalogServiceAPIService is a service that implements the logic for the MCPCatalogServiceAPIServicer
 type MCPCatalogServiceAPIService struct {
 	mcpProvider catalog.MCPProvider
+	mcpSources  *catalog.MCPSourceCollection
 }
 
 var _ MCPCatalogServiceAPIServicer = &MCPCatalogServiceAPIService{}
 
 // NewMCPCatalogServiceAPIService creates a default api service
-func NewMCPCatalogServiceAPIService(mcpProvider catalog.MCPProvider) MCPCatalogServiceAPIServicer {
+func NewMCPCatalogServiceAPIService(mcpProvider catalog.MCPProvider, mcpSources *catalog.MCPSourceCollection) MCPCatalogServiceAPIServicer {
 	return &MCPCatalogServiceAPIService{
 		mcpProvider: mcpProvider,
+		mcpSources:  mcpSources,
 	}
 }
 
 // FindMCPServers - List MCP servers.
 func (m *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context, name string, q string, sourceLabel []string, filterQuery string, namedQuery string, includeTools bool, toolLimit int32, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	pageSizeInt := int32(10)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
 
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
+	// Clean up empty sourceLabel values
+	if len(sourceLabel) == 1 && sourceLabel[0] == "" {
+		sourceLabel = nil
+	}
+
+	// Convert sourceLabels to sourceIDs
+	var sourceIDs []string
+	if len(sourceLabel) > 0 && m.mcpSources != nil {
+		sources := m.mcpSources.ByLabel(sourceLabel)
+		if len(sources) == 0 {
+			return Response(http.StatusOK, model.MCPServerList{
+				Items:    []model.MCPServer{},
+				PageSize: pageSizeInt,
+			}), nil
 		}
-		pageSizeInt = int32(parsed)
+		sourceIDs = make([]string, len(sources))
+		for i, source := range sources {
+			sourceIDs[i] = source.ID
+		}
 	}
 
 	// Convert parameters to internal format
 	params := catalog.ListMCPServersParams{
 		Name:          name,
 		Query:         q,
+		SourceIDs:     sourceIDs,
 		FilterQuery:   filterQuery,
 		NamedQuery:    namedQuery,
 		IncludeTools:  includeTools,
@@ -84,14 +102,9 @@ func (m *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID
 
 // FindMCPServerTools - List MCP server tools.
 func (m *MCPCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, serverID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	// Convert parameters to internal format

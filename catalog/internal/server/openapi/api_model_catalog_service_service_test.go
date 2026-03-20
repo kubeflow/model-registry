@@ -305,7 +305,7 @@ func TestFindModels(t *testing.T) {
 				models: tc.mockModels,
 			}
 
-			service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.FindModels(
 				context.Background(),
@@ -339,7 +339,9 @@ func TestFindModels(t *testing.T) {
 			assert.Equal(t, tc.expectedModelList.Size, modelList.Size)
 			assert.Equal(t, tc.expectedModelList.PageSize, modelList.PageSize)
 			if !assert.Equal(t, tc.expectedModelList.NextPageToken, modelList.NextPageToken) && tc.expectedModelList.NextPageToken != "" {
-				assert.Equal(t, decodeStringCursor(tc.expectedModelList.NextPageToken), decodeStringCursor(modelList.NextPageToken))
+				expectedCursor, _ := decodeStringCursor(tc.expectedModelList.NextPageToken)
+				actualCursor, _ := decodeStringCursor(modelList.NextPageToken)
+				assert.Equal(t, expectedCursor, actualCursor)
 			}
 
 			// Deep equality check for items
@@ -748,7 +750,7 @@ func TestFindSources(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.catalogs)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, nil, sourceLabels, nil)
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -847,6 +849,7 @@ func TestFindLabels(t *testing.T) {
 	testCases := []struct {
 		name            string
 		labels          []map[string]any
+		assetType       model.CatalogAssetType
 		pageSize        string
 		orderBy         string
 		sortOrder       model.SortOrder
@@ -1034,6 +1037,84 @@ func TestFindLabels(t *testing.T) {
 			expectedItems:   3,
 			expectNextToken: false,
 		},
+		{
+			name: "Default assetType returns model labels",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       "",
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "Explicit assetType=models",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MODELS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "assetType=mcp_servers",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label-1", "assetType": "mcp_servers"},
+				{"name": "mcp-label-2", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "Invalid assetType returns 400",
+			labels: []map[string]any{
+				{"name": "label1"},
+			},
+			assetType:      model.CatalogAssetType("invalid"),
+			pageSize:       "10",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Null label with assetType filtering",
+			labels: []map[string]any{
+				{"name": nil, "displayName": "Community models"},
+				{"name": "mcp-label", "displayName": "MCP label", "assetType": "mcp_servers"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    1,
+			expectedItems:   1,
+			expectNextToken: false,
+		},
+		{
+			name: "Empty result when no labels match assetType",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    0,
+			expectedItems:   0,
+			expectNextToken: false,
+		},
 	}
 
 	// Run test cases
@@ -1044,11 +1125,12 @@ func TestFindLabels(t *testing.T) {
 			labelCollection := catalog.NewLabelCollection()
 			labelCollection.Merge("test-source", tc.labels)
 
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, labelCollection, nil)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, nil, labelCollection, nil)
 
 			// Call FindLabels
 			resp, err := service.FindLabels(
 				context.Background(),
+				tc.assetType,
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,
@@ -1419,7 +1501,7 @@ func TestGetModel(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -1530,7 +1612,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
@@ -1589,7 +1671,7 @@ func TestFindModelsFilterOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.FindModelsFilterOptions(context.Background())
 
@@ -1749,7 +1831,7 @@ func TestGetAllModelPerformanceArtifacts(t *testing.T) {
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),
@@ -1822,7 +1904,7 @@ func TestFindModelsRecommended(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test recommended=true with default parameters
 	resp, err := service.FindModels(
@@ -1871,7 +1953,7 @@ func TestFindModelsRecommendedWithCustomParams(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test with custom latency property and targetRPS
 	resp, err := service.FindModels(
@@ -1920,7 +2002,7 @@ func TestFindModelsRecommendedIgnoresOrderBy(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test that orderBy is ignored when recommended=true
 	resp, err := service.FindModels(
@@ -2028,7 +2110,7 @@ func TestGetAllModelPerformanceArtifactsWithConfigurableProperties(t *testing.T)
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),

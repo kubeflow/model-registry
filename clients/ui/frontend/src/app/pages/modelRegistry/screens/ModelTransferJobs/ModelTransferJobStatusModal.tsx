@@ -14,13 +14,22 @@ import {
   TabContentBody,
   Tabs,
   TabTitleText,
+  Spinner,
 } from '@patternfly/react-core';
 import {
+  useFetchState,
+  FetchStateCallbackPromise,
+  NotReadyError,
+  POLL_INTERVAL,
+} from 'mod-arch-core';
+import {
   ModelTransferJob,
+  ModelTransferJobEvent,
   ModelTransferJobStatus,
   ModelTransferJobUploadIntent,
 } from '~/app/types';
 import EventLog from '~/app/shared/components/EventLog';
+import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 import { getStatusLabel } from './ModelTransferJobTableRow';
 
 type ModelTransferJobStatusModalProps = {
@@ -36,6 +45,29 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
 }) => {
   const [activeTabKey, setActiveTabKey] = React.useState(0);
   const statusInfo = getStatusLabel(job.status);
+  const { api, apiAvailable } = useModelRegistryAPI();
+
+  // Determine if we should poll for event updates (only for active jobs)
+  const shouldPollEvents =
+    isOpen &&
+    (job.status === ModelTransferJobStatus.PENDING ||
+      job.status === ModelTransferJobStatus.RUNNING);
+
+  // Fetch events with useFetchState - memoized by job name
+  const fetchEvents = React.useCallback<FetchStateCallbackPromise<ModelTransferJobEvent[]>>(
+    (opts) => {
+      if (!isOpen || !apiAvailable || !job.name || !job.namespace) {
+        return Promise.reject(new NotReadyError('Modal is closed or API not available'));
+      }
+      return api.getModelTransferJobEvents(opts, job.name, job.namespace);
+    },
+    [isOpen, apiAvailable, api, job.name, job.namespace],
+  );
+
+  const [events, eventsLoaded, eventsLoadError] = useFetchState(fetchEvents, [], {
+    initialPromisePurity: true,
+    refreshRate: shouldPollEvents ? POLL_INTERVAL : undefined,
+  });
 
   if (!isOpen) {
     return null;
@@ -84,7 +116,17 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
           <Tab eventKey={0} title={<TabTitleText>Event log</TabTitleText>}>
             <TabContent id="event-log-tab" activeKey={activeTabKey} eventKey={0}>
               <TabContentBody hasPadding>
-                <EventLog events={job.events ?? []} data-testid="transfer-job-event-log" />
+                {!eventsLoaded ? (
+                  <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+                    <Spinner size="lg" />
+                  </Flex>
+                ) : eventsLoadError ? (
+                  <Alert variant="danger" isInline title="Failed to load events">
+                    {eventsLoadError.message}
+                  </Alert>
+                ) : (
+                  <EventLog events={events} data-testid="transfer-job-event-log" />
+                )}
               </TabContentBody>
             </TabContent>
           </Tab>

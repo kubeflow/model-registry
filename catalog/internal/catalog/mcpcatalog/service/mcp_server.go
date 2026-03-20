@@ -335,7 +335,12 @@ func applyMCPServerListFilters(query *gorm.DB, listOptions *models.MCPServerList
 	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 
 	if listOptions.Name != nil {
-		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
+		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
+		query = query.Where(
+			fmt.Sprintf("EXISTS (SELECT 1 FROM %s cp WHERE cp.context_id = %s.id AND cp.name = 'base_name' AND cp.string_value LIKE ?)",
+				propertyTable, contextTable),
+			listOptions.Name,
+		)
 	}
 
 	if listOptions.Query != nil && *listOptions.Query != "" {
@@ -467,7 +472,7 @@ func (r *MCPServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOption
 
 	// Handle NAME ordering
 	if orderBy == "NAME" {
-		return pagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return pagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize(), false)
 	}
 
 	// Fall back to standard pagination

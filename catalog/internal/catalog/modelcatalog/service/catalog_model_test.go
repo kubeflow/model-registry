@@ -171,6 +171,189 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.ErrorIs(t, err, ErrCatalogModelNotFound)
 	})
 
+	t.Run("TestSameNameDifferentSources", func(t *testing.T) {
+		// Allow multiple models with the same display name as long as they have different sources.
+		sharedName := "shared-model-name"
+		modelA := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of("ext-a"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-a")},
+			},
+		}
+		modelB := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of("ext-b"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-b")},
+			},
+		}
+
+		savedA, err := repo.Save(modelA)
+		require.NoError(t, err)
+		require.NotNil(t, savedA.GetID())
+
+		savedB, err := repo.Save(modelB)
+		require.NoError(t, err)
+		require.NotNil(t, savedB.GetID())
+
+		assert.NotEqual(t, *savedA.GetID(), *savedB.GetID(), "same display name from different sources must be distinct rows")
+
+		// Lookup by namespaced name returns the correct model
+		retrievedA, err := repo.GetByName("source-a:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *savedA.GetID(), *retrievedA.GetID())
+		assert.Equal(t, "source-a:"+sharedName, *retrievedA.GetAttributes().Name)
+
+		retrievedB, err := repo.GetByName("source-b:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *savedB.GetID(), *retrievedB.GetID())
+		assert.Equal(t, "source-b:"+sharedName, *retrievedB.GetAttributes().Name)
+	})
+
+	t.Run("TestSameModelAndExternalIDAcrossSources", func(t *testing.T) {
+		// Same display name and same external_id (e.g. same HF model in two sources) can both be saved.
+		// external_id is namespaced per source in the DB to satisfy UNIQUE(external_id).
+		sharedName := "Qwen/Qwen3.5-9B"
+		sharedExternalID := "Qwen/Qwen3.5-9B"
+		modelSource1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models")},
+			},
+		}
+		modelSource2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models_2")},
+			},
+		}
+
+		saved1, err := repo.Save(modelSource1)
+		require.NoError(t, err)
+		require.NotNil(t, saved1.GetID())
+
+		saved2, err := repo.Save(modelSource2)
+		require.NoError(t, err)
+		require.NotNil(t, saved2.GetID())
+
+		assert.NotEqual(t, *saved1.GetID(), *saved2.GetID(), "same model from different sources must be distinct rows")
+
+		// Both stored with namespaced name
+		assert.Equal(t, "hugging_face_models:"+sharedName, *saved1.GetAttributes().Name)
+		assert.Equal(t, "hugging_face_models_2:"+sharedName, *saved2.GetAttributes().Name)
+		// ExternalID returned in display form (no source prefix)
+		require.NotNil(t, saved1.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved1.GetAttributes().ExternalID)
+		require.NotNil(t, saved2.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved2.GetAttributes().ExternalID)
+
+		// GetByName with namespaced name returns the correct model
+		retrieved1, err := repo.GetByName("hugging_face_models:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved1.GetID(), *retrieved1.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved1.GetAttributes().ExternalID)
+
+		retrieved2, err := repo.GetByName("hugging_face_models_2:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved2.GetID(), *retrieved2.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved2.GetAttributes().ExternalID)
+	})
+
+	t.Run("TestListByExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// When external_id is namespaced in DB (sourceId:externalId), listing by raw external_id
+		// should return all models that match across any source (backward compatibility).
+		sharedExtID := "shared-ext-list-test"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		listOptions := models.CatalogModelListOptions{
+			ExternalID: &sharedExtID,
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filtering by raw external_id should return all models from all sources")
+		extIDs := make([]string, len(result.Items))
+		for i, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			extIDs[i] = *m.GetAttributes().ExternalID
+		}
+		assert.ElementsMatch(t, extIDs, []string{sharedExtID, sharedExtID})
+	})
+
+	t.Run("TestFilterQueryExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// filterQuery externalId = "value" should match both exact and namespaced stored values.
+		sharedExtID := "filterquery-ext-shared"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		filterQuery := `externalId = "` + sharedExtID + `"`
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: &filterQuery,
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filterQuery externalId = value should return all models from all sources")
+		for _, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			assert.Equal(t, sharedExtID, *m.GetAttributes().ExternalID)
+		}
+	})
+
 	t.Run("TestUpdateWithID", func(t *testing.T) {
 		// First create a model
 		catalogModel := &models.CatalogModelImpl{
@@ -647,27 +830,38 @@ func TestCatalogModelRepository(t *testing.T) {
 	})
 
 	t.Run("TestNameOrdering", func(t *testing.T) {
-		// Create test models with specific names for ordering
-		testModels := []string{
-			"zebra-model",
-			"alpha-model",
-			"beta-model",
-			"gamma-model",
-			"delta-model",
+		// Create models from two different sources so stored names have source prefixes.
+		// This validates that sorting is by display name (after the colon) not the raw stored name.
+		// Without the fix, "source-z:alpha-model" would sort after "source-a:zebra-model".
+		type modelSpec struct {
+			displayName string
+			sourceID    string
+		}
+		testModels := []modelSpec{
+			// source-z prefix ensures raw-name sort would put alpha/beta last
+			{displayName: "alpha-model", sourceID: "source-z"},
+			{displayName: "beta-model", sourceID: "source-z"},
+			// source-a prefix ensures raw-name sort would put gamma/zebra first
+			{displayName: "gamma-model", sourceID: "source-a"},
+			{displayName: "zebra-model", sourceID: "source-a"},
+			{displayName: "delta-model", sourceID: "source-m"},
+			// colon in display name: stored as "source-a:epsilon:v2", display name is "epsilon:v2"
+			{displayName: "epsilon:v2", sourceID: "source-a"},
 		}
 
-		var savedModels []models.CatalogModel
-		for _, name := range testModels {
+		for _, spec := range testModels {
 			catalogModel := &models.CatalogModelImpl{
 				Attributes: &models.CatalogModelAttributes{
-					Name:       apiutils.Of(name),
-					ExternalID: apiutils.Of(name + "-ext"),
+					Name:       apiutils.Of(spec.displayName),
+					ExternalID: apiutils.Of(spec.displayName + "-ord-ext"),
+				},
+				Properties: &[]dbmodels.Properties{
+					{Name: "source_id", StringValue: apiutils.Of(spec.sourceID)},
 				},
 			}
 
-			savedModel, err := repo.Save(catalogModel)
+			_, err := repo.Save(catalogModel)
 			require.NoError(t, err)
-			savedModels = append(savedModels, savedModel)
 		}
 
 		// Test NAME ordering ASC
@@ -681,35 +875,48 @@ func TestCatalogModelRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 
-		// Extract our test model names from results
+		// Extract our test model display names from results (repo returns stored namespaced names)
+		displayNames := map[string]string{
+			"source-z:alpha-model": "alpha-model",
+			"source-z:beta-model":  "beta-model",
+			"source-a:gamma-model": "gamma-model",
+			"source-a:zebra-model": "zebra-model",
+			"source-m:delta-model": "delta-model",
+			// display name contains a colon: stored name is "source-a:epsilon:v2"
+			"source-a:epsilon:v2": "epsilon:v2",
+		}
 		var foundNames []string
 		for _, model := range result.Items {
-			name := *model.GetAttributes().Name
-			if name == "zebra-model" || name == "alpha-model" || name == "beta-model" ||
-				name == "gamma-model" || name == "delta-model" {
-				foundNames = append(foundNames, name)
+			storedName := *model.GetAttributes().Name
+			if displayName, ok := displayNames[storedName]; ok {
+				foundNames = append(foundNames, displayName)
 			}
 		}
 
 		// Verify we found all our test models
-		require.GreaterOrEqual(t, len(foundNames), 5, "Should find all test models")
+		require.GreaterOrEqual(t, len(foundNames), 6, "Should find all test models")
 
-		// Verify ASC ordering: alpha < beta < delta < gamma < zebra
+		// Verify ASC ordering by display name: alpha < beta < delta < epsilon:v2 < gamma < zebra
+		// Without the fix, source-z models (alpha, beta) would appear after source-a models (gamma, zebra).
+		// Also verifies multi-colon display names ("epsilon:v2") sort correctly.
 		alphaIdx := findIndex(foundNames, "alpha-model")
 		betaIdx := findIndex(foundNames, "beta-model")
 		deltaIdx := findIndex(foundNames, "delta-model")
+		epsilonIdx := findIndex(foundNames, "epsilon:v2")
 		gammaIdx := findIndex(foundNames, "gamma-model")
 		zebraIdx := findIndex(foundNames, "zebra-model")
 
 		require.NotEqual(t, -1, alphaIdx, "alpha-model not found")
 		require.NotEqual(t, -1, betaIdx, "beta-model not found")
 		require.NotEqual(t, -1, deltaIdx, "delta-model not found")
+		require.NotEqual(t, -1, epsilonIdx, "epsilon:v2 not found")
 		require.NotEqual(t, -1, gammaIdx, "gamma-model not found")
 		require.NotEqual(t, -1, zebraIdx, "zebra-model not found")
 
 		assert.Less(t, alphaIdx, betaIdx, "alpha should come before beta in ASC")
 		assert.Less(t, betaIdx, deltaIdx, "beta should come before delta in ASC")
-		assert.Less(t, deltaIdx, gammaIdx, "delta should come before gamma in ASC")
+		assert.Less(t, deltaIdx, epsilonIdx, "delta should come before epsilon:v2 in ASC")
+		assert.Less(t, epsilonIdx, gammaIdx, "epsilon:v2 should come before gamma in ASC")
 		assert.Less(t, gammaIdx, zebraIdx, "gamma should come before zebra in ASC")
 
 		// Test NAME ordering DESC
@@ -726,22 +933,23 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Extract our test model names from DESC results
 		foundNames = []string{}
 		for _, model := range result.Items {
-			name := *model.GetAttributes().Name
-			if name == "zebra-model" || name == "alpha-model" || name == "beta-model" ||
-				name == "gamma-model" || name == "delta-model" {
-				foundNames = append(foundNames, name)
+			storedName := *model.GetAttributes().Name
+			if displayName, ok := displayNames[storedName]; ok {
+				foundNames = append(foundNames, displayName)
 			}
 		}
 
-		// Verify DESC ordering: zebra > gamma > delta > beta > alpha
+		// Verify DESC ordering: zebra > gamma > epsilon:v2 > delta > beta > alpha
 		alphaIdxDesc := findIndex(foundNames, "alpha-model")
 		betaIdxDesc := findIndex(foundNames, "beta-model")
 		deltaIdxDesc := findIndex(foundNames, "delta-model")
+		epsilonIdxDesc := findIndex(foundNames, "epsilon:v2")
 		gammaIdxDesc := findIndex(foundNames, "gamma-model")
 		zebraIdxDesc := findIndex(foundNames, "zebra-model")
 
 		assert.Less(t, zebraIdxDesc, gammaIdxDesc, "zebra should come before gamma in DESC")
-		assert.Less(t, gammaIdxDesc, deltaIdxDesc, "gamma should come before delta in DESC")
+		assert.Less(t, gammaIdxDesc, epsilonIdxDesc, "gamma should come before epsilon:v2 in DESC")
+		assert.Less(t, epsilonIdxDesc, deltaIdxDesc, "epsilon:v2 should come before delta in DESC")
 		assert.Less(t, deltaIdxDesc, betaIdxDesc, "delta should come before beta in DESC")
 		assert.Less(t, betaIdxDesc, alphaIdxDesc, "beta should come before alpha in DESC")
 	})
@@ -840,6 +1048,86 @@ func TestCatalogModelRepository(t *testing.T) {
 		}
 	})
 
+	t.Run("TestNameOrderingMultiColonPagination", func(t *testing.T) {
+		// Regression test: display names containing a colon (e.g. "llama:7b" stored as "source:llama:7b")
+		// caused cursor-based pagination to break because SUBSTRING(name FROM STRPOS(name, ':') + 1)
+		// returns everything after the first colon (e.g. "llama:7b"), while strings.Cut does the same,
+		// keeping cursor values consistent with ORDER BY values.
+		multiColonModels := []struct {
+			displayName string
+			sourceID    string
+		}{
+			{"mc-model:aa", "source-x"},
+			{"mc-model:bb", "source-x"},
+			{"mc-model:cc", "source-x"},
+			{"mc-model:dd", "source-x"},
+		}
+
+		for _, spec := range multiColonModels {
+			catalogModel := &models.CatalogModelImpl{
+				Attributes: &models.CatalogModelAttributes{
+					Name:       apiutils.Of(spec.displayName),
+					ExternalID: apiutils.Of(spec.displayName + "-mc-ext"),
+				},
+				Properties: &[]dbmodels.Properties{
+					{Name: "source_id", StringValue: apiutils.Of(spec.sourceID)},
+				},
+			}
+			_, err := repo.Save(catalogModel)
+			require.NoError(t, err)
+		}
+
+		// Paginate through all 4 models 2 at a time; verify ordering is stable across pages.
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("ASC"),
+				PageSize:  apiutils.Of(int32(2)),
+			},
+		}
+
+		var allFound []string
+		currentToken := (*string)(nil)
+		for range 10 {
+			if currentToken != nil {
+				listOptions.Pagination.NextPageToken = currentToken
+			}
+			page, err := repo.List(listOptions)
+			require.NoError(t, err)
+
+			for _, model := range page.Items {
+				name := *model.GetAttributes().Name
+				if strings.HasPrefix(name, "source-x:mc-model:") {
+					allFound = append(allFound, name)
+				}
+			}
+
+			if page.NextPageToken == "" || len(allFound) >= 4 {
+				break
+			}
+			currentToken = &page.NextPageToken
+		}
+
+		require.GreaterOrEqual(t, len(allFound), 4, "Should find all multi-colon models")
+
+		// Verify ASC ordering is preserved across pages
+		expectedOrder := []string{
+			"source-x:mc-model:aa",
+			"source-x:mc-model:bb",
+			"source-x:mc-model:cc",
+			"source-x:mc-model:dd",
+		}
+		lastIndex := -1
+		for _, expected := range expectedOrder {
+			idx := findIndex(allFound, expected)
+			assert.NotEqual(t, -1, idx, "Should find %s", expected)
+			if idx != -1 {
+				assert.Greater(t, idx, lastIndex, "%s should appear after previous models in ASC order", expected)
+				lastIndex = idx
+			}
+		}
+	})
+
 	t.Run("TestDeleteBySource", func(t *testing.T) {
 		// Setup: Create models with different source IDs
 		sourceID1 := "test_source_1"
@@ -905,7 +1193,8 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify model from source2 still exists
 		retrieved, err := repo.GetByID(*saved3.GetID())
 		require.NoError(t, err)
-		assert.Equal(t, "model-source-2", *retrieved.GetAttributes().Name)
+		// Repository returns stored name (namespaced: sourceId:modelName)
+		assert.Equal(t, sourceID2+":model-source-2", *retrieved.GetAttributes().Name)
 	})
 
 	t.Run("TestDeleteByID", func(t *testing.T) {

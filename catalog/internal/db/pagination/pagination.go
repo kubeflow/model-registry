@@ -37,30 +37,42 @@ func CreateNamePaginationToken(entityID int32, name *string) string {
 //   - sortOrder: The sort order ("ASC" or "DESC")
 //   - nextPageToken: Optional pagination token for cursor-based pagination
 //   - pageSize: The page size (0 means no limit)
+//   - stripSourcePrefix: When true, strips the "sourceId:" prefix before sorting.
+//     Only models use prefixed names; artifacts and MCP servers do not.
 //
 // Returns the modified query with NAME ordering and pagination applied.
-func ApplyNameOrdering(query *gorm.DB, tableName string, sortOrder string, nextPageToken string, pageSize int32) *gorm.DB {
+func ApplyNameOrdering(query *gorm.DB, tableName string, sortOrder string, nextPageToken string, pageSize int32, stripSourcePrefix bool) *gorm.DB {
 	// Normalize sort order
 	order := "ASC"
 	if sortOrder == "DESC" {
 		order = "DESC"
 	}
 
-	// Apply name-based ordering with ID as tie-breaker
-	query = query.Order(fmt.Sprintf("%s.name %s, %s.id ASC", tableName, order, tableName))
+	var nameExpr string
+	if stripSourcePrefix {
+		nameExpr = fmt.Sprintf("COALESCE(NULLIF(SUBSTRING(%s.name FROM STRPOS(%s.name, ':') + 1), ''), %s.name)", tableName, tableName, tableName)
+	} else {
+		nameExpr = fmt.Sprintf("%s.name", tableName)
+	}
+	query = query.Order(fmt.Sprintf("%s %s, %s.id ASC", nameExpr, order, tableName))
 
 	// Handle cursor-based pagination for NAME
 	if nextPageToken != "" {
-		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
-			// Cursor pagination based on name (string comparison)
-			cmp := ">"
-			if order == "DESC" {
-				cmp = "<"
-			}
-			// Use proper string comparison with name and ID as tie-breaker
-			query = query.Where(fmt.Sprintf("(%s.name %s ? OR (%s.name = ? AND %s.id > ?))", tableName, cmp, tableName, tableName),
-				cursor.Value, cursor.Value, cursor.ID)
+		cursor, err := scopes.DecodeCursor(nextPageToken)
+		if err != nil {
+			_ = query.AddError(fmt.Errorf("invalid nextPageToken: %w", err))
+			return query
 		}
+		// Cursor pagination based on display name (string comparison).
+		// cursor.Value holds the display name (after the colon prefix).
+		cmp := ">"
+		if order == "DESC" {
+			cmp = "<"
+		}
+		// Use proper string comparison with display name and ID as tie-breaker
+		query = query.Where(
+			fmt.Sprintf("(%s %s ? OR (%s = ? AND %s.id > ?))", nameExpr, cmp, nameExpr, tableName),
+			cursor.Value, cursor.Value, cursor.ID)
 	}
 
 	// Apply pagination limit

@@ -196,6 +196,126 @@ func TestMCPLoaderBasicLoad(t *testing.T) {
 	assert.Equal(t, "test-server@1.0.0:test-tool", *toolAttrs.Name)
 }
 
+func TestMCPLoaderToolAccessTypeAndParameters(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	serversFile := filepath.Join(tmpDir, "servers.yaml")
+	err := os.WriteFile(serversFile, []byte(`mcp_servers:
+  - name: "jira-mcp"
+    version: "1.0.0"
+    tools:
+      - name: "search_issues"
+        description: "Search issues using JQL"
+        accessType: read_only
+        parameters:
+          - name: jql
+            type: string
+            description: "JQL query"
+            required: true
+      - name: "create_issue"
+        description: "Create a new issue"
+        accessType: read_write
+        parameters:
+          - name: project
+            type: string
+            required: true
+          - name: summary
+            type: string
+            required: true
+`), 0644)
+	require.NoError(t, err)
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err = os.WriteFile(sourcesFile, []byte(`mcp_catalogs:
+  - name: "Test MCP Catalog"
+    id: test_mcp_catalog
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: `+serversFile+`
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+	ctx := context.Background()
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	baseLoader.SetLeader(true)
+	leaderDone := make(chan error, 1)
+	go func() {
+		leaderDone <- loader.PerformLeaderOperations(ctx, mapset.NewSet[string]())
+	}()
+	select {
+	case err := <-leaderDone:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for leader operations")
+	}
+	baseLoader.WaitForInflightWrites(5 * time.Second)
+
+	server, err := services.MCPServerRepository.GetByNameAndVersion("jira-mcp", "1.0.0")
+	require.NoError(t, err)
+	require.NotNil(t, server.GetID())
+
+	tools, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
+	require.NoError(t, err)
+	require.Len(t, tools, 2)
+
+	// Build a map for easy lookup
+	toolByName := make(map[string]mcpmodels.MCPServerTool)
+	for _, tool := range tools {
+		attrs := tool.GetAttributes()
+		require.NotNil(t, attrs)
+		toolByName[*attrs.Name] = tool
+	}
+
+	// search_issues should have accessType=read_only and 1 parameter
+	searchTool := toolByName["jira-mcp@1.0.0:search_issues"]
+	require.NotNil(t, searchTool, "search_issues tool should exist")
+	searchProps := searchTool.GetProperties()
+	require.NotNil(t, searchProps)
+	foundAccessType := false
+	foundParameters := false
+	for _, prop := range *searchProps {
+		if prop.Name == "accessType" {
+			assert.Equal(t, "read_only", *prop.StringValue)
+			foundAccessType = true
+		}
+		if prop.Name == "parameters" {
+			assert.Contains(t, *prop.StringValue, "jql")
+			foundParameters = true
+		}
+	}
+	assert.True(t, foundAccessType, "search_issues should have accessType property")
+	assert.True(t, foundParameters, "search_issues should have parameters property")
+
+	// create_issue should have accessType=read_write and 2 parameters
+	createTool := toolByName["jira-mcp@1.0.0:create_issue"]
+	require.NotNil(t, createTool, "create_issue tool should exist")
+	createProps := createTool.GetProperties()
+	require.NotNil(t, createProps)
+	foundAccessType = false
+	foundParameters = false
+	for _, prop := range *createProps {
+		if prop.Name == "accessType" {
+			assert.Equal(t, "read_write", *prop.StringValue)
+			foundAccessType = true
+		}
+		if prop.Name == "parameters" {
+			assert.Contains(t, *prop.StringValue, "project")
+			assert.Contains(t, *prop.StringValue, "summary")
+			foundParameters = true
+		}
+	}
+	assert.True(t, foundAccessType, "create_issue should have accessType property")
+	assert.True(t, foundParameters, "create_issue should have parameters property")
+}
+
 func TestMCPLoaderDisabledSource(t *testing.T) {
 	_, services, cleanup := setupMCPLoaderTest(t)
 	defer cleanup()
@@ -766,4 +886,209 @@ namedQueries:
 	err = loader.ParseAllConfigs()
 	require.Error(t, err, "invalid named query operator should be rejected")
 	assert.Contains(t, err.Error(), "INVALID_OP")
+}
+
+func TestMCPLoaderExcludedServersNotSaved(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	serversFile := filepath.Join(tmpDir, "servers.yaml")
+	err := os.WriteFile(serversFile, []byte(`mcp_servers:
+  - name: "allowed-server"
+    description: "This server should be loaded"
+  - name: "excluded-server"
+    description: "This server should be skipped"
+`), 0644)
+	require.NoError(t, err)
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err = os.WriteFile(sourcesFile, []byte(`mcp_catalogs:
+  - name: "Filter Test Catalog"
+    id: filter_test_catalog
+    type: yaml
+    enabled: true
+    excludedServers:
+      - "excluded-server"
+    properties:
+      yamlCatalogPath: `+serversFile+`
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+	ctx := context.Background()
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	baseLoader.SetLeader(true)
+
+	leaderDone := make(chan error, 1)
+	go func() {
+		leaderDone <- loader.PerformLeaderOperations(ctx, mapset.NewSet[string]())
+	}()
+
+	select {
+	case err := <-leaderDone:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for leader operations")
+	}
+
+	baseLoader.WaitForInflightWrites(5 * time.Second)
+
+	// allowed-server should be present
+	server, err := services.MCPServerRepository.GetByNameAndVersion("allowed-server", "")
+	require.NoError(t, err)
+	assert.NotNil(t, server)
+
+	// excluded-server must not be present
+	_, err = services.MCPServerRepository.GetByNameAndVersion("excluded-server", "")
+	assert.Error(t, err, "excluded-server should not be saved to the database")
+}
+
+func TestMCPLoaderIncludedServersOnly(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	serversFile := filepath.Join(tmpDir, "servers.yaml")
+	err := os.WriteFile(serversFile, []byte(`mcp_servers:
+  - name: "allowed-server"
+    description: "This server should be loaded"
+  - name: "other-server"
+    description: "This server is not in the include list"
+`), 0644)
+	require.NoError(t, err)
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err = os.WriteFile(sourcesFile, []byte(`mcp_catalogs:
+  - name: "Include Filter Catalog"
+    id: include_filter_catalog
+    type: yaml
+    enabled: true
+    includedServers:
+      - "allowed-server"
+    properties:
+      yamlCatalogPath: `+serversFile+`
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+	ctx := context.Background()
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	baseLoader.SetLeader(true)
+
+	leaderDone := make(chan error, 1)
+	go func() {
+		leaderDone <- loader.PerformLeaderOperations(ctx, mapset.NewSet[string]())
+	}()
+
+	select {
+	case err := <-leaderDone:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for leader operations")
+	}
+
+	baseLoader.WaitForInflightWrites(5 * time.Second)
+
+	// allowed-server should be present
+	server, err := services.MCPServerRepository.GetByNameAndVersion("allowed-server", "")
+	require.NoError(t, err)
+	assert.NotNil(t, server)
+
+	// other-server must not be present (not in include list)
+	_, err = services.MCPServerRepository.GetByNameAndVersion("other-server", "")
+	assert.Error(t, err, "other-server should not be saved because it is not in includedServers")
+}
+
+func TestMCPLoaderNoFilterAllowsAll(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	serversFile := filepath.Join(tmpDir, "servers.yaml")
+	err := os.WriteFile(serversFile, []byte(`mcp_servers:
+  - name: "server-a"
+    description: "First server"
+  - name: "server-b"
+    description: "Second server"
+`), 0644)
+	require.NoError(t, err)
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err = os.WriteFile(sourcesFile, []byte(`mcp_catalogs:
+  - name: "No Filter Catalog"
+    id: no_filter_catalog
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: `+serversFile+`
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+	ctx := context.Background()
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	baseLoader.SetLeader(true)
+
+	leaderDone := make(chan error, 1)
+	go func() {
+		leaderDone <- loader.PerformLeaderOperations(ctx, mapset.NewSet[string]())
+	}()
+
+	select {
+	case err := <-leaderDone:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for leader operations")
+	}
+
+	baseLoader.WaitForInflightWrites(5 * time.Second)
+
+	_, err = services.MCPServerRepository.GetByNameAndVersion("server-a", "")
+	require.NoError(t, err)
+
+	_, err = services.MCPServerRepository.GetByNameAndVersion("server-b", "")
+	require.NoError(t, err)
+}
+
+func TestMCPLoaderInvalidServerFilterRejected(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs:
+  - name: "Bad Filter Catalog"
+    id: bad_filter_catalog
+    type: yaml
+    enabled: true
+    includedServers:
+      - ""
+    properties:
+      someProp: someValue
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.Error(t, err, "empty includedServers pattern should be rejected at config load time")
+	assert.Contains(t, err.Error(), "includedServers")
 }

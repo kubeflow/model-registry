@@ -2,6 +2,7 @@ package mcpcatalog
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -154,6 +155,10 @@ func (ml *MCPLoader) updateSources(path string, config *basecatalog.SourceConfig
 			return fmt.Errorf("invalid MCP source: duplicate id %s", source.ID)
 		}
 
+		if err := ValidateServerFilters(source.IncludedServers, source.ExcludedServers); err != nil {
+			return fmt.Errorf("invalid MCP source %s: %w", source.ID, err)
+		}
+
 		// Set the origin path so relative paths in properties can be resolved
 		// relative to this config file's directory
 		source.Origin = path
@@ -200,8 +205,16 @@ func (ml *MCPLoader) loadAllServers(ctx context.Context, sources map[string]base
 			continue
 		}
 
+		// Build server name filter from source include/exclude config
+		filter, err := NewServerFilterFromSource(&source)
+		if err != nil {
+			glog.Errorf("Error building server filter for source %s: %v", source.Name, err)
+			basecatalog.SaveSourceStatus(ml.services.CatalogSourceRepository, source.ID, basecatalog.SourceStatusError, err.Error())
+			continue
+		}
+
 		// Load servers from this provider
-		err = ml.loadServersFromProvider(ctx, source.ID, provider)
+		err = ml.loadServersFromProvider(ctx, source.ID, provider, filter)
 		if err != nil {
 			if errors.Is(err, ErrMCPPartiallyAvailable) {
 				glog.Warningf("Partial error loading servers from source %s: %v", source.Name, err)
@@ -237,7 +250,7 @@ func (ml *MCPLoader) loadAllServers(ctx context.Context, sources map[string]base
 // loadServersFromProvider loads all servers from a single provider.
 // Returns MCPPartiallyAvailableError if some servers loaded successfully but others failed.
 // Returns a regular error if all servers failed to load.
-func (ml *MCPLoader) loadServersFromProvider(ctx context.Context, sourceID string, provider MCPProvider) error {
+func (ml *MCPLoader) loadServersFromProvider(ctx context.Context, sourceID string, provider MCPProvider, filter *ServerFilter) error {
 	recordChan := provider.Servers(ctx)
 
 	validServerNames := mapset.NewSet[string]()
@@ -280,6 +293,19 @@ func (ml *MCPLoader) loadServersFromProvider(ctx context.Context, sourceID strin
 		serverName := ""
 		if record.Server.GetAttributes() != nil && record.Server.GetAttributes().Name != nil {
 			serverName = *record.Server.GetAttributes().Name
+		}
+
+		// Apply include/exclude filter
+		if !filter.Allows(serverName) {
+			if serverName == "" {
+				glog.Warningf("MCP server with no name was dropped by includedServers/excludedServers filter; check includedServers/excludedServers configuration")
+			} else {
+				glog.V(2).Infof("Skipping excluded MCP server: %s", serverName)
+			}
+			continue
+		}
+
+		if serverName != "" {
 			validServerNames.Add(serverName)
 		}
 
@@ -404,11 +430,19 @@ func buildMCPServerTool(server models.MCPServer, toolRecord MCPToolRecord) model
 	}
 
 	var properties []mrmodels.Properties
+	if toolRecord.AccessType != nil {
+		properties = append(properties, mrmodels.NewStringProperty("accessType", *toolRecord.AccessType, false))
+	}
 	if toolRecord.Description != nil {
 		properties = append(properties, mrmodels.NewStringProperty("description", *toolRecord.Description, false))
 	}
 	if toolRecord.Schema != nil {
 		properties = append(properties, mrmodels.NewStringProperty("schema", *toolRecord.Schema, false))
+	}
+	if len(toolRecord.Parameters) > 0 {
+		if jsonBytes, err := json.Marshal(toolRecord.Parameters); err == nil {
+			properties = append(properties, mrmodels.NewStringProperty("parameters", string(jsonBytes), false))
+		}
 	}
 	impl.Properties = &properties
 

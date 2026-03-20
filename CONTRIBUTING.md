@@ -53,7 +53,7 @@ make: *** [openapi/validate] Error 1
 
 i.e. failing to locate the `bin/` executables managed in the Makefile.
 
-The solution is to use and updated version of `make`.
+The solution is to use an updated version of `make`.
 
 You can install it with Homebrew:
 
@@ -199,7 +199,7 @@ Define this `.devcontainer/devcontainer.json` file :
 }
 ```
 
-The `network=host` allow from _inside_ the devcontainer to reach any "service" exposed on your computer (host).
+The `network=host` allows reaching any "service" exposed on your computer (host) from _inside_ the devcontainer .
 This is helpful if other containers are started on your computer (eg: a PostgreSQL or DB in another container).
 
 The `customizations.vscode.extensions` pre-loads additional extensions needed in VSCode to be executing from *inside* the DevContainer.
@@ -225,8 +225,6 @@ RUN groupmod --gid $USER_GID -o $GROUPNAME \
 RUN pip install -U pip setuptools
 RUN pip install -U poetry
 RUN pip install -U "ml-metadata==1.14.0"
-RUN pip install -U robotframework
-RUN pip install -U robotframework-requests
 RUN pip install -U PyYAML
 ```
 
@@ -261,7 +259,7 @@ At this point Poetry is already installed as well and can be used to build and r
 
 ## Error `docker.errors.NotFound: 404 Client Error for http+docker://localhost/v1.41/containers ...`
 
-This happens on Mac OSX when running Testcontainers-based Python tests, and [Ryuk](https://github.com/testcontainers/moby-ryuk) does not have the correct access priviledges.
+This happens on Mac OSX when running Testcontainers-based Python tests, and [Ryuk](https://github.com/testcontainers/moby-ryuk) does not have the correct access privileges.
 
 ```
 -------------------------------------------- Captured stderr setup ---------------------------------------------

@@ -86,6 +86,49 @@ func (c *catalogEntityMappings) IsChildEntity(entityType filter.RestEntityType) 
 	return false
 }
 
+// GetEqualityExpansion implements filter.EqualityExpander so that:
+// - externalId = "x" matches both exact and namespaced (sourceId:x) stored values.
+// - name = "modelName" matches both exact and namespaced (sourceId:modelName) stored values,
+//   so callers can filter by model name without requiring the source prefix.
+func (c *catalogEntityMappings) GetEqualityExpansion(restEntityType filter.RestEntityType, propertyName string, value any) (likeArg any, useExpansion bool) {
+	if restEntityType != filter.RestEntityType(catalogmodels.RestEntityCatalogModel) {
+		return nil, false
+	}
+	strVal, ok := value.(string)
+	if !ok || strVal == "" {
+		return nil, false
+	}
+	switch propertyName {
+	case "externalId":
+		// Match any source prefix: sourceId:externalId
+		return "%:" + escapeLike(strVal), true
+	case "name":
+		// If value already contains ":", treat as full namespaced name — exact match only.
+		if strings.Contains(strVal, ":") {
+			return nil, false
+		}
+		// Match namespaced form so model name without source prefix still finds the row.
+		return "%:" + escapeLike(strVal), true
+	default:
+		return nil, false
+	}
+}
+
+// escapeLike escapes SQL LIKE metacharacters (%, _, \) for safe use as a literal in a LIKE pattern.
+func escapeLike(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		switch r {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+			b.WriteRune(r)
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 // catalogModelProperties defines the allowed properties for CatalogModel entities
 var catalogModelProperties = map[string]filter.PropertyDefinition{
 	// Common Context properties
@@ -132,7 +175,7 @@ var catalogArtifactProperties = map[string]filter.PropertyDefinition{
 var mcpServerProperties = map[string]filter.PropertyDefinition{
 	// Common Context properties (Entity Table - required)
 	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
-	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
+	"name":                     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "base_name"},
 	"externalId":               {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "external_id"},
 	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},

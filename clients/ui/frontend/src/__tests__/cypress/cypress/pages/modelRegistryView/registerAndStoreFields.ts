@@ -1,11 +1,7 @@
-import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { FormFieldSelector } from './registerModelPage';
 
 class RegisterAndStoreFields {
-  visit(enableRegistryStorageFeature = true, registryNamespace?: string) {
-    if (enableRegistryStorageFeature) {
-      window.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
-    }
+  visit(registryNamespace?: string) {
     const preferredModelRegistry = 'modelregistry-sample';
     const query = registryNamespace ? `?namespace=${encodeURIComponent(registryNamespace)}` : '';
     cy.visit(`/model-registry/${preferredModelRegistry}/register/model${query}`);
@@ -118,6 +114,28 @@ class RegisterAndStoreFields {
 
   findNamespaceRegistryAccessAlert() {
     return cy.findByTestId('namespace-registry-access-alert');
+  }
+
+  findNamespaceLoadError() {
+    return cy.findByTestId('namespace-load-error');
+  }
+
+  shouldShowNamespaceLoadError() {
+    this.findNamespaceLoadError()
+      .should('be.visible')
+      .and('contain.text', 'Failed to load namespaces');
+    return this;
+  }
+
+  findNamespaceAccessCheckError() {
+    return cy.findByTestId('namespace-registry-access-error');
+  }
+
+  shouldShowNamespaceAccessCheckError() {
+    this.findNamespaceAccessCheckError()
+      .should('be.visible')
+      .and('contain.text', 'Could not verify namespace access');
+    return this;
   }
 
   shouldShowNamespaceLabel() {

@@ -7,6 +7,7 @@ The generated client is in catalog_openapi/ (committed to git).
 To regenerate after API changes: cd catalog/clients/python && make generate
 """
 
+import json
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -278,10 +279,16 @@ class CatalogAPIClient:
         )
 
     @_handle_api_errors
-    def get_sources(self, page_size: int | None = None, next_page_token: str | None = None) -> dict[str, Any]:
+    def get_sources(
+        self,
+        asset_type: str | None = None,
+        page_size: int | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
         """Get catalog sources.
 
         Args:
+            asset_type: Filter by asset type ('models' or 'mcp_servers').
             page_size: Number of items per page.
             next_page_token: Token for pagination.
 
@@ -289,8 +296,36 @@ class CatalogAPIClient:
             Dict with sources list and pagination info.
         """
         page_size_str = str(page_size) if page_size is not None else None
-        response = self.catalog_api.find_sources(page_size=page_size_str, next_page_token=next_page_token)
-        return response.to_dict()
+
+        # Build query params — always use the manual path so assetType and other
+        # new fields are preserved in the raw JSON (the generated Pydantic model
+        # does not yet include assetType and would silently drop it).
+        query_params: list[tuple[str, str]] = []
+        if asset_type is not None:
+            query_params.append(("assetType", asset_type))
+        if page_size_str is not None:
+            query_params.append(("pageSize", page_size_str))
+        if next_page_token is not None:
+            query_params.append(("nextPageToken", next_page_token))
+
+        _param = self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_catalog/v1alpha1/sources",
+            query_params=query_params,
+            header_params={"Accept": "application/json"},
+            auth_settings=["Bearer"],
+        )
+        response_data = self.api_client.call_api(*_param)
+        response_data.read()
+
+        # Let the generated client handle error status codes (raises ApiException).
+        self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map={"200": "CatalogSourceList", "400": "Error", "401": "Error", "500": "Error"},
+        )
+
+        # Return the raw JSON to preserve fields not yet in the Pydantic model.
+        return json.loads(response_data.data)
 
     @_handle_api_errors
     def get_source_by_id(self, source_id: str) -> dict[str, Any]:
@@ -316,6 +351,63 @@ class CatalogAPIClient:
 
         msg = f"Source not found: {source_id}"
         raise CatalogNotFoundError(msg)
+
+    @_handle_api_errors
+    def get_labels(
+        self,
+        asset_type: str | None = None,
+        page_size: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
+        """Get catalog labels.
+
+        Args:
+            asset_type: Filter by asset type ('models' or 'mcp_servers').
+            page_size: Number of items per page.
+            order_by: Key to order labels by.
+            sort_order: Sort order ('ASC' or 'DESC').
+            next_page_token: Token for pagination.
+
+        Returns:
+            Dict with labels list and pagination info.
+        """
+        page_size_str = str(page_size) if page_size is not None else None
+
+        # Build query params — use the manual path so assetType is preserved
+        # in the raw JSON (the generated Pydantic model does not yet include
+        # assetType and would silently drop it).
+        query_params: list[tuple[str, str]] = []
+        if asset_type is not None:
+            query_params.append(("assetType", asset_type))
+        if page_size_str is not None:
+            query_params.append(("pageSize", page_size_str))
+        if order_by is not None:
+            query_params.append(("orderBy", order_by))
+        if sort_order is not None:
+            query_params.append(("sortOrder", sort_order))
+        if next_page_token is not None:
+            query_params.append(("nextPageToken", next_page_token))
+
+        _param = self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_catalog/v1alpha1/labels",
+            query_params=query_params,
+            header_params={"Accept": "application/json"},
+            auth_settings=["Bearer"],
+        )
+        response_data = self.api_client.call_api(*_param)
+        response_data.read()
+
+        # Let the generated client handle error status codes (raises ApiException).
+        self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map={"200": "CatalogLabelList", "400": "Error", "401": "Error", "500": "Error"},
+        )
+
+        # Return the raw JSON to preserve fields not yet in the Pydantic model.
+        return json.loads(response_data.data)
 
     @_handle_api_errors
     def get_models(
@@ -474,14 +566,28 @@ class CatalogAPIClient:
     @_handle_api_errors
     def get_mcp_servers(
         self,
+        name: str | None = None,
+        q: str | None = None,
+        named_query: str | None = None,
+        filter_query: str | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
         include_tools: bool | None = None,
+        tool_limit: int | None = None,
         page_size: int | None = None,
         next_page_token: str | None = None,
     ) -> dict[str, Any]:
         """Get MCP servers from catalog.
 
         Args:
+            name: Filter by server name.
+            q: Keyword search query.
+            named_query: Predefined filter template name to apply (e.g. "production_ready").
+            filter_query: SQL-like filter expression (e.g. "provider='Math Community'").
+            order_by: Field to order results by (e.g. "CREATE_TIME", "LAST_UPDATE_TIME", "NAME").
+            sort_order: Sort direction ("ASC" or "DESC").
             include_tools: Whether to include the tools array in each server result.
+            tool_limit: Maximum number of tools to include per server.
             page_size: Number of items per page.
             next_page_token: Token for pagination.
 
@@ -489,8 +595,21 @@ class CatalogAPIClient:
             Dict with MCP servers list and pagination info.
         """
         page_size_str = str(page_size) if page_size is not None else None
+        order_by_enum: OrderByField | None = None
+        if order_by:
+            order_by_enum = OrderByField(order_by.upper())
+        sort_order_enum: SortOrder | None = None
+        if sort_order:
+            sort_order_enum = SortOrder(sort_order.upper())
         response = self.mcp_api.find_mcp_servers(
+            name=name,
+            q=q,
+            named_query=named_query,
+            filter_query=filter_query,
+            order_by=order_by_enum,
+            sort_order=sort_order_enum,
             include_tools=include_tools,
+            tool_limit=tool_limit,
             page_size=page_size_str,
             next_page_token=next_page_token,
         )

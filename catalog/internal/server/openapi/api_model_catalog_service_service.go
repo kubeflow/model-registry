@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -26,6 +27,7 @@ import (
 type ModelCatalogServiceAPIService struct {
 	provider         catalog.APIProvider
 	sources          *catalog.SourceCollection
+	mcpSources       *catalog.MCPSourceCollection
 	labels           *catalog.LabelCollection
 	sourceRepository models.CatalogSourceRepository
 }
@@ -43,15 +45,9 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		modelName = newName
 	}
 
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	// Handle multiple artifact types
@@ -95,15 +91,9 @@ func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx cont
 		modelName = newName
 	}
 
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	// Call the provider's GetPerformanceArtifacts method
@@ -136,16 +126,38 @@ func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx cont
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, assetType model.CatalogAssetType, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	if assetType == "" {
+		assetType = model.CATALOGASSETTYPE_MODELS
+	} else if !assetType.IsValid() {
+		err := fmt.Errorf("invalid value '%s' for assetType: valid values are %v", assetType, model.AllowedCatalogAssetTypeEnumValues)
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
 	labels := m.labels.All()
 	if len(labels) > math.MaxInt32 {
 		err := errors.New("too many registered labels")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
+	// Filter labels by assetType
+	filtered := make([]map[string]any, 0, len(labels))
+	for _, label := range labels {
+		labelAssetType := model.CATALOGASSETTYPE_MODELS // default when not specified
+		if at, ok := label["assetType"]; ok {
+			if atStr, ok := at.(string); ok {
+				labelAssetType = model.CatalogAssetType(atStr)
+			}
+		}
+		if labelAssetType != assetType {
+			continue
+		}
+		filtered = append(filtered, label)
+	}
+
 	// Wrap labels to make them sortable
-	sortableLabels := make([]sortableLabel, len(labels))
-	for i, label := range labels {
+	sortableLabels := make([]sortableLabel, len(filtered))
+	for i, label := range filtered {
 		sortableLabels[i] = sortableLabel{
 			data:  label,
 			index: i, // Keep original index for stable sort
@@ -206,15 +218,9 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommended bool, targetRPS int32, latencyProperty string, rpsProperty string, hardwareCountProperty string, hardwareTypeProperty string, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// Validate pagination parameters
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("invalid pagination parameters: %w", err)), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	if len(sourceIDs) == 1 && sourceIDs[0] == "" {
@@ -352,9 +358,17 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, 
 }
 
 func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, assetType model.CatalogAssetType, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	// Collect all sources (model + MCP) as CatalogSource objects
 	sources := m.sources.All()
+
+	if m.mcpSources != nil {
+		for id, mcpSrc := range m.mcpSources.AllSources() {
+			sources[id] = mcpSourceToCatalogSource(mcpSrc)
+		}
+	}
+
 	if len(sources) > math.MaxInt32 {
-		err := errors.New("too many registered models")
+		err := errors.New("too many registered sources")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
@@ -374,11 +388,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
-	items := make([]model.CatalogSource, 0, len(sources))
-
 	if assetType == "" {
 		assetType = model.CATALOGASSETTYPE_MODELS
 	}
+
+	items := make([]model.CatalogSource, 0, len(sources))
 
 	name = strings.ToLower(name)
 
@@ -387,7 +401,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 			continue
 		}
 
-		if v.HasAssetType() && v.GetAssetType() != assetType {
+		sourceAssetType := v.GetAssetType()
+		if !v.HasAssetType() {
+			sourceAssetType = model.CATALOGASSETTYPE_MODELS
+		}
+		if sourceAssetType != assetType {
 			continue
 		}
 
@@ -424,6 +442,20 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
+}
+
+// mcpSourceToCatalogSource converts an internal MCPSource to the API CatalogSource type.
+func mcpSourceToCatalogSource(src basecatalog.MCPSource) model.CatalogSource {
+	cs := model.CatalogSource{
+		Id:      src.ID,
+		Name:    src.Name,
+		Enabled: src.Enabled,
+		Labels:  src.Labels,
+	}
+	if src.AssetType != nil {
+		cs.AssetType = src.AssetType
+	}
+	return cs
 }
 
 func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string, catalogDataParam *os.File) (ImplResponse, error) {
@@ -642,10 +674,11 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, mcpSources *catalog.MCPSourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider:         provider,
 		sources:          sources,
+		mcpSources:       mcpSources,
 		labels:           labels,
 		sourceRepository: sourceRepository,
 	}

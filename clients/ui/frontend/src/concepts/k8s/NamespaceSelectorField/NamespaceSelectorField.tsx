@@ -9,9 +9,10 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { useNamespaceSelector } from 'mod-arch-core';
+import { SimpleSelect } from 'mod-arch-shared';
+import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
+import { useNamespaces } from '~/app/hooks/useNamespaces';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
-import NamespaceSelector from '~/app/standalone/NamespaceSelector';
 import { NamespaceSelectorMessages } from '~/app/utilities/const';
 
 const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
@@ -52,23 +53,38 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   error,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
-  const { namespaces = [] } = useNamespaceSelector();
+  const [namespaces, namespacesLoaded, namespacesLoadError] = useNamespaces();
   const isDisabled = namespaces.length === 0;
+
+  const options: SimpleSelectOption[] = namespaces.map((ns) => ({
+    key: ns.name,
+    label: ns.name,
+  }));
+
+  const handleChange = (key: string, isPlaceholder: boolean) => {
+    if (isPlaceholder || !key) {
+      return;
+    }
+    onSelect(key);
+  };
 
   const namespaceSelectorElement = (
     <div data-testid="form-namespace-selector-trigger">
-      <NamespaceSelector
-        isGlobalSelector={false}
-        selectedNamespace={selectedNamespace}
-        onSelect={onSelect}
+      <SimpleSelect
+        options={options}
+        value={selectedNamespace}
+        onChange={handleChange}
+        placeholder="Select a namespace"
         isDisabled={isDisabled}
-        placeholderText="Select a namespace"
         isFullWidth
+        isScrollable
+        maxMenuHeight="300px"
+        dataTestId="form-namespace-selector"
       />
     </div>
   );
 
-  const showNoAccessMessage = namespaces.length === 0;
+  const showNoAccessMessage = namespacesLoaded && !namespacesLoadError && namespaces.length === 0;
   const showNoAccessAlert =
     namespaces.length > 0 && selectedNamespace && !isLoading && hasAccess === false;
 
@@ -84,6 +100,22 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
 
   const helperTextNode = (
     <>
+      {!namespacesLoaded && !namespacesLoadError && (
+        <HelperText>
+          <HelperTextItem>Loading namespaces...</HelperTextItem>
+        </HelperText>
+      )}
+      {namespacesLoadError && (
+        <Alert
+          isInline
+          variant="danger"
+          title="Failed to load namespaces"
+          data-testid="namespace-load-error"
+          className="pf-v6-u-mt-sm"
+        >
+          {namespacesLoadError.message}
+        </Alert>
+      )}
       {selectedNamespace && isLoading && (
         <HelperText>
           <HelperTextItem>Checking access...</HelperTextItem>

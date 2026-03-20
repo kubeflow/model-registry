@@ -27,7 +27,15 @@ TILT_VERSION := 0.33.22
 .PHONY: $(POETRY)
 poetry: $(POETRY) ## Download poetry locally if necessary.
 $(POETRY): $(LOCALBIN)
-	test -s $(LOCALBIN)/poetry || curl -sSL https://install.python-poetry.org | POETRY_HOME=$(shell pwd) python3 -
+	@if ! test -s $(LOCALBIN)/poetry; then \
+		python3 -m venv $(shell pwd)/venv; \
+		PYTHON_LIBDIR=$$(python3 -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR') or '')"); \
+		if [ -n "$$PYTHON_LIBDIR" ]; then \
+			find "$$PYTHON_LIBDIR" -maxdepth 1 -name 'libpython*.so*' -exec ln -sf {} $(shell pwd)/venv/lib/ \; 2>/dev/null || true; \
+		fi; \
+		$(shell pwd)/venv/bin/pip install --quiet poetry; \
+		ln -sf $(shell pwd)/venv/bin/poetry $(LOCALBIN)/poetry; \
+	fi
 
 .PHONY: tilt
 .PHONY: $(TILT)

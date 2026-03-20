@@ -157,6 +157,48 @@ describe('Model Catalog Performance Filters Alert', () => {
 
       modelCatalog.findPerformanceFiltersUpdatedAlert().should('not.exist');
     });
+
+    it('should hide alert when Reset all defaults is clicked on catalog page', () => {
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
+
+      modelCatalog.findModelCatalogDetailLink().first().click();
+      modelCatalog.clickPerformanceInsightsTab();
+
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('code_fixing');
+
+      cy.go('back');
+      cy.go('back');
+      modelCatalog.findLoadingState().should('not.exist');
+
+      modelCatalog.findPerformanceFiltersUpdatedAlert().should('be.visible');
+
+      cy.findByRole('button', { name: 'Reset all defaults' }).click();
+
+      modelCatalog.findPerformanceFiltersUpdatedAlert().should('not.exist');
+    });
+
+    it('should hide alert when a performance filter chip is removed on catalog page', () => {
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
+
+      modelCatalog.findModelCatalogDetailLink().first().click();
+      modelCatalog.clickPerformanceInsightsTab();
+
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('code_fixing');
+
+      cy.go('back');
+      cy.go('back');
+      modelCatalog.findLoadingState().should('not.exist');
+
+      modelCatalog.findPerformanceFiltersUpdatedAlert().should('be.visible');
+
+      modelCatalog.closeFilterChip('artifacts.use_case.string_value', 'code_fixing');
+
+      modelCatalog.findPerformanceFiltersUpdatedAlert().should('not.exist');
+    });
   });
 
   describe('Multiple Filter Changes', () => {

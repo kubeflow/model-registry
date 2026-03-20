@@ -170,6 +170,34 @@ describe('Model Registry core', () => {
     modelRegistry.navigate();
     modelRegistry.findModelRegistryEmptyState().should('exist');
   });
+
+  it('Shows unavailable state when selected registry has isAvailable false', () => {
+    const unavailableRegistryName = 'unavailable-registry-example';
+    initIntercepts({
+      modelRegistries: [
+        mockModelRegistry({
+          name: unavailableRegistryName,
+          displayName: 'Unavailable Registry Example',
+          isAvailable: false,
+        }),
+      ],
+    });
+
+    modelRegistry.visit();
+    modelRegistry.navigate();
+    // Navigate to the unavailable registry (app would redirect to first registry; we go there directly)
+    cy.visit(`/model-registry/${unavailableRegistryName}`);
+
+    modelRegistry.findUnavailableModelRegistryState().should('exist');
+    cy.contains('Model registry unavailable').should('be.visible');
+    cy.contains('The Unavailable Registry Example registry is currently unavailable').should(
+      'be.visible',
+    );
+    cy.findByTestId('whos-my-admin-link').should('exist');
+    // View details button should not be present when registry is unavailable
+    modelRegistry.findViewDetailsButton().should('not.exist');
+  });
+
   it('No registered models in the selected Model Registry', () => {
     initIntercepts({
       registeredModels: [],
@@ -200,6 +228,19 @@ describe('Model Registry core', () => {
     //     'To request access to a new or existing model registry, contact your administrator.',
     //   )
     //   .should('exist');
+  });
+
+  it('Empty state shows transfer jobs link', () => {
+    initIntercepts({
+      registeredModels: [],
+    });
+
+    modelRegistry.visit();
+    modelRegistry.navigate();
+    modelRegistry.shouldregisteredModelsEmpty();
+    modelRegistry.findEmptyStateTransferJobsButton().should('exist');
+    modelRegistry.findEmptyStateTransferJobsButton().click();
+    verifyRelativeURL('/model-registry/modelregistry-sample/model-transfer-jobs');
   });
 
   describe('Registered model table', () => {
@@ -302,6 +343,74 @@ describe('Model Registry core', () => {
       modelRegistry.findTableSearch().type('.');
       modelRegistry.findTableRows().should('have.length', 0);
     });
+  });
+});
+
+describe('Model Registry selector persistence', () => {
+  const SELECTED_STORAGE_KEY = 'kubeflow.dashboard.model.registry.selected';
+  const FAVORITE_STORAGE_KEY = 'kubeflow.dashboard.model.registry.favorite';
+
+  it('persists selected registry across in-session navigation', () => {
+    initIntercepts({ registeredModels: [] });
+    modelRegistry.visit();
+    modelRegistry.shouldModelRegistrySelectorExist();
+
+    modelRegistry.findModelRegistry().findSelectOption('modelregistry-sample-2').click();
+    verifyRelativeURL('/model-registry/modelregistry-sample-2');
+
+    // Re-visit the base route to trigger redirect from sessionStorage
+    modelRegistry.visit();
+
+    modelRegistry.findModelRegistry().should('contain.text', 'modelregistry-sample-2');
+    verifyRelativeURL('/model-registry/modelregistry-sample-2');
+  });
+
+  it('restores selected registry after page refresh', () => {
+    initIntercepts({ registeredModels: [] });
+    modelRegistry.visit();
+
+    modelRegistry.findModelRegistry().findSelectOption('modelregistry-sample-2').click();
+    verifyRelativeURL('/model-registry/modelregistry-sample-2');
+
+    cy.reload();
+    cy.findByTestId('app-page-title').should('exist');
+    cy.findByTestId('app-page-title').contains('Model Registry');
+
+    modelRegistry.findModelRegistry().should('contain.text', 'modelregistry-sample-2');
+  });
+
+  it('falls back to first favorited registry when no session selection exists', () => {
+    initIntercepts({ registeredModels: [] });
+
+    cy.visit('/model-registry', {
+      onBeforeLoad(win) {
+        win.sessionStorage.removeItem(SELECTED_STORAGE_KEY);
+        win.localStorage.setItem(FAVORITE_STORAGE_KEY, JSON.stringify(['modelregistry-sample-2']));
+      },
+    });
+
+    cy.findByTestId('app-page-title').should('exist');
+    cy.findByTestId('app-page-title').contains('Model Registry');
+
+    modelRegistry.findModelRegistry().should('contain.text', 'modelregistry-sample-2');
+    verifyRelativeURL('/model-registry/modelregistry-sample-2');
+  });
+
+  it('falls back to first available registry in a fresh session with no favorites', () => {
+    initIntercepts({ registeredModels: [] });
+
+    cy.visit('/model-registry', {
+      onBeforeLoad(win) {
+        win.sessionStorage.removeItem(SELECTED_STORAGE_KEY);
+        win.localStorage.removeItem(FAVORITE_STORAGE_KEY);
+      },
+    });
+
+    cy.findByTestId('app-page-title').should('exist');
+    cy.findByTestId('app-page-title').contains('Model Registry');
+
+    modelRegistry.findModelRegistry().should('contain.text', 'Model Registry Sample');
+    verifyRelativeURL('/model-registry/modelregistry-sample');
   });
 });
 

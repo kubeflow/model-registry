@@ -296,3 +296,41 @@ class TestSourceMerge:
 
         models = api_client.get_models()
         assert models.get("items"), "Expected models from enabled sources"
+
+
+class TestSourceAssetTypeFilter:
+    """Test suite for /sources endpoint assetType query parameter filtering."""
+
+    @pytest.mark.parametrize(
+        "asset_type,config_key",
+        [
+            (None, "catalogs"),
+            ("models", "catalogs"),
+            ("mcp_servers", "mcp_catalogs"),
+            ("invalid_value", None),
+        ],
+        ids=["default-models", "explicit-models", "mcp-servers", "invalid-empty"],
+    )
+    def test_asset_type_filters_sources(
+        self,
+        asset_type: str | None,
+        config_key: str | None,
+        api_client: CatalogAPIClient,
+        suppress_ssl_warnings: None,
+        sources_config: dict,
+        kind_cluster: bool,
+    ):
+        """Test that assetType filter returns the correct sources."""
+        response = api_client.get_sources(asset_type=asset_type)
+        assert isinstance(response.get("items"), list)
+
+        if config_key is None:
+            assert response["items"] == []
+            return
+
+        if kind_cluster:
+            expected_by_id = {s["id"]: s for s in sources_config.get(config_key, [])}
+            actual_by_id = {s["id"]: s for s in response["items"]}
+            assert set(actual_by_id) == set(expected_by_id)
+            for source_id, actual in actual_by_id.items():
+                assert actual["name"] == expected_by_id[source_id]["name"]

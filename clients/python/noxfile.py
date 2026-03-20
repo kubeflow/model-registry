@@ -21,8 +21,8 @@ except ImportError:
 
 
 package = "model_registry"
-python_versions = ["3.12", "3.11", "3.10"]
-nox.needs_version = ">= 2021.6.6"
+python_versions = ["3.12", "3.11", "3.10", "3.13", "3.14"]
+nox.needs_version = ">= 2025.11.12"
 nox.options.sessions = (
     "tests",
     "docs-build",
@@ -87,6 +87,13 @@ def e2e_tests(session: Session) -> None:
         "uvloop",
         "schemathesis",
     ]
+
+    # ray does not yet support Python 3.14; remove it from the install list
+    # TODO: add back ray for 3.14 once https://github.com/ray-project/ray/issues/56434 is resolved
+    if session.python == "3.14":
+        packages.remove("ray")
+        session.log("WARNING: ray is not available for Python 3.14, ray-dependent tests will be skipped")
+        session.log("see: https://github.com/ray-project/ray/issues/56434")
 
     session.install(*packages)
     try:

@@ -43,6 +43,8 @@ type CalculateSliderRangeOptions = {
 
 export const formatLatency = (value: number): string => `${value.toFixed(2)} ms`;
 
+export const formatTps = (value: number): string => `${value.toFixed(2)} tok/s`;
+
 export const formatTokenValue = (value: number): string => value.toFixed(0);
 
 export const getWorkloadType = (artifact: CatalogPerformanceMetricsArtifact): string => {

@@ -1,5 +1,4 @@
 import { TableRow } from '~/__tests__/cypress/cypress/pages/components/table';
-import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 
 class ModelTransferJobsTableRow extends TableRow {
   findJobName() {
@@ -9,11 +8,7 @@ class ModelTransferJobsTableRow extends TableRow {
 
 class ModelTransferJobsPage {
   visit(modelRegistryName = 'modelregistry-sample') {
-    cy.visit(`/model-registry/${modelRegistryName}/model-transfer-jobs`, {
-      onBeforeLoad: (win) => {
-        win.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
-      },
-    });
+    cy.visit(`/model-registry/${modelRegistryName}/model-transfer-jobs`);
     this.wait();
   }
 

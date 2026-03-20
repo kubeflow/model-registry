@@ -14,7 +14,7 @@ import (
 
 func TestGetAllMcpServers_Success(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
-	responseJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": [{"id": 1, "name": "Server 1", "toolCount": 5}, {"id": 2, "name": "Server 2", "toolCount": 3}]}`
+	responseJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": [{"id": "1", "name": "Server 1", "toolCount": 5}, {"id": "2", "name": "Server 2", "toolCount": 3}]}`
 	mockClient.On("GET", "/mcp_servers").Return([]byte(responseJSON), nil)
 
 	repo := McpServerCatalog{}
@@ -26,14 +26,14 @@ func TestGetAllMcpServers_Success(t *testing.T) {
 	assert.Equal(t, int32(2), result.Size)
 	assert.Equal(t, int32(10), result.PageSize)
 	assert.Len(t, result.Items, 2)
-	assert.Equal(t, 1, result.Items[0].ID)
+	assert.Equal(t, "1", result.Items[0].ID)
 	assert.Equal(t, "Server 1", result.Items[0].Name)
 	mockClient.AssertExpectations(t)
 }
 
 func TestGetAllMcpServers_WithQueryParams(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
-	responseJSON := `{"size": 1, "pageSize": 10, "nextPageToken": "", "items": [{"id": 1, "name": "MCP Server", "toolCount": 2}]}`
+	responseJSON := `{"size": 1, "pageSize": 10, "nextPageToken": "", "items": [{"id": "1", "name": "MCP Server", "toolCount": 2}]}`
 	mockClient.On("GET", mock.MatchedBy(func(path string) bool {
 		return strings.HasPrefix(path, "/mcp_servers?") &&
 			strings.Contains(path, "name=test")
@@ -113,15 +113,32 @@ func TestGetMcpServersFilter_ClientError(t *testing.T) {
 
 func TestGetMcpServer_Success(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
-	responseJSON := `{"id": 1, "name": "Test MCP Server", "toolCount": 5}`
+	responseJSON := `{"id": "1", "name": "Test MCP Server", "toolCount": 5}`
 	mockClient.On("GET", "/mcp_servers/server-1").Return([]byte(responseJSON), nil)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServer(mockClient, "server-1")
+	result, err := repo.GetMcpServer(mockClient, "server-1", url.Values{})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, 1, result.ID)
+	assert.Equal(t, "1", result.ID)
+	assert.Equal(t, "Test MCP Server", result.Name)
+	mockClient.AssertExpectations(t)
+}
+
+func TestGetMcpServer_WithIncludeTools(t *testing.T) {
+	mockClient := &mocks.MockHTTPClient{}
+	responseJSON := `{"id": "1", "name": "Test MCP Server", "toolCount": 5}`
+	mockClient.On("GET", "/mcp_servers/server-1?includeTools=true").Return([]byte(responseJSON), nil)
+
+	repo := McpServerCatalog{}
+	pageValues := url.Values{}
+	pageValues.Set("includeTools", "true")
+	result, err := repo.GetMcpServer(mockClient, "server-1", pageValues)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "1", result.ID)
 	assert.Equal(t, "Test MCP Server", result.Name)
 	mockClient.AssertExpectations(t)
 }
@@ -132,7 +149,7 @@ func TestGetMcpServer_ClientError(t *testing.T) {
 	mockClient.On("GET", "/mcp_servers/missing").Return([]byte(nil), expectedErr)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServer(mockClient, "missing")
+	result, err := repo.GetMcpServer(mockClient, "missing", url.Values{})
 
 	assert.Nil(t, result)
 	assert.Error(t, err)

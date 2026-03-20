@@ -112,17 +112,6 @@ func TestPaginateSources(t *testing.T) {
 			expectedFirstID:    "source5",
 			expectedLastID:     "source9",
 		},
-		{
-			name:               "Invalid token",
-			items:              allSources,
-			pageSize:           "10",
-			orderBy:            "ID",
-			nextPageToken:      "invalid-token",
-			expectedItemsCount: 10,
-			expectedNextToken:  true,
-			expectedFirstID:    "source0",
-			expectedLastID:     "source9",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -147,6 +136,21 @@ func TestPaginateSources(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewPaginator_InvalidToken(t *testing.T) {
+	_, err := newPaginator[model.CatalogSource]("10", "ID", "", "invalid-token")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid nextPageToken")
+	// Verify a valid token does not produce an error
+	allSources := createCatalogSources(25)
+	validToken := (&stringCursor{Value: "source9", ID: "source9"}).String()
+	paginator, err := newPaginator[model.CatalogSource]("10", "ID", "", validToken)
+	assert.NoError(t, err)
+	assert.NotNil(t, paginator)
+	pagedItems, _ := paginator.Paginate(allSources)
+	assert.Equal(t, 10, len(pagedItems))
+	assert.Equal(t, "source10", pagedItems[0].Id)
 }
 
 func TestNewPaginator_InvalidPageSize(t *testing.T) {
@@ -190,6 +194,74 @@ func TestNewPaginator_InvalidPageSize(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, paginator)
+			}
+		})
+	}
+}
+
+func TestParsePaginationParams(t *testing.T) {
+	testCases := []struct {
+		name          string
+		pageSize      string
+		nextPageToken string
+		expectError   bool
+		errContains   string
+		expectedSize  int32
+	}{
+		{
+			name:         "empty values use defaults",
+			pageSize:     "",
+			expectedSize: 10,
+		},
+		{
+			name:         "valid pageSize",
+			pageSize:     "25",
+			expectedSize: 25,
+		},
+		{
+			name:        "negative pageSize returns error",
+			pageSize:    "-5",
+			expectError: true,
+			errContains: "pageSize must be at least 1",
+		},
+		{
+			name:        "zero pageSize returns error",
+			pageSize:    "0",
+			expectError: true,
+			errContains: "pageSize must be at least 1",
+		},
+		{
+			name:        "non-numeric pageSize returns error",
+			pageSize:    "abc",
+			expectError: true,
+			errContains: "invalid pageSize",
+		},
+		{
+			name:          "garbage nextPageToken returns error",
+			pageSize:      "10",
+			nextPageToken: "asdf1234garbage",
+			expectError:   true,
+			errContains:   "invalid nextPageToken",
+		},
+		{
+			name:          "plaintext nextPageToken returns error",
+			pageSize:      "10",
+			nextPageToken: "not-a-real-token",
+			expectError:   true,
+			errContains:   "invalid nextPageToken",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			size, err := parsePaginationParams(tc.pageSize, tc.nextPageToken)
+			if tc.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errContains)
+				assert.Equal(t, int32(0), size)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedSize, size)
 			}
 		})
 	}

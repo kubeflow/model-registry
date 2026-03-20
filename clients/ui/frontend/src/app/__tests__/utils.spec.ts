@@ -8,8 +8,21 @@ import {
   getLastCreatedItem,
   objectStorageFieldsToUri,
   uriToStorageFields,
+  getStorageTypeLabel,
+  getModelUriPopoverContent,
+  getModelUriLabel,
+  getDestinationUri,
+  getSourcePath,
 } from '~/app/utils';
-import { RegisteredModel, ModelState, ModelVersion } from '~/app/types';
+import {
+  RegisteredModel,
+  ModelState,
+  ModelVersion,
+  ModelTransferJobSourceType,
+  ModelTransferJobDestinationType,
+  isRegistryUnavailable,
+} from '~/app/types';
+import { mockModelTransferJob, mockModelTransferJobOCI } from '~/__mocks__/mockModelTransferJob';
 
 describe('objectStorageFieldsToUri', () => {
   it('converts fields to URI with all fields present', () => {
@@ -249,5 +262,118 @@ describe('Filter model version state', () => {
       const result = filterLiveVersions([]);
       expect(result).toEqual([]);
     });
+  });
+});
+
+describe('isRegistryUnavailable', () => {
+  it('returns true when isAvailable is false', () => {
+    expect(
+      isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: false }),
+    ).toBe(true);
+  });
+
+  it('returns false when isAvailable is true', () => {
+    expect(
+      isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: true }),
+    ).toBe(false);
+  });
+
+  it('returns false when isAvailable is undefined (legacy BFF)', () => {
+    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '' })).toBe(false);
+  });
+
+  it('returns false when mr is undefined', () => {
+    expect(isRegistryUnavailable(undefined)).toBe(false);
+  });
+});
+
+describe('getStorageTypeLabel', () => {
+  it('returns S3 for S3 source type', () => {
+    expect(getStorageTypeLabel(ModelTransferJobSourceType.S3)).toBe('S3');
+  });
+
+  it('returns OCI for OCI destination type', () => {
+    expect(getStorageTypeLabel(ModelTransferJobDestinationType.OCI)).toBe('OCI');
+  });
+
+  it('returns URI for URI source type', () => {
+    expect(getStorageTypeLabel(ModelTransferJobSourceType.URI)).toBe('URI');
+  });
+});
+
+describe('getModelUriPopoverContent', () => {
+  it('returns OCI popover text for OCI destination', () => {
+    expect(getModelUriPopoverContent(ModelTransferJobDestinationType.OCI)).toContain('OCI');
+  });
+
+  it('returns S3 popover text for S3 destination', () => {
+    expect(getModelUriPopoverContent(ModelTransferJobDestinationType.S3)).toContain(
+      'S3-compatible',
+    );
+  });
+});
+
+describe('getModelUriLabel', () => {
+  it('returns Path for S3 destination', () => {
+    expect(getModelUriLabel(ModelTransferJobDestinationType.S3)).toBe('Path');
+  });
+
+  it('returns Model URI for OCI destination', () => {
+    expect(getModelUriLabel(ModelTransferJobDestinationType.OCI)).toBe('Model URI');
+  });
+});
+
+describe('getDestinationUri', () => {
+  it('returns URI for OCI destination', () => {
+    const job = mockModelTransferJobOCI();
+    expect(getDestinationUri(job)).toBe('quay.io/my-org/my-model:v1.0.0');
+  });
+
+  it('returns key for S3 destination', () => {
+    const job = mockModelTransferJob();
+    expect(getDestinationUri(job)).toBe('models/fraud-detection/v1');
+  });
+
+  it('returns empty string when no uri or key', () => {
+    const job = mockModelTransferJobOCI({
+      destination: {
+        type: ModelTransferJobDestinationType.OCI,
+        uri: '',
+        registry: '',
+        username: '',
+        password: '',
+      },
+    });
+    expect(getDestinationUri(job)).toBe('');
+  });
+});
+
+describe('getSourcePath', () => {
+  it('returns key for S3 source', () => {
+    const job = mockModelTransferJob();
+    expect(getSourcePath(job)).toBe('models/fraud-detection/v1');
+  });
+
+  it('returns URI for URI source', () => {
+    const job = mockModelTransferJob({
+      source: {
+        type: ModelTransferJobSourceType.URI,
+        uri: 'https://example.com/model.bin',
+      },
+    });
+    expect(getSourcePath(job)).toBe('https://example.com/model.bin');
+  });
+
+  it('returns empty string when no key or uri', () => {
+    const job = mockModelTransferJob({
+      source: {
+        type: ModelTransferJobSourceType.S3,
+        bucket: 'bucket',
+        key: '',
+        awsAccessKeyId: '',
+        awsSecretAccessKey: '',
+      },
+    });
+    expect(getSourcePath(job)).toBe('');
   });
 });

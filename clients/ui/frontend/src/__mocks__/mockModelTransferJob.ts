@@ -10,6 +10,8 @@ import {
 export const mockModelTransferJob = (partial?: Partial<ModelTransferJob>): ModelTransferJob => ({
   id: '1',
   name: 'model-transfer-job-1',
+  jobDisplayName: 'model-transfer-job-1',
+  namespace: 'test-namespace',
   description: 'Transfer job for fraud detection model',
   source: {
     type: ModelTransferJobSourceType.S3,
@@ -35,6 +37,29 @@ export const mockModelTransferJob = (partial?: Partial<ModelTransferJob>): Model
   status: ModelTransferJobStatus.COMPLETED,
   createTimeSinceEpoch: '1712234877179',
   lastUpdateTimeSinceEpoch: '1712234877179',
+  ...partial,
+});
+
+export const mockModelTransferJobOCI = (partial?: Partial<ModelTransferJob>): ModelTransferJob => ({
+  ...mockModelTransferJob(),
+  name: 'model-transfer-job-oci-1',
+  source: {
+    type: ModelTransferJobSourceType.S3,
+    bucket: 'source-bucket',
+    key: 'models/model-v1/model.tar.gz',
+    region: 'us-east-1',
+    endpoint: 'https://s3.us-east-1.amazonaws.com',
+    awsAccessKeyId: 'accessKeyId',
+    awsSecretAccessKey: 'secretAccessKey',
+  },
+  destination: {
+    type: ModelTransferJobDestinationType.OCI,
+    uri: 'quay.io/my-org/my-model:v1.0.0',
+    registry: 'quay.io',
+    username: 'username',
+    password: 'password',
+  },
+  namespace: 'my-project-1',
   ...partial,
 });
 

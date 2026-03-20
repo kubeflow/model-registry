@@ -18,6 +18,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
 	"github.com/kubeflow/model-registry/internal/converter/generated"
+	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/pkg/api"
 	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -855,6 +856,9 @@ func (s *ModelRegistryServiceAPIService) buildListOption(filterQuery string, pag
 	}
 	var nextPageTokenParam *string
 	if nextPageToken != "" {
+		if _, err := scopes.DecodeCursor(nextPageToken); err != nil {
+			return api.ListOptions{}, fmt.Errorf("invalid nextPageToken: %w: %w", err, api.ErrBadRequest)
+		}
 		nextPageTokenParam = &nextPageToken
 	}
 	return api.ListOptions{

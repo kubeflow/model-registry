@@ -20,6 +20,9 @@ type KubernetesClientInterface interface {
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
 	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string, serviceType string) (ServiceDetails, error)
 	GetServiceDetails(ctx context.Context, namespace string) ([]ServiceDetails, error)
+	// GetServiceEndpoints returns the Endpoints for a service (used to detect availability). On permission error callers should treat the registry as available.
+	//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
+	GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error)
 
 	// Namespace access
 	GetNamespaces(ctx context.Context, identity *RequestIdentity) ([]corev1.Namespace, error)
