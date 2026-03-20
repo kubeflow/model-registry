@@ -113,6 +113,7 @@ type yamlMCPServer struct {
 	Artifacts                []*yamlMCPArtifact                  `yaml:"artifacts,omitempty"`
 	DeploymentMode           *string                             `yaml:"deploymentMode,omitempty"`
 	Endpoints                *yamlMCPEndpoints                   `yaml:"endpoints,omitempty"`
+	RuntimeMetadata          *apimodels.MCPRuntimeMetadata       `yaml:"runtimeMetadata,omitempty"`
 	Tags                     []string                            `yaml:"tags,omitempty"`
 	CustomProperties         *map[string]apimodels.MetadataValue `yaml:"customProperties,omitempty"`
 	CreateTimeSinceEpoch     *string                             `yaml:"createTimeSinceEpoch,omitempty"`
@@ -358,6 +359,15 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 	if ys.DeploymentMode != nil && *ys.DeploymentMode == "remote" {
 		if ys.Endpoints == nil || (ys.Endpoints.HTTP == nil && ys.Endpoints.SSE == nil && ys.Endpoints.WebSocket == nil) {
 			return MCPServerProviderRecord{Error: fmt.Errorf("server %q has deploymentMode 'remote' but no endpoints defined", ys.Name)}
+		}
+	}
+
+	// Convert runtimeMetadata to JSON
+	if ys.RuntimeMetadata != nil {
+		if jsonBytes, err := json.Marshal(ys.RuntimeMetadata); err == nil {
+			properties = append(properties, mrmodels.NewStringProperty("runtimeMetadata", string(jsonBytes), false))
+		} else {
+			glog.Warningf("failed to marshal runtimeMetadata for server %q: %v", ys.Name, err)
 		}
 	}
 
