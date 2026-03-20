@@ -31,7 +31,7 @@ type MCPRuntimeMetadata struct {
 	HealthEndpoints              *MCPRuntimeMetadataHealthEndpoints `json:"healthEndpoints,omitempty"`
 	Capabilities                 *MCPRuntimeMetadataCapabilities    `json:"capabilities,omitempty"`
 	// HTTP path where MCP server accepts requests. Used for HTTP and SSE transports. Aligns with MCP Lifecycle operator conventions.
-	McpPath       *string           `json:"mcpPath,omitempty"`
+	McpPath       *string           `json:"mcpPath,omitempty" validate:"regexp=^\\/[a-zA-Z0-9\\/_.-]*$"`
 	Prerequisites *MCPPrerequisites `json:"prerequisites,omitempty"`
 }
 
