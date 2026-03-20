@@ -470,7 +470,7 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 
 	// Handle NAME ordering specially (catalog-specific)
 	if orderBy == "NAME" {
-		return catpagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return catpagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize(), true)
 	}
 
 	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
@@ -536,7 +536,11 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 func (r *CatalogModelRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.CatalogModelListOptions) string {
 	// Handle NAME ordering (catalog-specific)
 	if listOptions.GetOrderBy() == "NAME" {
-		return catpagination.CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+		displayName := lastItem.Name
+		if _, after, ok := strings.Cut(lastItem.Name, ":"); ok {
+			displayName = after
+		}
+		return catpagination.CreateNamePaginationToken(lastItem.ID, &displayName)
 	}
 
 	sortValueQuery, column := r.sortValueQuery(listOptions)
