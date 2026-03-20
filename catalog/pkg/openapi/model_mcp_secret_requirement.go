@@ -28,7 +28,7 @@ type MCPSecretRequirement struct {
 	// Whether to mount Secret as files instead of environment variables
 	MountAsFile *bool `json:"mountAsFile,omitempty"`
 	// Mount path when mountAsFile is true (must be absolute path)
-	MountPath *string `json:"mountPath,omitempty" validate:"regexp=^\\/[a-zA-Z0-9\\/_-]*$"`
+	MountPath *string `json:"mountPath,omitempty" validate:"regexp=^\\/[a-zA-Z0-9\\/_.-]*$"`
 }
 
 type _MCPSecretRequirement MCPSecretRequirement

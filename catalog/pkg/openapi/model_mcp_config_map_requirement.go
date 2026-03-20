@@ -28,7 +28,7 @@ type MCPConfigMapRequirement struct {
 	// Whether to mount ConfigMap as files
 	MountAsFile *bool `json:"mountAsFile,omitempty"`
 	// Mount path when mountAsFile is true (must be absolute path)
-	MountPath *string `json:"mountPath,omitempty" validate:"regexp=^\\/[a-zA-Z0-9\\/_-]*$"`
+	MountPath *string `json:"mountPath,omitempty" validate:"regexp=^\\/[a-zA-Z0-9\\/_.-]*$"`
 }
 
 type _MCPConfigMapRequirement MCPConfigMapRequirement
