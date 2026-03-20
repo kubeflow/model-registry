@@ -1,9 +1,6 @@
 import * as React from 'react';
+import { useManageColumns, UseManageColumnsResult } from 'mod-arch-shared';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import {
-  useManageColumns,
-  UseManageColumnsResult,
-} from '~/app/shared/components/manageColumns/useManageColumns';
 import {
   LatencyMetric,
   LatencyMetricFieldName,
@@ -133,23 +130,6 @@ export const useHardwareConfigColumns = (
     setSortColumnField(activePropertyKey);
     setSortDirection('asc');
   }, [activeLatencyField, manageColumnsResult, stickyColumns, manageableColumns]);
-
-  // Ensure sort is set correctly when columns are ready (handles initial mount case)
-  React.useEffect(() => {
-    if (!activeLatencyField || columns.length === 0) {
-      return;
-    }
-
-    const parsed = parseLatencyFilterKey(activeLatencyField);
-    const activePropertyKey = parsed.propertyKey;
-
-    // Only update if the column exists and sort isn't already set correctly
-    const columnExists = columns.some((col) => col.field === activePropertyKey);
-    if (columnExists && (sortColumnField !== activePropertyKey || sortDirection !== 'asc')) {
-      setSortColumnField(activePropertyKey);
-      setSortDirection('asc');
-    }
-  }, [activeLatencyField, columns, sortColumnField, sortDirection]);
 
   const sortState = React.useMemo(() => {
     const sortIndex =

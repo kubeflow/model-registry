@@ -279,7 +279,6 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
             <ModelCatalogCard
               model={model}
               source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-              truncate
             />
           </GridItem>
         ))}
