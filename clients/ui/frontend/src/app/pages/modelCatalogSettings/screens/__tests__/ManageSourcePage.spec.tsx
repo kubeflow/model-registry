@@ -1,20 +1,13 @@
-import React from 'react';
+import * as React from 'react';
 import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import ManageSourcePage from '~/app/pages/modelCatalogSettings/screens/ManageSourcePage';
-import {
-  EXPECTED_YAML_FORMAT_LABEL,
-  PRIMARY_APP_CONTAINER_ID,
-} from '~/app/pages/modelCatalogSettings/constants';
+import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
 
 jest.mock('mod-arch-shared', () => ({
   ApplicationsPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-jest.mock('mod-arch-kubeflow', () => ({
-  useThemeContext: () => ({ isMUITheme: false }),
 }));
 
 jest.mock('~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId', () => ({
@@ -45,17 +38,8 @@ jest.mock('~/app/pages/modelCatalogSettings/components/ManageSourceForm', () => 
 }));
 
 describe('ManageSourcePage', () => {
-  let portalContainer: HTMLElement;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    portalContainer = document.createElement('div');
-    portalContainer.id = PRIMARY_APP_CONTAINER_ID;
-    document.body.appendChild(portalContainer);
-  });
-
-  afterEach(() => {
-    portalContainer.remove();
   });
 
   it('form link button opens drawer and close button closes it (open/close state wiring)', async () => {
@@ -66,22 +50,21 @@ describe('ManageSourcePage', () => {
       </MemoryRouter>,
     );
 
-    expect(
-      screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close drawer' })).toBeNull();
 
     await user.click(screen.getByTestId('open-expected-format-drawer'));
 
     await waitFor(() => {
-      expect(screen.getByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL })).toBeInTheDocument();
+      expect(screen.getByTestId('expected-format-drawer-title')).toHaveTextContent(
+        EXPECTED_YAML_FORMAT_LABEL,
+      );
+      expect(screen.getByRole('button', { name: 'Close drawer' })).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Close drawer' }));
 
     await waitFor(() => {
-      expect(
-        screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Close drawer' })).toBeNull();
     });
   });
 });
