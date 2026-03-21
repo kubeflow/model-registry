@@ -11,6 +11,7 @@ import {
 } from '@patternfly/react-core';
 import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-icons';
 import { KeyValuePair, EitherNotBoth } from 'mod-arch-core';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isValidHttpUrl } from '~/app/pages/modelRegistry/screens/utils';
 import useDeletePropertiesModalAvailability from '~/app/hooks/useDeletePropertiesModalAvailability';
@@ -53,6 +54,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   showInlineAlerts = false,
 }) => {
   const { key, value } = keyValuePair;
+  const { isMUITheme } = useThemeContext();
 
   const [unsavedKey, setUnsavedKey] = React.useState(key);
   const [unsavedValue, setUnsavedValue] = React.useState(value);
@@ -204,7 +206,13 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
         )}
       </Td>
       {!isArchive && (
-        <Td isActionCell width={10}>
+        <Td
+          isActionCell
+          width={10}
+          style={
+            isMUITheme && isEditing ? { verticalAlign: 'top', alignContent: 'start' } : undefined
+          }
+        >
           {isEditing ? (
             <ActionList isIconList>
               <ActionListItem>
