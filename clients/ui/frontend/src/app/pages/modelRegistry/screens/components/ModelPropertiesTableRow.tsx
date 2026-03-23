@@ -209,9 +209,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
         <Td
           isActionCell
           width={10}
-          style={
-            isMUITheme && isEditing ? { verticalAlign: 'top', alignContent: 'start' } : undefined
-          }
+          style={isMUITheme && isEditing ? { alignContent: 'start' } : undefined}
         >
           {isEditing ? (
             <ActionList isIconList>
