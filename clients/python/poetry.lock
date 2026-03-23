@@ -2189,15 +2189,15 @@ files = [
 
 [[package]]
 name = "olot"
-version = "0.1.15"
+version = "0.1.16"
 description = "oci layers on top"
 optional = true
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 markers = "extra == \"olot\""
 files = [
-    {file = "olot-0.1.15-py3-none-any.whl", hash = "sha256:1dbb3c833d247e5a1dff0f6a5e1cb0eea7245b46f8cf449225e421adf6ca87e8"},
-    {file = "olot-0.1.15.tar.gz", hash = "sha256:76869d1f50a7e9e3e4d9b1ce668ead25286aa346272154b7e97fa2dd1367a89f"},
+    {file = "olot-0.1.16-py3-none-any.whl", hash = "sha256:5baaaeb8ee4a688cb096e8149467fabc730bf5ed15fab1051fa90b09132eb0db"},
+    {file = "olot-0.1.16.tar.gz", hash = "sha256:c040065744ede4d0f128dc362fad9115c6664a9bbc97e8859eab399a2bd52144"},
 ]
 
 [package.dependencies]
@@ -2206,6 +2206,7 @@ pydantic = ">=2.10.3,<3.0.0"
 
 [package.extras]
 modelcar-base-image = ["modelcar-base-image (>=0.1.0,<0.2.0)"]
+oras-py = ["oras (>=0.2.42)"]
 
 [[package]]
 name = "oras"
@@ -2417,9 +2418,10 @@ markers = {main = "extra == \"signing\"", dev = "python_version < \"3.14\""}
 name = "pyasn1"
 version = "0.6.3"
 description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"signing\""
 files = [
     {file = "pyasn1-0.6.3-py3-none-any.whl", hash = "sha256:a80184d120f0864a52a073acc6fc642847d0be408e7c7252f31390c0f4eadcde"},
     {file = "pyasn1-0.6.3.tar.gz", hash = "sha256:697a8ecd6d98891189184ca1fa05d1bb00e2f84b5977c481452050549c8a72cf"},
