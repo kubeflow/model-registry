@@ -119,6 +119,10 @@ module.exports = (env) => ({
         },
       },
       {
+        test: /\.ya?ml$/,
+        use: { loader: 'raw-loader', options: {} },
+      },
+      {
         test: /\.(jpg|jpeg|png|gif)$/i,
         include: [
           SRC_DIR,
@@ -164,10 +168,6 @@ module.exports = (env) => ({
           // Compiles Sass to CSS
           'sass-loader',
         ],
-      },
-      {
-        test: /\.ya?ml$/,
-        use: 'js-yaml-loader',
       },
     ],
   },
@@ -234,9 +234,15 @@ module.exports = (env) => ({
     }),
   ],
   resolve: {
-    extensions: ['.js', '.ts', '.tsx', '.jsx'],
+    extensions: ['.js', '.ts', '.tsx', '.jsx', '.yaml'],
     alias: {
       '~': path.resolve(SRC_DIR),
+      // Set SAMPLE_CATALOG_YAML_PATH to override the bundled sample YAML with a custom file at build time.
+      ...(process.env.SAMPLE_CATALOG_YAML_PATH && {
+        '~/app/pages/modelCatalogSettings/sample-catalog.yaml': path.resolve(
+          process.env.SAMPLE_CATALOG_YAML_PATH,
+        ),
+      }),
     },
     symlinks: false,
     cacheWithContext: false,

@@ -49,6 +49,8 @@ export const PLACEHOLDERS = {
   EXCLUDED_MODELS_GENERIC: 'Example: Google/gemma-7b-test*, Meta/Llama*',
 } as const;
 
+export const EXPECTED_YAML_FORMAT_LABEL = 'View expected file format';
+
 export const DESCRIPTIONS = {
   ENABLE_SOURCE:
     'Enable users in your organization to view models from this source in the model catalog.',
