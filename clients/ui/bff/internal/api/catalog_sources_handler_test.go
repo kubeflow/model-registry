@@ -149,3 +149,69 @@ var _ = Describe("TestGetAllCatalogSourcesHandler", func() {
 
 	})
 })
+
+var _ = Describe("TestGetCatalogLabelsHandler", func() {
+	Context("testing Catalog Labels Handler", Ordered, func() {
+
+		It("should retrieve all catalog labels (default, no assetType)", func() {
+			By("fetching all catalog labels without assetType")
+			data := mocks.GetCatalogLabelListMock()
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			expected := CatalogLabelListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[CatalogLabelListEnvelope](http.MethodGet, "/api/v1/model_catalog/labels?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("should match the expected catalog labels")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
+			Expect(actual.Data.NextPageToken).To(Equal(expected.Data.NextPageToken))
+			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
+			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+		})
+
+		It("should retrieve catalog labels with assetType=models", func() {
+			By("fetching catalog labels with assetType=models")
+			data := mocks.GetCatalogLabelListMock()
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			expected := CatalogLabelListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[CatalogLabelListEnvelope](http.MethodGet, "/api/v1/model_catalog/labels?namespace=kubeflow&assetType=models", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("should return model catalog labels")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data).NotTo(BeNil())
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
+			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
+			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+		})
+
+		It("should retrieve catalog labels filtered by assetType=mcp_servers", func() {
+			By("fetching catalog labels with assetType=mcp_servers")
+			data := mocks.GetMcpServerCatalogLabelListMock()
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			expected := CatalogLabelListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[CatalogLabelListEnvelope](http.MethodGet, "/api/v1/model_catalog/labels?namespace=kubeflow&assetType=mcp_servers", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("should return MCP server catalog labels")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data).NotTo(BeNil())
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
+			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
+			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+		})
+
+	})
+})

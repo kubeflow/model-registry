@@ -1,17 +1,20 @@
 import { FetchState, FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
 import React from 'react';
-import { CatalogLabelList } from '~/app/modelCatalogTypes';
+import { CatalogLabelList, CatalogLabelListParams } from '~/app/modelCatalogTypes';
 import { ModelCatalogAPIState } from './useModelCatalogAPIState';
 
-export const useCatalogLabels = (apiState: ModelCatalogAPIState): FetchState<CatalogLabelList> => {
+export const useCatalogLabels = (
+  apiState: ModelCatalogAPIState,
+  listParams?: CatalogLabelListParams,
+): FetchState<CatalogLabelList> => {
   const call = React.useCallback<FetchStateCallbackPromise<CatalogLabelList>>(
     (opts) => {
       if (!apiState.apiAvailable) {
         return Promise.reject(new Error('API not yet available'));
       }
-      return apiState.api.getCatalogLabels(opts);
+      return apiState.api.getCatalogLabels(opts, listParams);
     },
-    [apiState],
+    [apiState, listParams],
   );
   return useFetchState(
     call,

@@ -14,22 +14,19 @@ var _ = Describe("TestMcpServersCatalogHandler", func() {
 
 		It("should retrieve all MCP servers", func() {
 			By("fetching all MCP servers")
-			data := mocks.GetMcpServerListMock()
 			requestIdentity := kubernetes.RequestIdentity{
 				UserID: "user@example.com",
 			}
 
-			expected := McpServerListEnvelope{Data: &data}
 			actual, rs, err := setupApiTest[McpServerListEnvelope](http.MethodGet, "/api/v1/mcp_catalog/mcp_servers?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected MCP server list")
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
-			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
-			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
-			Expect(actual.Data.NextPageToken).To(Equal(expected.Data.NextPageToken))
-			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
-			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+			Expect(actual.Data.Size).To(Equal(int32(10)))
+			Expect(actual.Data.PageSize).To(Equal(int32(10)))
+			Expect(actual.Data.NextPageToken).NotTo(BeEmpty())
+			Expect(len(actual.Data.Items)).To(Equal(10))
 		})
 
 		It("should retrieve MCP server filter options", func() {

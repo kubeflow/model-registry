@@ -70,7 +70,6 @@ export type McpServerList = PaginationParams & { items?: McpServer[] };
 
 export type McpToolWithServer = {
   serverId: string;
-  serverName: string;
   tool: McpTool;
 };
 

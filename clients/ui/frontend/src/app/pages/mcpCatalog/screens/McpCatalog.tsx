@@ -3,16 +3,19 @@ import { PageSection, Sidebar, SidebarContent, SidebarPanel, Stack } from '@patt
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
+import { hasMcpFiltersApplied } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
+import { MCP_CATALOG_TITLE, MCP_CATALOG_DESCRIPTION } from '~/app/pages/mcpCatalog/const';
 import McpCatalogSourceLabelSelector from './McpCatalogSourceLabelSelector';
+import McpCatalogAllServersView from './McpCatalogAllServersView';
 import McpCatalogGalleryView from './McpCatalogGalleryView';
 
-const MCP_CATALOG_TITLE = 'MCP Catalog';
-const MCP_CATALOG_SUBTITLE =
-  'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
-
 const McpCatalog: React.FC = () => {
-  const { searchQuery, setSearchQuery, clearAllFilters } = React.useContext(McpCatalogContext);
+  const { searchQuery, setSearchQuery, clearAllFilters, selectedSourceLabel, filters } =
+    React.useContext(McpCatalogContext);
+
+  const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
+  const isAllServersView = selectedSourceLabel === undefined && !filtersApplied;
 
   const handleSearch = React.useCallback(
     (term: string) => {
@@ -36,7 +39,7 @@ const McpCatalog: React.FC = () => {
         title={
           <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
         }
-        description={MCP_CATALOG_SUBTITLE}
+        description={MCP_CATALOG_DESCRIPTION}
         empty={false}
         loaded
         provideChildrenPadding
@@ -54,7 +57,11 @@ const McpCatalog: React.FC = () => {
                 onResetAllFilters={handleResetAllFilters}
               />
               <PageSection isFilled padding={{ default: 'noPadding' }}>
-                <McpCatalogGalleryView />
+                {isAllServersView ? (
+                  <McpCatalogAllServersView searchTerm={searchQuery} />
+                ) : (
+                  <McpCatalogGalleryView handleFilterReset={handleResetAllFilters} />
+                )}
               </PageSection>
             </Stack>
           </SidebarContent>

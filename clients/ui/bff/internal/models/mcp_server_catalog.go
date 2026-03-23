@@ -95,9 +95,8 @@ type McpServerList struct {
 }
 
 type McpToolWithServer struct {
-	ServerID   string  `json:"serverId"`
-	ServerName string  `json:"serverName"`
-	Tool       McpTool `json:"tool"`
+	ServerID string  `json:"serverId"`
+	Tool     McpTool `json:"tool"`
 }
 
 type McpToolList struct {

@@ -238,7 +238,14 @@ export type GetArtifactFilterOptions = (
 
 export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
 
-export type GetCatalogLabels = (opts: APIOptions) => Promise<CatalogLabelList>;
+export type CatalogLabelListParams = {
+  assetType?: CatalogAssetType;
+};
+
+export type GetCatalogLabels = (
+  opts: APIOptions,
+  listParams?: CatalogLabelListParams,
+) => Promise<CatalogLabelList>;
 
 export type GetMcpServerList = (
   opts: APIOptions,

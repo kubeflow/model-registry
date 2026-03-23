@@ -336,7 +336,7 @@ export const getSortParams = (
   };
 };
 
-const wrapInQuotes = (v: string): string => `'${v}'`;
+const wrapInQuotes = (v: string): string => `'${v.replace(/'/g, "''")}'`;
 
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;
 const inFilter = (k: string, values: string[]) =>
@@ -670,14 +670,18 @@ export const findLabelData = (
 
 /**
  * Gets the display name for a source label, using the catalog labels data if available.
- * Falls back to the raw label name with " models" appended if no display name is found.
+ * Falls back to the raw label name with the given suffix appended if no display name is found.
  * @param sourceLabel The label string from a source (or SourceLabel.other for unlabeled sources)
  * @param catalogLabels The list of catalog labels from the API
+ * @param otherFallback Display name for sources without labels (default: 'Other models')
+ * @param categorySuffix Suffix appended to the label name when no display name exists (default: 'models')
  * @returns The display name to show in the UI
  */
 export const getLabelDisplayName = (
   sourceLabel: string | undefined,
   catalogLabels: CatalogLabelList | null,
+  otherFallback = 'Other models',
+  categorySuffix = 'models',
 ): string => {
   if (!sourceLabel) {
     return '';
@@ -685,19 +689,17 @@ export const getLabelDisplayName = (
 
   const labelData = findLabelData(sourceLabel, catalogLabels);
 
-  // If we have a displayName from the API, use it
   if (labelData?.displayName) {
     return labelData.displayName;
   }
 
-  // Otherwise fall back to generating a name from the label
-  // For SourceLabel.other, this should not happen if the API is working correctly
-  // but we handle it gracefully
   if (sourceLabel === SourceLabel.other) {
-    return 'Other models'; // fallback for the special null case
+    return otherFallback;
   }
 
-  return generateCategoryName(sourceLabel);
+  return sourceLabel.toLowerCase().endsWith(categorySuffix)
+    ? sourceLabel
+    : `${sourceLabel} ${categorySuffix}`;
 };
 
 /**

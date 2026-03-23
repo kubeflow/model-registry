@@ -8,10 +8,14 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
+const (
+	ModelCatalogServiceName = "model-catalog"
+	ModelCatalogAPIPath     = "/api/model_catalog/v1alpha1"
+	McpCatalogAPIPath       = "/api/mcp_catalog/v1alpha1"
+)
+
 type ModelCatalogRepository struct {
 }
-
-const ModelCatalogServiceName = "model-catalog"
 
 func NewCatalogRepository() *ModelCatalogRepository {
 	return &ModelCatalogRepository{}
@@ -28,25 +32,20 @@ func (m *ModelCatalogRepository) GetModelCatalogWithMode(sessionCtx context.Cont
 		Name:          s.Name,
 		Description:   s.Description,
 		DisplayName:   s.DisplayName,
-		ServerAddress: m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode),
+		ServerAddress: m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode, ModelCatalogAPIPath),
 		IsHTTPS:       s.IsHTTPS,
 	}
 	return modelCatalog, nil
 }
 
-func (m *ModelCatalogRepository) ResolveServerAddress(clusterIP string, httpPort int32, isHTTPS bool, externalAddressRest string, isFederatedMode bool) string {
-	// Default behavior - use cluster IP and port
+func (m *ModelCatalogRepository) ResolveServerAddress(clusterIP string, httpPort int32, isHTTPS bool, externalAddressRest string, isFederatedMode bool, apiPath string) string {
 	protocol := "http"
 	if isHTTPS {
 		protocol = "https"
 	}
-	// In federated mode, if external address is available, use it
 	if isFederatedMode && externalAddressRest != "" {
-		// External address is assumed to be HTTPS
-		url := fmt.Sprintf("%s://%s/api/model_catalog/v1alpha1", protocol, externalAddressRest)
-		return url
+		return fmt.Sprintf("%s://%s%s", protocol, externalAddressRest, apiPath)
 	}
 
-	url := fmt.Sprintf("%s://%s:%d/api/model_catalog/v1alpha1", protocol, clusterIP, httpPort)
-	return url
+	return fmt.Sprintf("%s://%s:%d%s", protocol, clusterIP, httpPort, apiPath)
 }

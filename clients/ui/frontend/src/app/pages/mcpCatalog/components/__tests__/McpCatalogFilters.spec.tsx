@@ -18,12 +18,8 @@ jest.mock('~/app/hooks/modelCatalog/useModelCatalogAPIState', () => ({
 jest.mock('~/app/hooks/modelCatalog/useCatalogSources', () => ({
   useCatalogSources: () => [{ items: [] }, true, undefined],
 }));
-jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
-  useMcpServersBySourceLabelWithAPI: () => ({
-    mcpServers: { items: [] },
-    mcpServersLoaded: true,
-    mcpServersLoadError: undefined,
-  }),
+jest.mock('~/app/hooks/modelCatalog/useCatalogLabels', () => ({
+  useCatalogLabels: () => [null, true, undefined],
 }));
 jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
   useMcpServerFilterOptionListWithAPI: () => [mockMcpCatalogFilterOptions(), true, undefined],

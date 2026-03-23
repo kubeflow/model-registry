@@ -4,8 +4,8 @@ import { McpToolList } from '~/app/mcpServerCatalogTypes';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 
 export const useMcpServerToolList = (serverId: string): FetchState<McpToolList> => {
-  const { apiState } = React.useContext(McpCatalogContext);
-  const { api, apiAvailable } = apiState;
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  const { api, apiAvailable } = mcpApiState;
   const call = React.useCallback<FetchStateCallbackPromise<McpToolList>>(
     (opts) => {
       if (!apiAvailable) {

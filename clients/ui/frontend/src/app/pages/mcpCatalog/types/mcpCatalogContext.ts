@@ -1,5 +1,4 @@
-import type { CatalogSourceList } from '~/app/modelCatalogTypes';
-import type { McpServer } from '~/app/mcpServerCatalogTypes';
+import type { CatalogLabelList, CatalogSourceList } from '~/app/modelCatalogTypes';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import type {
   McpCatalogFilterOptionsList,
@@ -13,7 +12,6 @@ export type McpCatalogPaginationState = {
 };
 
 export type McpCatalogContextType = {
-  apiState: ModelCatalogAPIState;
   filters: McpCatalogFiltersState;
   setFilters: (
     filters: McpCatalogFiltersState | ((prev: McpCatalogFiltersState) => McpCatalogFiltersState),
@@ -29,16 +27,13 @@ export type McpCatalogContextType = {
   selectedSourceLabel: string | undefined;
   setSelectedSourceLabel: (label: string | undefined) => void;
   clearAllFilters: () => void;
-  sourceLabels: string[];
-  sourceLabelNames: Record<string, string>;
-  hasNoLabelSources: boolean;
+  mcpApiState: ModelCatalogAPIState;
   catalogSources: CatalogSourceList | null;
   catalogSourcesLoaded: boolean;
   catalogSourcesLoadError: Error | undefined;
-  mcpServers: { items: McpServer[] };
-  mcpServersLoaded: boolean;
-  mcpServersLoadError: Error | undefined;
-  refreshMcpServers: () => void;
+  catalogLabels: CatalogLabelList | null;
+  catalogLabelsLoaded: boolean;
+  catalogLabelsLoadError: Error | undefined;
   filterOptions: McpCatalogFilterOptionsList | null;
   filterOptionsLoaded: boolean;
   filterOptionsLoadError: Error | undefined;

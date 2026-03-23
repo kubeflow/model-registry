@@ -5,8 +5,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { McpCatalogContextType } from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
-import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
+import type { McpServersResult } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
+import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
 import McpCatalogGalleryView from '~/app/pages/mcpCatalog/screens/McpCatalogGalleryView';
+
+jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
+  useMcpServersBySourceLabelWithAPI: jest.fn(),
+}));
+
+const mockUseMcpServersBySourceLabelWithAPI = jest.mocked(useMcpServersBySourceLabelWithAPI);
 
 const buildServer = (id: string, sourceId: string): McpServer => ({
   id,
@@ -19,7 +26,6 @@ const buildServer = (id: string, sourceId: string): McpServer => ({
 });
 
 const defaultContext: McpCatalogContextType = {
-  apiState: { apiAvailable: false, api: {} as McpCatalogContextType['apiState']['api'] },
   filters: {},
   setFilters: jest.fn(),
   searchQuery: '',
@@ -33,161 +39,139 @@ const defaultContext: McpCatalogContextType = {
   selectedSourceLabel: undefined,
   setSelectedSourceLabel: jest.fn(),
   clearAllFilters: jest.fn(),
-  sourceLabels: [],
-  sourceLabelNames: {},
-  hasNoLabelSources: false,
+  mcpApiState: { api: {} as McpCatalogContextType['mcpApiState']['api'], apiAvailable: false },
   catalogSources: null,
   catalogSourcesLoaded: true,
   catalogSourcesLoadError: undefined,
-  mcpServers: { items: [] },
-  mcpServersLoaded: true,
-  mcpServersLoadError: undefined,
-  refreshMcpServers: jest.fn(),
+  catalogLabels: null,
+  catalogLabelsLoaded: true,
+  catalogLabelsLoadError: undefined,
   filterOptions: null,
   filterOptionsLoaded: true,
   filterOptionsLoadError: undefined,
 };
 
-const renderWithContext = (overrides: Partial<McpCatalogContextType> = {}) => {
-  const ctx = { ...defaultContext, ...overrides };
+const defaultHookResult: McpServersResult = {
+  mcpServers: {
+    items: [],
+    size: 0,
+    pageSize: 10,
+    nextPageToken: '',
+    loadMore: jest.fn(),
+    isLoadingMore: false,
+    hasMore: false,
+    refresh: jest.fn(),
+  },
+  mcpServersLoaded: true,
+  mcpServersLoadError: undefined,
+  refresh: jest.fn(),
+};
+
+const handleFilterReset = jest.fn();
+
+const renderWithContext = (
+  contextOverrides: Partial<McpCatalogContextType> = {},
+  hookOverrides: Partial<McpServersResult> = {},
+) => {
+  const hookResult = {
+    ...defaultHookResult,
+    ...hookOverrides,
+    mcpServers: { ...defaultHookResult.mcpServers, ...hookOverrides.mcpServers },
+  };
+  mockUseMcpServersBySourceLabelWithAPI.mockReturnValue(hookResult);
+
+  const ctx = { ...defaultContext, ...contextOverrides };
   return render(
     <MemoryRouter>
       <McpCatalogContext.Provider value={ctx}>
-        <McpCatalogGalleryView />
+        <McpCatalogGalleryView handleFilterReset={handleFilterReset} />
       </McpCatalogContext.Provider>
     </MemoryRouter>,
   );
 };
 
 describe('McpCatalogGalleryView', () => {
-  it('renders skeleton cards when loading', () => {
-    const skeletonCount = MCP_CATALOG_GALLERY.CARDS_PER_ROW * 2;
-    expect(skeletonCount).toBe(8);
-    renderWithContext({ mcpServersLoaded: false, mcpServers: { items: [] } });
-    for (let i = 0; i < skeletonCount; i++) {
-      expect(screen.getByTestId(`mcp-catalog-skeleton-${i}`)).toBeInTheDocument();
-    }
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Element.prototype.scrollTo = jest.fn();
   });
 
-  it('renders error state with Retry button', () => {
-    const refreshFn = jest.fn();
-    renderWithContext({
-      mcpServersLoadError: new Error('Network failure'),
-      refreshMcpServers: refreshFn,
-    });
-    expect(screen.getByTestId('mcp-catalog-load-error')).toBeInTheDocument();
-    expect(screen.getByText('Unable to load MCP servers')).toBeInTheDocument();
+  it('renders loading spinner when not loaded', () => {
+    renderWithContext({}, { mcpServersLoaded: false });
+    expect(screen.getByText('Loading MCP servers...')).toBeInTheDocument();
+  });
+
+  it('renders error alert', () => {
+    renderWithContext({}, { mcpServersLoadError: new Error('Network failure') });
+    expect(screen.getByText('Failed to load MCP servers')).toBeInTheDocument();
     expect(screen.getByText('Network failure')).toBeInTheDocument();
-    const retryBtn = screen.getByTestId('mcp-catalog-retry');
-    expect(retryBtn).toBeInTheDocument();
-    fireEvent.click(retryBtn);
-    expect(refreshFn).toHaveBeenCalledTimes(1);
   });
 
-  it('renders empty state with Reset filters button', () => {
-    const clearFn = jest.fn();
-    renderWithContext({
-      mcpServersLoaded: true,
-      mcpServers: { items: [] },
-      clearAllFilters: clearFn,
-    });
-    expect(screen.getByTestId('mcp-catalog-empty-search')).toBeInTheDocument();
-    expect(screen.getByText('No servers found')).toBeInTheDocument();
-    expect(screen.getByText('Adjust your filters and try again.')).toBeInTheDocument();
-    const resetBtn = screen.getByTestId('mcp-catalog-reset-filters');
-    expect(resetBtn).toBeInTheDocument();
-    fireEvent.click(resetBtn);
-    expect(clearFn).toHaveBeenCalledTimes(1);
+  it('renders empty state with Reset filters action', () => {
+    renderWithContext({}, { mcpServers: { ...defaultHookResult.mcpServers, items: [] } });
+    expect(screen.getByTestId('empty-mcp-catalog-state')).toBeInTheDocument();
+    expect(screen.getByText('No results found')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Reset filters'));
+    expect(handleFilterReset).toHaveBeenCalledTimes(1);
   });
 
-  it('renders Load more button when category has more than PAGE_SIZE items', () => {
-    const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE + 2;
-    const servers = Array.from({ length: totalServers }, (_, i) =>
-      buildServer(String(i + 1), 'cat-a'),
-    );
-    renderWithContext({
-      mcpServersLoaded: true,
-      mcpServers: { items: servers },
-      selectedSourceLabel: 'cat-a',
-      sourceLabels: ['cat-a'],
-      sourceLabelNames: { 'cat-a': 'Category A' },
-    });
-    expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
-    expect(screen.getByText('Load more MCP servers')).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(10);
-  });
-
-  it('Load more button pages through batches and reveals all items after multiple clicks', () => {
-    const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE * 2 + 1;
-    const servers = Array.from({ length: totalServers }, (_, i) =>
-      buildServer(String(i + 1), 'cat-a'),
-    );
-    renderWithContext({
-      mcpServersLoaded: true,
-      mcpServers: { items: servers },
-      selectedSourceLabel: 'cat-a',
-      sourceLabels: ['cat-a'],
-      sourceLabelNames: { 'cat-a': 'Category A' },
-    });
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(10);
-    fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(20);
-    expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(21);
-    expect(screen.queryByTestId('mcp-load-more-button')).not.toBeInTheDocument();
-  });
-
-  it('does not show Load more when category has PAGE_SIZE or fewer items', () => {
+  it('renders server cards', () => {
     const servers = Array.from({ length: 5 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
-    renderWithContext({
-      mcpServersLoaded: true,
-      mcpServers: { items: servers },
-      selectedSourceLabel: 'cat-a',
-      sourceLabels: ['cat-a'],
-      sourceLabelNames: { 'cat-a': 'Category A' },
-    });
-    expect(screen.queryByTestId('mcp-load-more-button')).not.toBeInTheDocument();
+    renderWithContext({}, { mcpServers: { ...defaultHookResult.mcpServers, items: servers } });
     expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(5);
   });
 
-  it('renders Show all link in All Servers view with max CARDS_PER_ROW items per category', () => {
-    const minItemsForShowAll = MCP_CATALOG_GALLERY.CARDS_PER_ROW + 1;
-    expect(minItemsForShowAll).toBe(5);
-    const servers = [
-      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(String(i + 1), 'cat-a')),
-      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(String(10 + i), 'cat-b')),
-    ];
-    const catalogSources = {
-      items: [
-        {
-          id: 'cat-a',
-          name: 'Category A',
-          labels: ['cat-a'],
-          enabled: true,
-          status: 'available' as const,
+  it('renders Load more button when hasMore is true', () => {
+    const servers = Array.from({ length: 10 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
+    const loadMoreFn = jest.fn();
+    renderWithContext(
+      {},
+      {
+        mcpServers: {
+          ...defaultHookResult.mcpServers,
+          items: servers,
+          hasMore: true,
+          loadMore: loadMoreFn,
         },
-        {
-          id: 'cat-b',
-          name: 'Category B',
-          labels: ['cat-b'],
-          enabled: true,
-          status: 'available' as const,
+      },
+    );
+    expect(screen.getByText('Load more servers')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Load more servers'));
+    expect(loadMoreFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading spinner when isLoadingMore is true', () => {
+    const servers = Array.from({ length: 10 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
+    renderWithContext(
+      {},
+      {
+        mcpServers: {
+          ...defaultHookResult.mcpServers,
+          items: servers,
+          hasMore: true,
+          isLoadingMore: true,
         },
-      ],
-      size: 2,
-      pageSize: 10,
-      nextPageToken: '',
-    };
-    renderWithContext({
-      mcpServersLoaded: true,
-      mcpServers: { items: servers },
-      selectedSourceLabel: undefined,
-      catalogSources,
-      sourceLabels: ['cat-a', 'cat-b'],
-      sourceLabelNames: { 'cat-a': 'Category A', 'cat-b': 'Category B' },
-    });
-    expect(screen.getByText('Show all Category A')).toBeInTheDocument();
-    expect(screen.getByText('Show all Category B')).toBeInTheDocument();
+      },
+    );
+    expect(screen.getByText('Loading more MCP servers...')).toBeInTheDocument();
+    expect(screen.queryByText('Load more servers')).not.toBeInTheDocument();
+  });
+
+  it('does not show Load more when hasMore is false', () => {
+    const servers = Array.from({ length: 5 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
+    renderWithContext(
+      {},
+      { mcpServers: { ...defaultHookResult.mcpServers, items: servers, hasMore: false } },
+    );
+    expect(screen.queryByText('Load more servers')).not.toBeInTheDocument();
+  });
+
+  it('does not show Load more when hasMore is true but filtered items are fewer than page size', () => {
+    const servers = Array.from({ length: 3 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
+    renderWithContext(
+      {},
+      { mcpServers: { ...defaultHookResult.mcpServers, items: servers, hasMore: true } },
+    );
+    expect(screen.queryByText('Load more servers')).not.toBeInTheDocument();
   });
 });
