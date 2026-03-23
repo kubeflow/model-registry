@@ -336,7 +336,7 @@ export const getSortParams = (
   };
 };
 
-const wrapInQuotes = (v: string): string => `'${v}'`;
+const wrapInQuotes = (v: string): string => `'${v.replace(/'/g, "''")}'`;
 
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;
 const inFilter = (k: string, values: string[]) =>

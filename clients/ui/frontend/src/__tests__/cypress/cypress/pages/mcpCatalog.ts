@@ -50,8 +50,8 @@ class McpCatalog {
     return cy.findByTestId(`mcp-catalog-card-${serverId}`);
   }
 
-  findCardDetailsLink() {
-    return cy.findByTestId('mcp-catalog-card-detail-link-');
+  findCardDetailsLink(serverId: string) {
+    return cy.findByTestId(`mcp-catalog-card-detail-link-${serverId}`);
   }
 
   findCardDescription(serverId: string) {

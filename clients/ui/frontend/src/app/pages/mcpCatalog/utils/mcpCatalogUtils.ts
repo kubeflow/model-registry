@@ -47,7 +47,7 @@ const FRONTEND_TO_BACKEND_FILTER_KEY: Record<string, string> = Object.fromEntrie
   Object.entries(BACKEND_TO_FRONTEND_FILTER_KEY).map(([backend, frontend]) => [frontend, backend]),
 );
 
-const wrapInQuotes = (v: string): string => `'${v}'`;
+const wrapInQuotes = (v: string): string => `'${v.replace(/'/g, "''")}'`;
 
 export function mcpFiltersToFilterQuery(filters: McpCatalogFiltersState): string {
   const clauses: string[] = [];
