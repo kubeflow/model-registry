@@ -96,6 +96,28 @@ mcp_servers:
       - uri: oci://quay.io/containers/kubernetes_mcp_server:latest
         createTimeSinceEpoch: "1740787200000"
         lastUpdateTimeSinceEpoch: "1740787200000"
+    runtimeMetadata:
+      defaultPort: 8080
+      mcpPath: /mcp
+      prerequisites:
+        serviceAccount:
+          required: true
+          hint: "Needs 'view' ClusterRole for read-only K8s access"
+          suggestedName: mcp-viewer
+        configMaps:
+          - name: kubernetes-mcp-server-config
+            description: Optional configuration for MCP server settings
+            mountAsFile: true
+            mountPath: /etc/mcp-config
+            keys:
+              - key: config.toml
+                description: Server configuration file
+                defaultContent: |
+                  log_level = 5
+                  port = "8080"
+                  read_only = true
+                  toolsets = ["core", "config"]
+                required: false
     customProperties:
       kubernetes:
         metadataType: MetadataStringValue
@@ -205,6 +227,32 @@ mcp_servers:
       - uri: oci://registry.redhat.io/ansible-automation-platform-tech-preview/mcp-server-rhel9:latest
         createTimeSinceEpoch: "1743465600000"
         lastUpdateTimeSinceEpoch: "1743465600000"
+    runtimeMetadata:
+      defaultPort: 3000
+      mcpPath: /mcp
+      prerequisites:
+        secrets:
+          - name: aap-credentials
+            description: kubectl create secret generic aap-credentials --from-literal=base-url=https://your-aap-instance.com --from-literal=token=your-oauth2-bearer-token
+            keys:
+              - key: base-url
+                description: AAP instance URL
+                envVarName: BASE_URL
+                required: true
+              - key: token
+                description: OAuth2 bearer token for AAP Gateway API authentication
+                envVarName: BEARER_TOKEN_OAUTH2_AUTHENTICATION
+                required: true
+            mountAsFile: false
+        environmentVariables:
+          - name: BASE_URL
+            description: AAP instance URL (from secret aap-credentials)
+            required: true
+            type: string
+          - name: BEARER_TOKEN_OAUTH2_AUTHENTICATION
+            description: OAuth2 bearer token (from secret aap-credentials)
+            required: true
+            type: string
     customProperties:
       ansible:
         metadataType: MetadataStringValue
@@ -319,6 +367,19 @@ mcp_servers:
       - uri: oci://registry.redhat.io/satellite/foreman-mcp-server-rhel9:6.18
         createTimeSinceEpoch: "1739577600000"
         lastUpdateTimeSinceEpoch: "1739577600000"
+    runtimeMetadata:
+      defaultPort: 8080
+      mcpPath: /mcp
+      prerequisites:
+        secrets:
+          - name: satellite-ca
+            description: kubectl create secret generic satellite-ca --from-file=ca.pem=/path/to/satellite-ca-bundle.pem
+            keys:
+              - key: ca.pem
+                description: Satellite CA certificate bundle for TLS validation
+                required: true
+            mountAsFile: true
+            mountPath: /app
     customProperties:
       satellite:
         metadataType: MetadataStringValue
@@ -433,6 +494,32 @@ mcp_servers:
       - uri: oci://ghcr.io/redhatinsights/red-hat-lightspeed-mcp:latest
         createTimeSinceEpoch: "1742000000000"
         lastUpdateTimeSinceEpoch: "1742000000000"
+    runtimeMetadata:
+      defaultPort: 8000
+      mcpPath: /mcp
+      prerequisites:
+        secrets:
+          - name: insights-credentials
+            description: kubectl create secret generic insights-credentials --from-literal=client-id=<your-client-id> --from-literal=client-secret=<your-client-secret>
+            keys:
+              - key: client-id
+                description: Service account client ID from console.redhat.com
+                envVarName: LIGHTSPEED_CLIENT_ID
+                required: true
+              - key: client-secret
+                description: Service account client secret from console.redhat.com
+                envVarName: LIGHTSPEED_CLIENT_SECRET
+                required: true
+            mountAsFile: false
+        environmentVariables:
+          - name: LIGHTSPEED_CLIENT_ID
+            description: Service account client ID (from secret insights-credentials)
+            required: true
+            type: string
+          - name: LIGHTSPEED_CLIENT_SECRET
+            description: Service account client secret (from secret insights-credentials)
+            required: true
+            type: string
     customProperties:
       insights:
         metadataType: MetadataStringValue
