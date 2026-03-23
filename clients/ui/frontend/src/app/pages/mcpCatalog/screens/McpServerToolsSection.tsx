@@ -36,6 +36,8 @@ const getAccessTypeConfig = (
       return { text: 'read/write', color: 'orange' };
     case 'execute':
       return { text: 'execute', color: 'purple' };
+    default:
+      return { text: 'read-only', color: 'blue' };
   }
 };
 

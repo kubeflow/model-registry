@@ -19,6 +19,7 @@ import type {
   CatalogModelList,
   CatalogSourceList,
 } from '~/app/modelCatalogTypes';
+import type { McpServerList } from '~/app/mcpServerCatalogTypes';
 
 const MODEL_REGISTRY_API_VERSION = 'v1';
 export { MODEL_REGISTRY_API_VERSION };
@@ -156,7 +157,7 @@ declare global {
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/model_catalog/sources',
-          options: { path: { apiVersion: string } },
+          options: { path: { apiVersion: string }; query?: { assetType?: string } },
           response: ApiResponse<CatalogSourceList>,
         ) => Cypress.Chainable<null>) &
         ((
@@ -190,6 +191,14 @@ declare global {
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
           options: { path: { modelRegistryName: string; apiVersion: string } },
           response: ApiResponse<ModelTransferJob>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/mcp_catalog/mcp_servers',
+          options: {
+            path: { apiVersion: string };
+            query?: { sourceLabel?: string };
+          },
+          response: ApiResponse<McpServerList>,
         ) => Cypress.Chainable<null>);
     }
   }

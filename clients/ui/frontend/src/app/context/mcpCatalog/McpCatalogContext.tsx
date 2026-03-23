@@ -5,22 +5,13 @@ import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
-import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
+import { useCatalogLabels } from '~/app/hooks/modelCatalog/useCatalogLabels';
 import { useMcpServerFilterOptionListWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList';
-import {
-  filterEnabledCatalogSources,
-  getUniqueSourceLabels,
-  hasSourcesWithoutLabels,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import type {
   McpCatalogContextType,
   McpCatalogPaginationState,
 } from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
-import {
-  filterMcpServersByFilters,
-  filterMcpServersBySearchQuery,
-} from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import { useMcpUrlSync } from '~/app/pages/mcpCatalog/hooks/useMcpUrlSync';
 
 export type {
@@ -40,8 +31,6 @@ const defaultPagination: McpCatalogPaginationState = {
 };
 
 export const McpCatalogContext = React.createContext<McpCatalogContextType>({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  apiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   filters: {},
   setFilters: () => undefined,
   searchQuery: '',
@@ -55,16 +44,14 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   selectedSourceLabel: undefined,
   setSelectedSourceLabel: () => undefined,
   clearAllFilters: () => undefined,
-  sourceLabels: [],
-  sourceLabelNames: {},
-  hasNoLabelSources: false,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  mcpApiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   catalogSources: null,
   catalogSourcesLoaded: false,
   catalogSourcesLoadError: undefined,
-  mcpServers: { items: [] },
-  mcpServersLoaded: false,
-  mcpServersLoadError: undefined,
-  refreshMcpServers: () => undefined,
+  catalogLabels: null,
+  catalogLabelsLoaded: false,
+  catalogLabelsLoadError: undefined,
   filterOptions: null,
   filterOptionsLoaded: false,
   filterOptionsLoadError: undefined,
@@ -82,6 +69,10 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
 
   const mcpListParams = React.useMemo(() => ({ assetType: 'mcp_servers' as const }), []);
   const [catalogSources, catalogSourcesLoaded, catalogSourcesLoadError] = useCatalogSources(
+    apiStateModelCatalog,
+    mcpListParams,
+  );
+  const [catalogLabels, catalogLabelsLoaded, catalogLabelsLoadError] = useCatalogLabels(
     apiStateModelCatalog,
     mcpListParams,
   );
@@ -103,46 +94,6 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     syncToUrl({ searchQuery, filters, selectedSourceLabel });
   }, [searchQuery, filters, selectedSourceLabel, syncToUrl]);
 
-  const { sourceLabels, sourceLabelNames, hasNoLabelSources } = React.useMemo(() => {
-    const enabled = filterEnabledCatalogSources(catalogSources);
-    const labels = getUniqueSourceLabels(enabled);
-    const nameMap: Record<string, string> = {};
-    if (enabled?.items) {
-      for (const source of enabled.items) {
-        for (const label of source.labels) {
-          const trimmed = label.trim();
-          if (trimmed && !nameMap[trimmed]) {
-            nameMap[trimmed] = source.name;
-          }
-        }
-      }
-    }
-    return {
-      sourceLabels: labels,
-      sourceLabelNames: nameMap,
-      hasNoLabelSources: hasSourcesWithoutLabels(enabled),
-    };
-  }, [catalogSources]);
-
-  const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiStateMcpCatalog, {
-    sourceLabel: selectedSourceLabel,
-    pageSize: pagination.pageSize,
-    searchQuery,
-  });
-
-  const mcpServers = React.useMemo(() => {
-    const { items } = mcpServersResult.mcpServers;
-    let filtered = items;
-    if (searchQuery.trim().length > 0) {
-      filtered = filterMcpServersBySearchQuery(filtered, searchQuery);
-    }
-    return { items: filterMcpServersByFilters(filtered, filters) };
-    // mcpServersResult.mcpServers is new each render; .items gives stable deps to avoid cascading re-renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers.items]);
-
-  const { mcpServersLoaded, mcpServersLoadError, refresh: refreshMcpServers } = mcpServersResult;
-
   const setPage = React.useCallback((page: number) => {
     setPaginationState((prev) => ({ ...prev, page }));
   }, []);
@@ -158,13 +109,11 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   const clearAllFilters = React.useCallback(() => {
     setSearchQuery('');
     setFilters({});
-    setSelectedSourceLabel(undefined);
     setNamedQuery(null);
   }, []);
 
   const value = React.useMemo<McpCatalogContextType>(
     () => ({
-      apiState: apiStateMcpCatalog,
       filters,
       setFilters,
       searchQuery,
@@ -178,16 +127,13 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       selectedSourceLabel,
       setSelectedSourceLabel,
       clearAllFilters,
-      sourceLabels,
-      sourceLabelNames,
-      hasNoLabelSources,
+      mcpApiState: apiStateMcpCatalog,
       catalogSources,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
-      mcpServers,
-      mcpServersLoaded,
-      mcpServersLoadError,
-      refreshMcpServers,
+      catalogLabels,
+      catalogLabelsLoaded,
+      catalogLabelsLoadError,
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
@@ -199,16 +145,12 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       namedQuery,
       pagination,
       selectedSourceLabel,
-      sourceLabels,
-      sourceLabelNames,
-      hasNoLabelSources,
       catalogSources,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
-      mcpServers,
-      mcpServersLoaded,
-      mcpServersLoadError,
-      refreshMcpServers,
+      catalogLabels,
+      catalogLabelsLoaded,
+      catalogLabelsLoadError,
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,

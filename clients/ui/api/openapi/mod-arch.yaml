@@ -786,6 +786,34 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
+  /api/v1/model_catalog/labels:
+    summary: Path used to get the list of catalog labels.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogLabel` entities.
+    get:
+      summary: List All CatalogLabels
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/assetType"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogLabelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findLabels
+      description: Gets a list of all `CatalogLabel` entities. Use `assetType` to filter labels by asset type.
   /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
@@ -2475,6 +2503,33 @@ components:
               items:
                 $ref: "#/components/schemas/CatalogSource"
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogLabel:
+      description: A catalog label used to categorize catalog sources.
+      type: object
+      properties:
+        name:
+          description: The unique name of the label. May be null for uncategorized items.
+          type: string
+          nullable: true
+        displayName:
+          description: A human-readable display name for the label.
+          type: string
+        description:
+          description: A description of what this label represents.
+          type: string
+    CatalogLabelList:
+      description: List of CatalogLabel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogLabel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogLabel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     assetType:
       type: string
       enum:
@@ -2705,12 +2760,9 @@ components:
       type: object
       required:
         - serverId
-        - serverName
         - tool
       properties:
         serverId:
-          type: string
-        serverName:
           type: string
         tool:
           $ref: "#/components/schemas/McpTool"
@@ -3362,6 +3414,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourceList"
       description: A response containing a list of CatalogSource entities.
+    CatalogLabelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogLabelList"
+      description: A response containing a list of CatalogLabel entities.
     FilterOptionsResponse:
       content:
         application/json:

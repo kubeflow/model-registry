@@ -12,6 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -108,13 +109,21 @@ func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *htt
 			app.notFoundResponse(w, r)
 			return
 		}
+		apiPath := repositories.ModelCatalogAPIPath
+		if strings.HasPrefix(r.URL.Path, McpServerCatalogPathPrefix) {
+			apiPath = repositories.McpCatalogAPIPath
+		}
+
 		modelCatalogBaseURL := modelCatalog.ServerAddress
+		if apiPath != repositories.ModelCatalogAPIPath {
+			modelCatalogBaseURL = strings.Replace(modelCatalogBaseURL, repositories.ModelCatalogAPIPath, apiPath, 1)
+		}
 
 		// If we are in dev mode, we need to resolve the server address to the local host
 		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
 		// If you are in federated mode, we do not want to override the server address.
 		if app.config.DevMode && !app.config.DeploymentMode.IsFederatedMode() {
-			modelCatalogBaseURL = app.repositories.ModelCatalog.ResolveServerAddress("localhost", int32(app.config.DevModeCatalogPort), modelCatalog.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
+			modelCatalogBaseURL = app.repositories.ModelCatalog.ResolveServerAddress("localhost", int32(app.config.DevModeCatalogPort), modelCatalog.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode(), apiPath)
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for

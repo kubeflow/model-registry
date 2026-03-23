@@ -17,7 +17,7 @@ import {
 } from '@patternfly/react-core';
 import { ApplicationsIcon, SearchIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useMcpServer } from '~/app/hooks/mcpServerCatalog/useMcpServer';
+import { useMcpServerWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServer';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { mcpCatalogUrl } from '~/app/routes/mcpCatalog/mcpCatalog';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
@@ -25,37 +25,10 @@ import McpServerDetailsView from './McpServerDetailsView';
 
 const McpServerDetailsPage: React.FC = () => {
   const { serverId = '' } = useParams<{ serverId: string }>();
-  const [apiServer, apiServerLoaded, apiServerLoadError] = useMcpServer(serverId);
-  const { mcpServers, mcpServersLoaded } = React.useContext(McpCatalogContext);
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  const [server, serverLoaded, serverLoadError] = useMcpServerWithAPI(mcpApiState, serverId);
 
-  const { server, serverLoaded, serverLoadError } = React.useMemo(() => {
-    if (apiServerLoaded && apiServer && !apiServerLoadError) {
-      return { server: apiServer, serverLoaded: true, serverLoadError: undefined };
-    }
-
-    const contextMatch = mcpServers.items.find((s) => s.id === serverId);
-    if (contextMatch) {
-      return { server: contextMatch, serverLoaded: true, serverLoadError: undefined };
-    }
-
-    if (apiServerLoaded || mcpServersLoaded) {
-      const isNotFound = mcpServersLoaded;
-      return {
-        server: undefined,
-        serverLoaded: true,
-        serverLoadError: isNotFound ? undefined : apiServerLoadError,
-      };
-    }
-
-    return { server: undefined, serverLoaded: false, serverLoadError: undefined };
-  }, [
-    apiServer,
-    apiServerLoaded,
-    apiServerLoadError,
-    mcpServers.items,
-    mcpServersLoaded,
-    serverId,
-  ]);
+  const isNotFound = !server && (serverLoaded || !!serverLoadError);
 
   return (
     <>
@@ -102,9 +75,9 @@ const McpServerDetailsPage: React.FC = () => {
             </Flex>
           ) : null
         }
-        empty={!server}
+        empty={isNotFound}
         emptyStatePage={
-          !server ? (
+          isNotFound ? (
             <EmptyState
               icon={SearchIcon}
               titleText="MCP server not found"
@@ -122,8 +95,8 @@ const McpServerDetailsPage: React.FC = () => {
             </EmptyState>
           ) : undefined
         }
-        loadError={serverLoadError}
-        loaded={serverLoaded}
+        loadError={isNotFound ? undefined : serverLoadError}
+        loaded={isNotFound || serverLoaded}
         errorMessage="Unable to load MCP server details"
         provideChildrenPadding
       >

@@ -1,11 +1,15 @@
 import * as React from 'react';
 import {
+  Button,
+  Flex,
+  FlexItem,
   FormGroup,
   FileUpload,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { OpenDrawerRightIcon } from '@patternfly/react-icons';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
@@ -15,14 +19,20 @@ import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
   HELP_TEXT,
+  EXPECTED_YAML_FORMAT_LABEL,
 } from '~/app/pages/modelCatalogSettings/constants';
 
 type YamlSectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  onToggleExpectedFormatDrawer?: () => void;
 };
 
-const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
+const YamlSection: React.FC<YamlSectionProps> = ({
+  formData,
+  setData,
+  onToggleExpectedFormatDrawer,
+}) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
@@ -75,7 +85,32 @@ const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
 
   return (
     <FormSection data-testid="yaml-section">
-      <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
+      <FormGroup
+        label={
+          <Flex
+            justifyContent={{ default: 'justifyContentSpaceBetween' }}
+            alignItems={{ default: 'alignItemsCenter' }}
+          >
+            <FlexItem>{FORM_LABELS.YAML_CONTENT}</FlexItem>
+            {onToggleExpectedFormatDrawer && (
+              <FlexItem>
+                <Button
+                  variant="link"
+                  isInline
+                  onClick={onToggleExpectedFormatDrawer}
+                  data-testid="view-expected-yaml-format-link"
+                  icon={<OpenDrawerRightIcon />}
+                  iconPosition="end"
+                >
+                  {EXPECTED_YAML_FORMAT_LABEL}
+                </Button>
+              </FlexItem>
+            )}
+          </Flex>
+        }
+        isRequired
+        fieldId="yaml-content"
+      >
         <FormFieldset component={yamlInput} field="YAML" />
         <FormHelperText>
           <HelperText>

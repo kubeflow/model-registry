@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -649,6 +650,171 @@ func TestYamlMCPToolAccessTypePreserved(t *testing.T) {
 	searchTool := record.Tools[1]
 	assert.Nil(t, searchTool.AccessType, "nil accessType should stay nil")
 	assert.Empty(t, searchTool.Parameters)
+}
+
+func TestYamlMCPServerRuntimeMetadataConversion(t *testing.T) {
+	defaultPort := int32(8080)
+	mcpPath := "/mcp"
+	saRequired := true
+	saHint := "Needs 'view' ClusterRole"
+	saName := "mcp-viewer"
+	cmMountAsFile := true
+	cmMountPath := "/etc/mcp-config"
+	cmKeyRequired := false
+
+	yamlServer := &yamlMCPServer{
+		Name: "runtime-meta-server",
+		RuntimeMetadata: &apimodels.MCPRuntimeMetadata{
+			DefaultPort: &defaultPort,
+			McpPath:     &mcpPath,
+			Prerequisites: &apimodels.MCPPrerequisites{
+				ServiceAccount: &apimodels.MCPServiceAccountRequirement{
+					Required:      &saRequired,
+					Hint:          &saHint,
+					SuggestedName: &saName,
+				},
+				ConfigMaps: []apimodels.MCPConfigMapRequirement{
+					{
+						Name:        "server-config",
+						Description: "Config files",
+						MountAsFile: &cmMountAsFile,
+						MountPath:   &cmMountPath,
+						Keys: []apimodels.MCPConfigMapKey{
+							{
+								Key:         "config.toml",
+								Description: "Main config",
+								Required:    &cmKeyRequired,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+	assert.Nil(t, record.Error)
+	assert.NotNil(t, record.Server)
+
+	props := record.Server.GetProperties()
+	require.NotNil(t, props)
+
+	var runtimeJSON *string
+	for _, prop := range *props {
+		if prop.Name == "runtimeMetadata" && prop.StringValue != nil {
+			runtimeJSON = prop.StringValue
+			break
+		}
+	}
+	require.NotNil(t, runtimeJSON, "runtimeMetadata property should be set")
+
+	var parsed apimodels.MCPRuntimeMetadata
+	err := json.Unmarshal([]byte(*runtimeJSON), &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, int32(8080), *parsed.DefaultPort)
+	assert.Equal(t, "/mcp", *parsed.McpPath)
+	require.NotNil(t, parsed.Prerequisites)
+	require.NotNil(t, parsed.Prerequisites.ServiceAccount)
+	assert.True(t, *parsed.Prerequisites.ServiceAccount.Required)
+	assert.Equal(t, "mcp-viewer", *parsed.Prerequisites.ServiceAccount.SuggestedName)
+	require.Len(t, parsed.Prerequisites.ConfigMaps, 1)
+	assert.Equal(t, "server-config", parsed.Prerequisites.ConfigMaps[0].Name)
+}
+
+func TestYamlMCPServerRuntimeMetadataNil(t *testing.T) {
+	yamlServer := &yamlMCPServer{
+		Name: "no-runtime-meta",
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+	assert.Nil(t, record.Error)
+
+	props := record.Server.GetProperties()
+	require.NotNil(t, props)
+
+	for _, prop := range *props {
+		assert.NotEqual(t, "runtimeMetadata", prop.Name,
+			"runtimeMetadata property should not be set when RuntimeMetadata is nil")
+	}
+}
+
+func TestYamlMCPProviderEmitWithRuntimeMetadata(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test-catalog.yaml")
+
+	yamlContent := `mcp_servers:
+  - name: "k8s-mcp"
+    provider: "Test"
+    version: "1.0.0"
+    runtimeMetadata:
+      defaultPort: 8080
+      mcpPath: /mcp
+      prerequisites:
+        serviceAccount:
+          required: true
+          hint: "Needs view ClusterRole"
+          suggestedName: mcp-viewer
+        secrets:
+          - name: api-creds
+            description: "API credentials"
+            keys:
+              - key: api-key
+                description: "API key"
+                envVarName: API_KEY
+                required: true
+            mountAsFile: false
+`
+	err := os.WriteFile(testFile, []byte(yamlContent), 0644)
+	require.NoError(t, err)
+
+	source := basecatalog.MCPSource{
+		Type: "yaml",
+		Properties: map[string]any{
+			yamlMCPCatalogPathKey: testFile,
+		},
+	}
+
+	provider, err := NewYamlMCPProvider(source)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	recordChan := provider.Servers(ctx)
+
+	var record MCPServerProviderRecord
+	for r := range recordChan {
+		record = r
+	}
+
+	assert.Nil(t, record.Error)
+	assert.NotNil(t, record.Server)
+
+	props := record.Server.GetProperties()
+	require.NotNil(t, props)
+
+	var runtimeJSON *string
+	for _, prop := range *props {
+		if prop.Name == "runtimeMetadata" && prop.StringValue != nil {
+			runtimeJSON = prop.StringValue
+			break
+		}
+	}
+	require.NotNil(t, runtimeJSON, "runtimeMetadata should be parsed from YAML file")
+
+	var parsed apimodels.MCPRuntimeMetadata
+	err = json.Unmarshal([]byte(*runtimeJSON), &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, int32(8080), *parsed.DefaultPort)
+	assert.Equal(t, "/mcp", *parsed.McpPath)
+	require.NotNil(t, parsed.Prerequisites)
+	require.NotNil(t, parsed.Prerequisites.ServiceAccount)
+	assert.True(t, *parsed.Prerequisites.ServiceAccount.Required)
+	assert.Equal(t, "mcp-viewer", *parsed.Prerequisites.ServiceAccount.SuggestedName)
+	require.Len(t, parsed.Prerequisites.Secrets, 1)
+	assert.Equal(t, "api-creds", parsed.Prerequisites.Secrets[0].Name)
+	require.Len(t, parsed.Prerequisites.Secrets[0].Keys, 1)
+	assert.Equal(t, "API_KEY", *parsed.Prerequisites.Secrets[0].Keys[0].EnvVarName)
 }
 
 // Helper function

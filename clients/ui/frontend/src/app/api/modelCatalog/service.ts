@@ -8,6 +8,7 @@ import {
   CatalogPerformanceArtifactList,
   CatalogSourceList,
   CatalogSourceListParams,
+  CatalogLabelListParams,
   ModelCatalogFilterStates,
   PerformanceArtifactsParams,
 } from '~/app/modelCatalogTypes';
@@ -149,10 +150,12 @@ export const getPerformanceArtifacts =
 
 export const getCatalogLabels =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions): Promise<CatalogLabelList> =>
-    handleRestFailures(restGET(hostPath, '/labels', queryParams, opts)).then((response) => {
-      if (isModArchResponse<CatalogLabelList>(response)) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    });
+  (opts: APIOptions, listParams?: CatalogLabelListParams): Promise<CatalogLabelList> =>
+    handleRestFailures(restGET(hostPath, '/labels', { ...queryParams, ...listParams }, opts)).then(
+      (response) => {
+        if (isModArchResponse<CatalogLabelList>(response)) {
+          return response.data;
+        }
+        throw new Error('Invalid response format');
+      },
+    );

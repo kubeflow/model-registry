@@ -1130,6 +1130,74 @@ components:
               type: string
               format: uri
               description: OCI image URI for local deployment.
+    MCPConfigMapKey:
+      type: object
+      required:
+        - key
+        - description
+      description: Individual key within a Kubernetes ConfigMap
+      properties:
+        key:
+          type: string
+          description: ConfigMap key name (often a filename)
+          maxLength: 253
+          example: config.toml
+        description:
+          type: string
+          description: What this key should contain
+          maxLength: 500
+          example: Main configuration file for MCP server
+        defaultContent:
+          type: string
+          description: |-
+            Default content users can copy and customize.
+            Limited to 10KB for performance. For larger configs, reference external documentation.
+          maxLength: 10000
+          example: |
+            log_level = "info"
+            port = 8080
+        envVarName:
+          type: string
+          description: Environment variable name if not mounted as file
+          maxLength: 253
+          example: MCP_CONFIG
+        required:
+          type: boolean
+          description: Whether this key is required
+          default: false
+    MCPConfigMapRequirement:
+      type: object
+      required:
+        - name
+        - description
+      description: Kubernetes ConfigMap requirement metadata
+      properties:
+        name:
+          type: string
+          description: Suggested ConfigMap name (must be valid Kubernetes name)
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+          maxLength: 253
+          example: mcp-server-config
+        description:
+          type: string
+          description: Purpose of the ConfigMap
+          maxLength: 1000
+          example: Configuration files for MCP server runtime
+        keys:
+          type: array
+          description: Expected keys within the ConfigMap
+          items:
+            $ref: "#/components/schemas/MCPConfigMapKey"
+        mountAsFile:
+          type: boolean
+          description: Whether to mount ConfigMap as files
+          default: true
+        mountPath:
+          type: string
+          description: Mount path when mountAsFile is true (must be absolute path)
+          pattern: '^/[a-zA-Z0-9/_.-]*$'
+          maxLength: 4096
+          example: /etc/mcp-config
     MCPEndpoints:
       type: object
       description: Remote endpoint metadata for MCP server access.
@@ -1175,6 +1243,61 @@ components:
           type: string
           description: Example value for documentation purposes
           example: my-api-key-123
+    MCPPrerequisites:
+      type: object
+      description: |-
+        Aggregated Kubernetes prerequisites metadata for MCP server deployment.
+        All fields are discovery hints - not deployment configuration.
+      properties:
+        serviceAccount:
+          $ref: "#/components/schemas/MCPServiceAccountRequirement"
+          description: ServiceAccount requirements and RBAC hints
+        secrets:
+          type: array
+          description: Required Kubernetes Secrets
+          items:
+            $ref: "#/components/schemas/MCPSecretRequirement"
+        configMaps:
+          type: array
+          description: Required Kubernetes ConfigMaps
+          items:
+            $ref: "#/components/schemas/MCPConfigMapRequirement"
+        environmentVariables:
+          type: array
+          description: |-
+            Aggregated environment variables list.
+            Combines required and optional environment variables for convenience.
+          items:
+            $ref: "#/components/schemas/MCPEnvVarMetadata"
+        customResources:
+          type: array
+          description: |-
+            Other Kubernetes resources needed (e.g., PersistentVolumeClaims, NetworkPolicies).
+            Free-form hints for advanced deployment scenarios.
+          items:
+            type: string
+          example: ["PersistentVolumeClaim: mcp-data-storage"]
+      example:
+        serviceAccount:
+          required: true
+          hint: "Needs 'view' ClusterRole for read-only K8s access"
+          suggestedName: mcp-viewer
+        secrets:
+          - name: openai-credentials
+            description: "kubectl create secret generic openai-credentials --from-literal=api-key=YOUR_KEY"
+            keys:
+              - key: api-key
+                description: OpenAI API key
+                envVarName: OPENAI_API_KEY
+        configMaps:
+          - name: mcp-server-config
+            description: Configuration files
+            mountAsFile: true
+            mountPath: /etc/mcp-config
+            keys:
+              - key: config.toml
+                description: Main configuration
+                defaultContent: "log_level = \"info\"\nport = 8080\n"
     MCPResourceRecommendation:
       type: object
       properties:
@@ -1278,6 +1401,83 @@ components:
               type: boolean
               description: Whether server requires GPU access
               default: false
+        mcpPath:
+          type: string
+          description: |-
+            HTTP path where MCP server accepts requests.
+            Used for HTTP and SSE transports.
+            Aligns with MCP Lifecycle operator conventions.
+          pattern: '^/[a-zA-Z0-9/_.-]*$'
+          default: /mcp
+          example: /mcp
+        prerequisites:
+          $ref: "#/components/schemas/MCPPrerequisites"
+          description: |-
+            Kubernetes prerequisites discovery metadata.
+            Helps users understand what K8s resources to create before deployment.
+    MCPSecretKey:
+      type: object
+      required:
+        - key
+        - description
+      description: Individual key within a Kubernetes Secret
+      properties:
+        key:
+          type: string
+          description: Secret key name
+          maxLength: 253
+          example: api-key
+        description:
+          type: string
+          description: What this key should contain (never actual values)
+          maxLength: 500
+          example: OpenAI API key for authentication
+        envVarName:
+          type: string
+          description: Environment variable name to map this key to
+          maxLength: 253
+          example: OPENAI_API_KEY
+        required:
+          type: boolean
+          description: Whether this key must be present in the Secret
+          default: false
+    MCPSecretRequirement:
+      type: object
+      required:
+        - name
+        - description
+      description: |-
+        Kubernetes Secret requirement metadata.
+        Never stores actual secret values - provides discovery hints only.
+      properties:
+        name:
+          type: string
+          description: Suggested Secret name (must be valid Kubernetes name)
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+          maxLength: 253
+          example: openai-credentials
+        description:
+          type: string
+          description: |-
+            Purpose of the Secret and kubectl creation hint.
+            Example: "kubectl create secret generic openai-credentials --from-literal=api-key=sk-..."
+          maxLength: 1000
+          example: Create with kubectl create secret generic openai-credentials --from-literal=api-key=YOUR_KEY
+        keys:
+          type: array
+          description: Expected keys within the Secret
+          items:
+            $ref: "#/components/schemas/MCPSecretKey"
+        mountAsFile:
+          type: boolean
+          description: Whether to mount Secret as files instead of environment variables
+          default: false
+        mountPath:
+          type: string
+          description: Mount path when mountAsFile is true (must be absolute path)
+          pattern: '^/[a-zA-Z0-9/_.-]*$'
+          maxLength: 4096
+          example: /etc/secrets
     MCPSecurityIndicator:
       type: object
       description: Security posture metadata for an MCP server.
@@ -1409,6 +1609,30 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    MCPServiceAccountRequirement:
+      type: object
+      description: |-
+        ServiceAccount requirements for Kubernetes deployment.
+        Provides discovery hints about RBAC permissions needed.
+      properties:
+        required:
+          type: boolean
+          description: Whether a ServiceAccount is required for this MCP server
+          default: false
+          example: true
+        hint:
+          type: string
+          description: |-
+            Human-readable description of required RBAC permissions.
+            Example: "Needs 'view' ClusterRole for read-only K8s access"
+          maxLength: 500
+          example: "Requires read-only access to pods and services in the namespace"
+        suggestedName:
+          type: string
+          description: Suggested ServiceAccount name (must be valid Kubernetes name)
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 253
+          example: mcp-server-viewer
     MCPTool:
       description: An MCP tool exposed by an MCP server.
       allOf:
