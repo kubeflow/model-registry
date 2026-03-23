@@ -10,10 +10,12 @@ import (
 )
 
 const (
-	modelRegistryBaseUrlEnv     = "MODEL_REGISTRY_BASE_URL"
-	modelRegistrySchemeEnv      = "MODEL_REGISTRY_SCHEME"
-	modelRegistryBaseUrlDefault = "localhost:8080"
-	modelRegistrySchemeDefault  = "http"
+	modelRegistryBaseUrlEnv         = "MODEL_REGISTRY_BASE_URL"
+	modelRegistrySchemeEnv          = "MODEL_REGISTRY_SCHEME"
+	modelRegistryServiceNameEnv     = "MODEL_REGISTRY_SERVICE_NAME"
+	modelRegistryBaseUrlDefault     = "localhost:8080"
+	modelRegistrySchemeDefault      = "http"
+	modelRegistryServiceNameDefault = "model-registry-service"
 )
 
 func main() {
@@ -36,11 +38,17 @@ func main() {
 		scheme = modelRegistrySchemeDefault
 	}
 
+	serviceName, ok := os.LookupEnv(modelRegistryServiceNameEnv)
+	if !ok || serviceName == "" {
+		serviceName = modelRegistryServiceNameDefault
+	}
+
 	cfg := openapi.NewConfiguration()
 	cfg.Host = baseUrl
 	cfg.Scheme = scheme
 
-	apiClient := modelregistry.NewAPIClient(cfg, sourceUri)
+	apiClient := modelregistry.NewAPIClient(cfg, sourceUri, serviceName)
+
 
 	provider, err := storage.NewModelRegistryProvider(apiClient)
 	if err != nil {
