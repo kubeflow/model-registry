@@ -920,6 +920,105 @@ func TestYamlMCPProviderEmitWithRuntimeMetadata(t *testing.T) {
 	assert.Equal(t, "API_KEY", *parsed.Prerequisites.Secrets[0].Keys[0].EnvVarName)
 }
 
+func TestYamlMCPServerSecurityIndicatorsToStandardProperties(t *testing.T) {
+	trueVal := true
+	falseVal := false
+	yamlServer := &yamlMCPServer{
+		Name: "test-server",
+		SecurityIndicators: &yamlMCPSecurityIndicator{
+			VerifiedSource: &trueVal,
+			SecureEndpoint: &falseVal,
+			Sast:           &trueVal,
+			ReadOnlyTools:  &falseVal,
+		},
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+
+	require.NotNil(t, record.Server)
+	require.Nil(t, record.Error)
+
+	// Security indicators must land in standard properties, not custom properties
+	props := record.Server.GetProperties()
+	require.NotNil(t, props)
+
+	propMap := make(map[string]bool)
+	for _, p := range *props {
+		if p.BoolValue != nil {
+			propMap[p.Name] = *p.BoolValue
+		}
+	}
+
+	assert.True(t, propMap["verifiedSource"], "verifiedSource should be true in standard properties")
+	assert.False(t, propMap["secureEndpoint"], "secureEndpoint should be false in standard properties")
+	assert.True(t, propMap["sast"], "sast should be true in standard properties")
+	assert.False(t, propMap["readOnlyTools"], "readOnlyTools should be false in standard properties")
+
+	// Security indicators must NOT appear in custom properties
+	customProps := record.Server.GetCustomProperties()
+	if customProps != nil {
+		for _, p := range *customProps {
+			assert.NotEqual(t, "verifiedSource", p.Name)
+			assert.NotEqual(t, "secureEndpoint", p.Name)
+			assert.NotEqual(t, "sast", p.Name)
+			assert.NotEqual(t, "readOnlyTools", p.Name)
+		}
+	}
+}
+
+func TestYamlMCPServerSecurityIndicatorsNil(t *testing.T) {
+	yamlServer := &yamlMCPServer{
+		Name:               "test-server",
+		SecurityIndicators: nil,
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+
+	require.NotNil(t, record.Server)
+	require.Nil(t, record.Error)
+
+	props := record.Server.GetProperties()
+	if props != nil {
+		for _, p := range *props {
+			assert.Nil(t, p.BoolValue, "no bool properties should exist when SecurityIndicators is nil (prop: %s)", p.Name)
+		}
+	}
+}
+
+func TestYamlMCPServerSecurityIndicatorsPartial(t *testing.T) {
+	trueVal := true
+	yamlServer := &yamlMCPServer{
+		Name: "test-server",
+		SecurityIndicators: &yamlMCPSecurityIndicator{
+			VerifiedSource: &trueVal,
+			// SecureEndpoint, Sast, ReadOnlyTools intentionally unset
+		},
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+
+	require.NotNil(t, record.Server)
+	require.Nil(t, record.Error)
+
+	props := record.Server.GetProperties()
+	require.NotNil(t, props)
+
+	boolProps := make(map[string]bool)
+	for _, p := range *props {
+		if p.BoolValue != nil {
+			boolProps[p.Name] = *p.BoolValue
+		}
+	}
+
+	assert.True(t, boolProps["verifiedSource"], "verifiedSource should be true")
+	_, hasSecureEndpoint := boolProps["secureEndpoint"]
+	assert.False(t, hasSecureEndpoint, "secureEndpoint should not be present when unset")
+	_, hasSast := boolProps["sast"]
+	assert.False(t, hasSast, "sast should not be present when unset")
+	_, hasReadOnlyTools := boolProps["readOnlyTools"]
+	assert.False(t, hasReadOnlyTools, "readOnlyTools should not be present when unset")
+}
+
 // Helper function
 func strPtr(s string) *string {
 	return &s

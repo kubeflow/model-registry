@@ -17,7 +17,7 @@ class TestMCPServerNamedQueries:
     """Test suite for MCP server named query functionality."""
 
     @pytest.mark.parametrize(
-        "named_query, expected_custom_properties",
+        "named_query, expected_security_indicators",
         [
             pytest.param(
                 "production_ready",
@@ -36,18 +36,18 @@ class TestMCPServerNamedQueries:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         named_query: str,
-        expected_custom_properties: dict[str, bool],
+        expected_security_indicators: dict[str, bool],
     ):
-        """TC-API-011: Test executing a named query filters servers by custom properties."""
+        """TC-API-011: Test executing a named query filters servers by security indicators."""
         response = api_client.get_mcp_servers(named_query=named_query)
         items = response.get("items", [])
         assert len(items) == 1, f"Expected 1 server matching '{named_query}', got {len(items)}"
         assert items[0]["name"] == "calculator"
 
-        custom_props = items[0].get("customProperties", {})
-        for prop_name, expected_value in expected_custom_properties.items():
-            assert custom_props.get(prop_name, {}).get("bool_value") is expected_value, (
-                f"Expected {prop_name}={expected_value}, got {custom_props.get(prop_name)}"
+        security_indicators = items[0].get("securityIndicators", {})
+        for prop_name, expected_value in expected_security_indicators.items():
+            assert security_indicators.get(prop_name) is expected_value, (
+                f"Expected {prop_name}={expected_value}, got {security_indicators.get(prop_name)}"
             )
 
     @pytest.mark.parametrize(

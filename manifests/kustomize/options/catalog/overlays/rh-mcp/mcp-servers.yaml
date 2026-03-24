@@ -118,6 +118,11 @@ mcp_servers:
                   read_only = true
                   toolsets = ["core", "config"]
                 required: false
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: true
     customProperties:
       kubernetes:
         metadataType: MetadataStringValue
@@ -131,18 +136,6 @@ mcp_servers:
       infrastructure:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: true
     createTimeSinceEpoch: "1740787200000"
     lastUpdateTimeSinceEpoch: "1740787200000"
 
@@ -253,6 +246,11 @@ mcp_servers:
             description: OAuth2 bearer token (from secret aap-credentials)
             required: true
             type: string
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: false
     customProperties:
       ansible:
         metadataType: MetadataStringValue
@@ -263,18 +261,6 @@ mcp_servers:
       infrastructure:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1743465600000"
     lastUpdateTimeSinceEpoch: "1743465600000"
 
@@ -380,6 +366,11 @@ mcp_servers:
                 required: true
             mountAsFile: true
             mountPath: /app
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: true
     customProperties:
       satellite:
         metadataType: MetadataStringValue
@@ -393,18 +384,6 @@ mcp_servers:
       infrastructure:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: true
     createTimeSinceEpoch: "1739577600000"
     lastUpdateTimeSinceEpoch: "1739577600000"
 
@@ -520,6 +499,11 @@ mcp_servers:
             description: Service account client secret (from secret insights-credentials)
             required: true
             type: string
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: true
     customProperties:
       insights:
         metadataType: MetadataStringValue
@@ -530,18 +514,6 @@ mcp_servers:
       observability:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: true
     createTimeSinceEpoch: "1742000000000"
     lastUpdateTimeSinceEpoch: "1742000000000"
 
@@ -687,6 +659,11 @@ mcp_servers:
             type: string
             description: "Filter by status: completed, in_progress, queued, failure, success"
             required: false
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: false
     customProperties:
       git:
         metadataType: MetadataStringValue
@@ -700,17 +677,5 @@ mcp_servers:
       remote:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1736467200000"
     lastUpdateTimeSinceEpoch: "1736467200000"

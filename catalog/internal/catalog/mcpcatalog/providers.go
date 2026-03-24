@@ -93,6 +93,14 @@ func GetMCPProvider(typeName string) (MCPServerProviderFunc, bool) {
 	return providerFunc, exists
 }
 
+// yamlMCPSecurityIndicator represents the security indicators for an MCP server
+type yamlMCPSecurityIndicator struct {
+	VerifiedSource *bool `yaml:"verifiedSource,omitempty"`
+	SecureEndpoint *bool `yaml:"secureEndpoint,omitempty"`
+	Sast           *bool `yaml:"sast,omitempty"`
+	ReadOnlyTools  *bool `yaml:"readOnlyTools,omitempty"`
+}
+
 // yamlMCPServer represents an MCP server definition in YAML
 type yamlMCPServer struct {
 	Name                     string                              `yaml:"name"`
@@ -115,6 +123,7 @@ type yamlMCPServer struct {
 	Endpoints                *yamlMCPEndpoints                   `yaml:"endpoints,omitempty"`
 	RuntimeMetadata          *apimodels.MCPRuntimeMetadata       `yaml:"runtimeMetadata,omitempty"`
 	Tags                     []string                            `yaml:"tags,omitempty"`
+	SecurityIndicators       *yamlMCPSecurityIndicator           `yaml:"securityIndicators,omitempty"`
 	CustomProperties         *map[string]apimodels.MetadataValue `yaml:"customProperties,omitempty"`
 	CreateTimeSinceEpoch     *string                             `yaml:"createTimeSinceEpoch,omitempty"`
 	LastUpdateTimeSinceEpoch *string                             `yaml:"lastUpdateTimeSinceEpoch,omitempty"`
@@ -383,6 +392,23 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		}
 		if jsonBytes, err := json.Marshal(ys.Endpoints); err == nil {
 			properties = append(properties, mrmodels.NewStringProperty("endpoints", string(jsonBytes), false))
+		}
+	}
+
+	// Convert security indicators to standard bool properties
+	if ys.SecurityIndicators != nil {
+		si := ys.SecurityIndicators
+		if si.VerifiedSource != nil {
+			properties = append(properties, mrmodels.NewBoolProperty("verifiedSource", *si.VerifiedSource, false))
+		}
+		if si.SecureEndpoint != nil {
+			properties = append(properties, mrmodels.NewBoolProperty("secureEndpoint", *si.SecureEndpoint, false))
+		}
+		if si.Sast != nil {
+			properties = append(properties, mrmodels.NewBoolProperty("sast", *si.Sast, false))
+		}
+		if si.ReadOnlyTools != nil {
+			properties = append(properties, mrmodels.NewBoolProperty("readOnlyTools", *si.ReadOnlyTools, false))
 		}
 	}
 
