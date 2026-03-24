@@ -70,8 +70,21 @@ func SetupEnvTest(input TestEnvInput) (*envtest.Environment, kubernetes.Interfac
 			fmt.Sprintf("1.29.3-%s-%s", runtime.GOOS, runtime.GOARCH))
 	}
 
+	// Fix for #2136: Configure ControlPlane to bind to 127.0.0.1 instead of
+	// platform-specific addresses (e.g., 192.168.127.254 on macOS) which don't
+	// exist inside Docker containers.
 	testEnv := &envtest.Environment{
 		BinaryAssetsDirectory: binaryAssetsDir,
+		ControlPlane: envtest.ControlPlane{
+			APIServer: &envtest.APIServer{
+				SecureServing: envtest.SecureServing{
+					ListenAddr: envtest.ListenAddr{
+						Address: "127.0.0.1",
+						Port:    "0", // Random available port
+					},
+				},
+			},
+		},
 	}
 
 	cfg, err := testEnv.Start()
