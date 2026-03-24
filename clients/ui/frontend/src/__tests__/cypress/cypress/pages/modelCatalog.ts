@@ -230,6 +230,10 @@ class ModelCatalog {
     return cy.get('[data-testid="hardware-configuration-table"] tbody tr');
   }
 
+  findHardwareConfigLoadMoreButton() {
+    return cy.findByTestId('hardware-config-load-more-button');
+  }
+
   findHardwareConfigurationColumn(columnName: string) {
     return cy.get(`[data-testid="hardware-configuration-table"] [data-label="${columnName}"]`);
   }
