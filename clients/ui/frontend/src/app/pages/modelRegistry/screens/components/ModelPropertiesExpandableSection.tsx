@@ -5,7 +5,7 @@ import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/components/ModelPropertiesTableRow';
-import { getProperties, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
+import { getProperties, getPropertyValue, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
 
 type ModelPropertiesExpandableSectionProps = {
@@ -38,7 +38,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
 
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
 
-  // We only show string properties with a defined value (no labels or other property types)
+  // We show string, int, and double properties (no labels or complex property types)
   const filteredProperties = getProperties(customProperties);
 
   const [isShowingMoreProperties, setIsShowingMoreProperties] = React.useState(false);
@@ -88,7 +88,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 key={key}
                 modelName={modelName}
                 isArchive={isArchive}
-                keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
+                keyValuePair={{ key, value: getPropertyValue(filteredProperties[key]) }}
                 allExistingKeys={allExistingKeys}
                 isEditing={editingPropertyKeys.includes(key)}
                 setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}

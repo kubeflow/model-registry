@@ -3,6 +3,9 @@ import {
   ModelRegistry,
   ModelRegistryCustomProperties,
   ModelRegistryCustomProperty,
+  ModelRegistryCustomPropertyDouble,
+  ModelRegistryCustomPropertyInt,
+  ModelRegistryCustomPropertyString,
   ModelRegistryMetadataType,
   ModelRegistryStringCustomProperties,
   ModelVersion,
@@ -22,6 +25,12 @@ export type ObjectStorageFields = {
   region?: string;
   path: string;
 };
+
+// Type for properties that can be displayed/edited in the UI (string, int, double)
+export type ModelRegistryEditableCustomProperties = Record<
+  string,
+  ModelRegistryCustomPropertyString | ModelRegistryCustomPropertyInt | ModelRegistryCustomPropertyDouble
+>;
 
 // Retrieves the labels from customProperties that have non-empty string_value.
 export const getLabels = <T extends ModelRegistryCustomProperties>(customProperties: T): string[] =>
@@ -52,11 +61,28 @@ export const mergeUpdatedLabels = (
   return customPropertiesCopy;
 };
 
+// Extracts the value from a custom property as a string, regardless of its type
+export const getPropertyValue = (
+  prop: ModelRegistryCustomPropertyString | ModelRegistryCustomPropertyInt | ModelRegistryCustomPropertyDouble,
+): string => {
+  switch (prop.metadataType) {
+    case ModelRegistryMetadataType.STRING:
+      return prop.string_value;
+    case ModelRegistryMetadataType.INT:
+      return prop.int_value;
+    case ModelRegistryMetadataType.DOUBLE:
+      return String(prop.double_value);
+    default:
+      return '';
+  }
+};
+
 // Retrieves the customProperties that are not special (_registeredFrom) or labels (they have a defined string_value).
+// Now includes INT and DOUBLE types in addition to STRING
 export const getProperties = <T extends ModelRegistryCustomProperties>(
   customProperties: T,
-): ModelRegistryStringCustomProperties => {
-  const initial: ModelRegistryStringCustomProperties = {};
+): ModelRegistryEditableCustomProperties => {
+  const initial: ModelRegistryEditableCustomProperties = {};
   return Object.keys(customProperties).reduce((acc, key) => {
     // _lastModified is a property that is required to update the timestamp on the backend and we have a workaround for it. It should be resolved by
     // backend team
@@ -65,14 +91,23 @@ export const getProperties = <T extends ModelRegistryCustomProperties>(
     }
 
     const prop = customProperties[key];
+    // Include STRING (non-empty), INT, and DOUBLE types
+    // Exclude labels (STRING with empty value) and complex types (STRUCT, PROTO, BOOL)
     if (prop.metadataType === ModelRegistryMetadataType.STRING && prop.string_value !== '') {
+      return { ...acc, [key]: prop };
+    }
+    if (
+      prop.metadataType === ModelRegistryMetadataType.INT ||
+      prop.metadataType === ModelRegistryMetadataType.DOUBLE
+    ) {
       return { ...acc, [key]: prop };
     }
     return acc;
   }, initial);
 };
 
-// Returns the customProperties object with a single string property added, updated or deleted
+// Returns the customProperties object with a single property added, updated or deleted
+// Detects numeric types from value string and saves with appropriate type
 export const mergeUpdatedProperty = (
   args: { customProperties: ModelRegistryCustomProperties } & (
     | { op: 'create'; newPair: KeyValuePair }
@@ -87,11 +122,33 @@ export const mergeUpdatedProperty = (
   }
   if (op === 'create' || op === 'update') {
     const { key, value } = args.newPair;
-    customPropertiesCopy[key] = {
-      // eslint-disable-next-line camelcase
-      string_value: value,
-      metadataType: ModelRegistryMetadataType.STRING,
-    };
+
+    // Detect type from value string:
+    // - Integer: matches pattern /^-?\d+$/
+    // - Double: matches pattern /^-?\d+\.\d+$/
+    // - Otherwise: String
+    if (/^-?\d+$/.test(value)) {
+      // Integer value
+      customPropertiesCopy[key] = {
+        // eslint-disable-next-line camelcase
+        int_value: value,
+        metadataType: ModelRegistryMetadataType.INT,
+      };
+    } else if (/^-?\d+\.\d+$/.test(value)) {
+      // Decimal value
+      customPropertiesCopy[key] = {
+        // eslint-disable-next-line camelcase
+        double_value: parseFloat(value),
+        metadataType: ModelRegistryMetadataType.DOUBLE,
+      };
+    } else {
+      // String value (default)
+      customPropertiesCopy[key] = {
+        // eslint-disable-next-line camelcase
+        string_value: value,
+        metadataType: ModelRegistryMetadataType.STRING,
+      };
+    }
   }
   return customPropertiesCopy;
 };

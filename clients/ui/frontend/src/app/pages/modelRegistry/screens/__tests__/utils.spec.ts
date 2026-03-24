@@ -16,6 +16,7 @@ import {
   filterModelVersions,
   getLabels,
   getProperties,
+  getPropertyValue,
   mergeUpdatedProperty,
   mergeUpdatedLabels,
   filterRegisteredModels,
@@ -134,7 +135,7 @@ describe('getProperties', () => {
     expect(result).toEqual({});
   });
 
-  it('should return a filtered object including only string properties with a non-empty value', () => {
+  it('should return a filtered object including string, int, and double properties', () => {
     const customProperties: ModelRegistryCustomProperties = {
       property1: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'non-empty' },
       property2: {
@@ -145,6 +146,7 @@ describe('getProperties', () => {
       label2: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
       int1: { metadataType: ModelRegistryMetadataType.INT, int_value: '1' },
       int2: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+      double1: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 3.14 },
     };
     const result = getProperties(customProperties);
     expect(result).toEqual({
@@ -153,10 +155,13 @@ describe('getProperties', () => {
         metadataType: ModelRegistryMetadataType.STRING,
         string_value: 'another-non-empty',
       },
-    } satisfies ModelRegistryStringCustomProperties);
+      int1: { metadataType: ModelRegistryMetadataType.INT, int_value: '1' },
+      int2: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+      double1: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 3.14 },
+    });
   });
 
-  it('should return an empty object when all values in customProperties are empty strings or non-string values', () => {
+  it('should return numeric properties when only numeric values exist', () => {
     const customProperties: ModelRegistryCustomProperties = {
       label1: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
       label2: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
@@ -164,7 +169,10 @@ describe('getProperties', () => {
       int2: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
     };
     const result = getProperties(customProperties);
-    expect(result).toEqual({});
+    expect(result).toEqual({
+      int1: { metadataType: ModelRegistryMetadataType.INT, int_value: '1' },
+      int2: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+    });
   });
 
   it('should return with _lastModified and _registeredFrom props filtered out', () => {
@@ -193,6 +201,38 @@ describe('getCustomPropString', () => {
     const prop2Result = getCustomPropString(customProperties, 'property2');
     expect(prop1Result).toEqual('prop1');
     expect(prop2Result).toEqual('prop2');
+  });
+});
+
+describe('getPropertyValue', () => {
+  it('should extract string value from STRING property', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.STRING, string_value: 'test value' };
+    expect(getPropertyValue(prop)).toBe('test value');
+  });
+
+  it('should extract int value from INT property', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.INT, int_value: '42' };
+    expect(getPropertyValue(prop)).toBe('42');
+  });
+
+  it('should extract and convert double value from DOUBLE property', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 3.14159 };
+    expect(getPropertyValue(prop)).toBe('3.14159');
+  });
+
+  it('should handle negative integer values', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.INT, int_value: '-100' };
+    expect(getPropertyValue(prop)).toBe('-100');
+  });
+
+  it('should handle negative double values', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: -0.5 };
+    expect(getPropertyValue(prop)).toBe('-0.5');
+  });
+
+  it('should handle empty string value', () => {
+    const prop = { metadataType: ModelRegistryMetadataType.STRING, string_value: '' };
+    expect(getPropertyValue(prop)).toBe('');
   });
 });
 
@@ -312,6 +352,154 @@ describe('mergeUpdatedProperty', () => {
       label1: { string_value: '', metadataType: ModelRegistryMetadataType.STRING },
       prop1: { string_value: 'val1', metadataType: ModelRegistryMetadataType.STRING },
     } satisfies ModelRegistryCustomProperties);
+  });
+
+  describe('type detection', () => {
+    it('should detect and create INT property for integer values', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'count', value: '42' },
+      });
+      expect(result).toEqual({
+        count: { int_value: '42', metadataType: ModelRegistryMetadataType.INT },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should detect and create INT property for negative integers', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'offset', value: '-100' },
+      });
+      expect(result).toEqual({
+        offset: { int_value: '-100', metadataType: ModelRegistryMetadataType.INT },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should detect and create DOUBLE property for decimal values', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'accuracy', value: '0.95' },
+      });
+      expect(result).toEqual({
+        accuracy: { double_value: 0.95, metadataType: ModelRegistryMetadataType.DOUBLE },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should detect and create DOUBLE property for negative decimals', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'loss', value: '-0.5' },
+      });
+      expect(result).toEqual({
+        loss: { double_value: -0.5, metadataType: ModelRegistryMetadataType.DOUBLE },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should create STRING property for non-numeric values', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'model_name', value: 'bert' },
+      });
+      expect(result).toEqual({
+        model_name: { string_value: 'bert', metadataType: ModelRegistryMetadataType.STRING },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should create STRING property for scientific notation', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'learning_rate', value: '1e-5' },
+      });
+      expect(result).toEqual({
+        learning_rate: { string_value: '1e-5', metadataType: ModelRegistryMetadataType.STRING },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should create STRING property for values with leading zeros', () => {
+      const customProperties: ModelRegistryCustomProperties = {};
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'create',
+        newPair: { key: 'version', value: '007' },
+      });
+      expect(result).toEqual({
+        version: { int_value: '007', metadataType: ModelRegistryMetadataType.INT },
+      } satisfies ModelRegistryCustomProperties);
+    });
+  });
+
+  describe('type transitions', () => {
+    it('should update INT to DOUBLE when value changes to decimal', () => {
+      const customProperties: ModelRegistryCustomProperties = {
+        metric: { int_value: '42', metadataType: ModelRegistryMetadataType.INT },
+      };
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'update',
+        oldKey: 'metric',
+        newPair: { key: 'metric', value: '42.5' },
+      });
+      expect(result).toEqual({
+        metric: { double_value: 42.5, metadataType: ModelRegistryMetadataType.DOUBLE },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should update DOUBLE to INT when value changes to integer', () => {
+      const customProperties: ModelRegistryCustomProperties = {
+        metric: { double_value: 42.5, metadataType: ModelRegistryMetadataType.DOUBLE },
+      };
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'update',
+        oldKey: 'metric',
+        newPair: { key: 'metric', value: '100' },
+      });
+      expect(result).toEqual({
+        metric: { int_value: '100', metadataType: ModelRegistryMetadataType.INT },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should update INT to STRING when value changes to non-numeric', () => {
+      const customProperties: ModelRegistryCustomProperties = {
+        field: { int_value: '42', metadataType: ModelRegistryMetadataType.INT },
+      };
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'update',
+        oldKey: 'field',
+        newPair: { key: 'field', value: 'abc' },
+      });
+      expect(result).toEqual({
+        field: { string_value: 'abc', metadataType: ModelRegistryMetadataType.STRING },
+      } satisfies ModelRegistryCustomProperties);
+    });
+
+    it('should update STRING to INT when value changes to integer', () => {
+      const customProperties: ModelRegistryCustomProperties = {
+        field: { string_value: 'abc', metadataType: ModelRegistryMetadataType.STRING },
+      };
+      const result = mergeUpdatedProperty({
+        customProperties,
+        op: 'update',
+        oldKey: 'field',
+        newPair: { key: 'field', value: '42' },
+      });
+      expect(result).toEqual({
+        field: { int_value: '42', metadataType: ModelRegistryMetadataType.INT },
+      } satisfies ModelRegistryCustomProperties);
+    });
   });
 });
 
