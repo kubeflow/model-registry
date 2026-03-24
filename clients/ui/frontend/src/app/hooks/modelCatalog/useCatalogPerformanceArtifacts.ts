@@ -130,6 +130,7 @@ export const usePaginatedCatalogPerformanceArtifacts = (
   const [allItems, setAllItems] = React.useState<CatalogPerformanceMetricsArtifact[]>([]);
   const [nextPageToken, setNextPageToken] = React.useState('');
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+  const isLoadingMoreRef = React.useRef(false);
   const [loadMoreError, setLoadMoreError] = React.useState<Error | undefined>();
 
   const normalizedParams = useNormalizedPerformanceParams(params);
@@ -147,13 +148,13 @@ export const usePaginatedCatalogPerformanceArtifacts = (
         return Promise.reject(new Error('API not yet available'));
       }
       if (!sourceId) {
-        return Promise.reject(new Error('No source id'));
+        return Promise.reject(new NotReadyError('No source id'));
       }
       if (!modelName) {
-        return Promise.reject(new Error('No model name'));
+        return Promise.reject(new NotReadyError('No model name'));
       }
       if (!enabled) {
-        return Promise.reject(new Error('Fetching is disabled'));
+        return Promise.reject(new NotReadyError('Fetching is disabled'));
       }
       return api.getPerformanceArtifacts(
         opts,
@@ -181,10 +182,13 @@ export const usePaginatedCatalogPerformanceArtifacts = (
   }, [firstPageData, loaded, error]);
 
   const loadMore = React.useCallback(async () => {
-    if (!nextPageToken || isLoadingMore || !apiAvailable || !enabled) {
+    if (!nextPageToken || !apiAvailable || !enabled) {
       return;
     }
-
+    if (isLoadingMoreRef.current) {
+      return;
+    }
+    isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
     setLoadMoreError(undefined);
 
@@ -209,6 +213,7 @@ export const usePaginatedCatalogPerformanceArtifacts = (
         ),
       );
     } finally {
+      isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
     }
   }, [
@@ -220,13 +225,15 @@ export const usePaginatedCatalogPerformanceArtifacts = (
     filterData,
     filterOptions,
     nextPageToken,
-    isLoadingMore,
     enabled,
   ]);
 
+  // When query inputs change: clear list and pagination (same pattern as useCatalogModelsBySource).
+  // Tradeoff: short empty/spinner while refetching vs showing old rows that no longer match totals.
   React.useEffect(() => {
-    // Keep current rows while query is refetching to avoid a brief empty flash.
+    setAllItems([]);
     setNextPageToken('');
+    isLoadingMoreRef.current = false;
     setIsLoadingMore(false);
     setLoadMoreError(undefined);
   }, [sourceId, modelName, normalizedParams, filterData, filterOptions, enabled]);
@@ -234,6 +241,7 @@ export const usePaginatedCatalogPerformanceArtifacts = (
   const refresh = React.useCallback(() => {
     setAllItems([]);
     setNextPageToken('');
+    isLoadingMoreRef.current = false;
     setIsLoadingMore(false);
     setLoadMoreError(undefined);
     refetch();
