@@ -51,16 +51,11 @@ mcp_servers:
       - math
       - calculator
       - computation
+    securityIndicators:
+      verifiedSource: true
+      sast: true
+      readOnlyTools: true
     customProperties:
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: true
       observability:
         metadataType: MetadataStringValue
         string_value: ""
