@@ -72,6 +72,11 @@ mcp_servers:
       - uri: oci://ghcr.io/dynatrace-oss/dynatrace-mcp-server:1.0.1
         createTimeSinceEpoch: "1736942400000"
         lastUpdateTimeSinceEpoch: "1736942400000"
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: true
     customProperties:
       observability:
         metadataType: MetadataStringValue
@@ -82,18 +87,6 @@ mcp_servers:
       apm:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: true
     createTimeSinceEpoch: "1736942400000"
     lastUpdateTimeSinceEpoch: "1736942400000"
 
@@ -181,6 +174,11 @@ mcp_servers:
       - uri: oci://ghcr.io/github/github-mcp:2.1.0
         createTimeSinceEpoch: "1736856000000"
         lastUpdateTimeSinceEpoch: "1736856000000"
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: false
     customProperties:
       git:
         metadataType: MetadataStringValue
@@ -191,18 +189,6 @@ mcp_servers:
       ci-cd:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1736856000000"
     lastUpdateTimeSinceEpoch: "1736856000000"
 
@@ -265,6 +251,11 @@ mcp_servers:
       - uri: oci://ghcr.io/slack/slack-mcp:1.5.0
         createTimeSinceEpoch: "1736337600000"
         lastUpdateTimeSinceEpoch: "1736337600000"
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: false
+      readOnlyTools: false
     customProperties:
       messaging:
         metadataType: MetadataStringValue
@@ -275,18 +266,6 @@ mcp_servers:
       notifications:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: false
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1736337600000"
     lastUpdateTimeSinceEpoch: "1736337600000"
 
@@ -364,6 +343,11 @@ mcp_servers:
       - uri: oci://ghcr.io/atlassian/jira-mcp:1.3.2
         createTimeSinceEpoch: "1736596800000"
         lastUpdateTimeSinceEpoch: "1736596800000"
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: false
     customProperties:
       project-management:
         metadataType: MetadataStringValue
@@ -374,18 +358,6 @@ mcp_servers:
       agile:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1736596800000"
     lastUpdateTimeSinceEpoch: "1736596800000"
 
@@ -448,6 +420,11 @@ mcp_servers:
       - uri: oci://public.ecr.aws/aws/aws-mcp:2.0.1
         createTimeSinceEpoch: "1736424000000"
         lastUpdateTimeSinceEpoch: "1736424000000"
+    securityIndicators:
+      verifiedSource: true
+      secureEndpoint: true
+      sast: true
+      readOnlyTools: false
     customProperties:
       cloud:
         metadataType: MetadataStringValue
@@ -458,17 +435,5 @@ mcp_servers:
       infrastructure:
         metadataType: MetadataStringValue
         string_value: ""
-      verifiedSource:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      secureEndpoint:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      sast:
-        metadataType: MetadataBoolValue
-        bool_value: true
-      readOnlyTools:
-        metadataType: MetadataBoolValue
-        bool_value: false
     createTimeSinceEpoch: "1736424000000"
     lastUpdateTimeSinceEpoch: "1736424000000"
