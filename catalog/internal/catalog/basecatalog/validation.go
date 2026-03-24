@@ -2,8 +2,44 @@ package basecatalog
 
 import (
 	"fmt"
+	"net/url"
+	"slices"
 	"strings"
 )
+
+// ValidArtifactURISchemes defines the valid URI schemes for model artifacts.
+var ValidArtifactURISchemes = []string{
+	"oci",
+	"http",
+	"https",
+	"s3",
+	"gs",
+	"az",
+	"file",
+}
+
+// ValidateArtifactURI validates that an artifact URI has a valid scheme.
+// Returns an error if the URI is empty, malformed, or has an unsupported scheme.
+func ValidateArtifactURI(uri string) error {
+	if uri == "" {
+		return fmt.Errorf("artifact URI cannot be empty")
+	}
+
+	parsed, err := url.Parse(uri)
+	if err != nil {
+		return fmt.Errorf("invalid artifact URI %q: %w", uri, err)
+	}
+
+	if parsed.Scheme == "" {
+		return fmt.Errorf("artifact URI %q must have a scheme (valid schemes: %v)", uri, ValidArtifactURISchemes)
+	}
+
+	if !slices.Contains(ValidArtifactURISchemes, parsed.Scheme) {
+		return fmt.Errorf("artifact URI %q has unsupported scheme %q (valid schemes: %v)", uri, parsed.Scheme, ValidArtifactURISchemes)
+	}
+
+	return nil
+}
 
 // supportedOperators defines the valid operators for named query field filters
 var supportedOperators = map[string]bool{
