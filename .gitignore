@@ -58,7 +58,6 @@ venv/
 .python-version
 
 # Claude code
-CLAUDE.md
 .claude/
 
 **/go.work
