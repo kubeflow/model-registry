@@ -113,6 +113,12 @@ export const getProperties = <T extends ModelRegistryCustomProperties>(
 const INTEGER_INPUT_PATTERN = /^-?\d+$/;
 const DECIMAL_INPUT_PATTERN = /^-?\d+\.\d+$/;
 
+// "007", "01", "-01" match INTEGER_INPUT_PATTERN but should stay STRING so leading zeros are preserved.
+const hasLeadingZeroIntegerForm = (value: string): boolean => {
+  const unsigned = value.startsWith('-') ? value.slice(1) : value;
+  return unsigned.length > 1 && unsigned.startsWith('0');
+};
+
 // Returns the customProperties object with a single property added, updated or deleted
 // Detects numeric types from value string and saves with appropriate type
 export const mergeUpdatedProperty = (
@@ -131,7 +137,7 @@ export const mergeUpdatedProperty = (
     const { key, value } = args.newPair;
 
     // Detect type from value string: INTEGER_INPUT_PATTERN → INT, DECIMAL_INPUT_PATTERN → DOUBLE, else STRING
-    if (INTEGER_INPUT_PATTERN.test(value)) {
+    if (INTEGER_INPUT_PATTERN.test(value) && !hasLeadingZeroIntegerForm(value)) {
       // Integer value
       customPropertiesCopy[key] = {
         // eslint-disable-next-line camelcase

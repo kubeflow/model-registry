@@ -455,7 +455,7 @@ describe('mergeUpdatedProperty', () => {
         newPair: { key: 'version', value: '007' },
       });
       expect(result).toEqual({
-        version: { int_value: '007', metadataType: ModelRegistryMetadataType.INT },
+        version: { string_value: '007', metadataType: ModelRegistryMetadataType.STRING },
       } satisfies ModelRegistryCustomProperties);
     });
   });
