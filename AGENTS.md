@@ -73,12 +73,6 @@ devenv/                          # Local development environment (Tilt-based)
 test/                            # Integration/E2E test scripts
 ```
 
-## Prerequisites
-
-- Go >= 1.25.7
-- Docker or Podman (for integration tests via Testcontainers, and image builds)
-- npm >= 10.2.0 (for OpenAPI generator tooling)
-- Java >= 11.0 (for OpenAPI generator)
 
 ## Commands
 
@@ -227,6 +221,8 @@ The following directories contain auto-generated code. Modify the sources and re
 - Keep diffs minimal — only modify files relevant to the task
 - Do not push secrets, credentials, or modify git config
 - Run `go mod tidy` if you changed dependencies
+- Keep commit messages brief
+- Follow the Conventional Commit specification (e.g. `feat(catalog): <description>`, `fix: some bug`)  
 
 ## Core Development Principles
 
@@ -234,6 +230,7 @@ The following directories contain auto-generated code. Modify the sources and re
 
 - Follow standard Go conventions: `gofmt`, `go vet`, effective Go patterns
 - Use `snake_case` for file names, `PascalCase` for exported identifiers, `camelCase` for unexported
+- Capitalize acronyms (prefer `parseIP` to `parseIp`)
 - Error handling: always check and return errors, no bare `_` ignoring errors unless justified
 - Use the `stretchr/testify` package for test assertions (already a project dependency)
 - Use Testcontainers for integration tests that need a real database
