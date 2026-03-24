@@ -43,6 +43,94 @@ type McpSecurityIndicator struct {
 	ReadOnlyTools  *bool `json:"readOnlyTools,omitempty"`
 }
 
+type McpEnvVarMetadata struct {
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Required     *bool   `json:"required,omitempty"`
+	DefaultValue *string `json:"defaultValue,omitempty"`
+	Type         *string `json:"type,omitempty"`
+	Example      *string `json:"example,omitempty"`
+}
+
+type McpResourceTier struct {
+	CPU    *string `json:"cpu,omitempty"`
+	Memory *string `json:"memory,omitempty"`
+}
+
+type McpResourceRecommendation struct {
+	Minimal     *McpResourceTier `json:"minimal,omitempty"`
+	Recommended *McpResourceTier `json:"recommended,omitempty"`
+	High        *McpResourceTier `json:"high,omitempty"`
+}
+
+type McpRuntimeMetadataHealthEndpoints struct {
+	Liveness  *string `json:"liveness,omitempty"`
+	Readiness *string `json:"readiness,omitempty"`
+}
+
+type McpRuntimeMetadataCapabilities struct {
+	RequiresNetwork    *bool `json:"requiresNetwork,omitempty"`
+	RequiresFileSystem *bool `json:"requiresFileSystem,omitempty"`
+	RequiresGPU        *bool `json:"requiresGPU,omitempty"`
+}
+
+type McpServiceAccountRequirement struct {
+	Required      *bool   `json:"required,omitempty"`
+	Hint          *string `json:"hint,omitempty"`
+	SuggestedName *string `json:"suggestedName,omitempty"`
+}
+
+type McpSecretKey struct {
+	Key         string  `json:"key"`
+	Description string  `json:"description"`
+	EnvVarName  *string `json:"envVarName,omitempty"`
+	Required    *bool   `json:"required,omitempty"`
+}
+
+type McpSecretRequirement struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Keys        []McpSecretKey `json:"keys,omitempty"`
+	MountAsFile *bool          `json:"mountAsFile,omitempty"`
+	MountPath   *string        `json:"mountPath,omitempty"`
+}
+
+type McpConfigMapKey struct {
+	Key            string  `json:"key"`
+	Description    string  `json:"description"`
+	DefaultContent *string `json:"defaultContent,omitempty"`
+	EnvVarName     *string `json:"envVarName,omitempty"`
+	Required       *bool   `json:"required,omitempty"`
+}
+
+type McpConfigMapRequirement struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Keys        []McpConfigMapKey `json:"keys,omitempty"`
+	MountAsFile *bool             `json:"mountAsFile,omitempty"`
+	MountPath   *string           `json:"mountPath,omitempty"`
+}
+
+type McpPrerequisites struct {
+	ServiceAccount       *McpServiceAccountRequirement `json:"serviceAccount,omitempty"`
+	Secrets              []McpSecretRequirement        `json:"secrets,omitempty"`
+	ConfigMaps           []McpConfigMapRequirement     `json:"configMaps,omitempty"`
+	EnvironmentVariables []McpEnvVarMetadata           `json:"environmentVariables,omitempty"`
+	CustomResources      []string                      `json:"customResources,omitempty"`
+}
+
+type McpRuntimeMetadata struct {
+	DefaultPort                  *int32                             `json:"defaultPort,omitempty"`
+	DefaultArgs                  []string                           `json:"defaultArgs,omitempty"`
+	RequiredEnvironmentVariables []McpEnvVarMetadata                `json:"requiredEnvironmentVariables,omitempty"`
+	OptionalEnvironmentVariables []McpEnvVarMetadata                `json:"optionalEnvironmentVariables,omitempty"`
+	RecommendedResources         *McpResourceRecommendation         `json:"recommendedResources,omitempty"`
+	HealthEndpoints              *McpRuntimeMetadataHealthEndpoints `json:"healthEndpoints,omitempty"`
+	Capabilities                 *McpRuntimeMetadataCapabilities    `json:"capabilities,omitempty"`
+	McpPath                      *string                            `json:"mcpPath,omitempty"`
+	Prerequisites                *McpPrerequisites                  `json:"prerequisites,omitempty"`
+}
+
 type McpToolParameter struct {
 	Name        string  `json:"name"`
 	Type        string  `json:"type"`
@@ -84,6 +172,7 @@ type McpServer struct {
 	Readme             *string                           `json:"readme,omitempty"`
 	DeploymentMode     *McpDeploymentMode                `json:"deploymentMode,omitempty"`
 	Endpoints          *McpEndpoints                     `json:"endpoints,omitempty"`
+	RuntimeMetadata    *McpRuntimeMetadata               `json:"runtimeMetadata,omitempty"`
 	CustomProperties   *map[string]openapi.MetadataValue `json:"customProperties,omitempty"`
 }
 
