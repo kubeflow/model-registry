@@ -5,7 +5,11 @@ import { Table, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import ModelPropertiesTableRow from '~/app/pages/modelRegistry/screens/components/ModelPropertiesTableRow';
-import { getProperties, getPropertyValue, mergeUpdatedProperty } from '~/app/pages/modelRegistry/screens/utils';
+import {
+  getProperties,
+  getPropertyValue,
+  mergeUpdatedProperty,
+} from '~/app/pages/modelRegistry/screens/utils';
 import { ModelRegistryCustomProperties } from '~/app/types';
 
 type ModelPropertiesExpandableSectionProps = {

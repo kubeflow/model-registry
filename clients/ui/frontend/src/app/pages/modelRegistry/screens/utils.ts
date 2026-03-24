@@ -7,7 +7,6 @@ import {
   ModelRegistryCustomPropertyInt,
   ModelRegistryCustomPropertyString,
   ModelRegistryMetadataType,
-  ModelRegistryStringCustomProperties,
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
@@ -29,7 +28,9 @@ export type ObjectStorageFields = {
 // Type for properties that can be displayed/edited in the UI (string, int, double)
 export type ModelRegistryEditableCustomProperties = Record<
   string,
-  ModelRegistryCustomPropertyString | ModelRegistryCustomPropertyInt | ModelRegistryCustomPropertyDouble
+  | ModelRegistryCustomPropertyString
+  | ModelRegistryCustomPropertyInt
+  | ModelRegistryCustomPropertyDouble
 >;
 
 // Retrieves the labels from customProperties that have non-empty string_value.
@@ -63,7 +64,10 @@ export const mergeUpdatedLabels = (
 
 // Extracts the value from a custom property as a string, regardless of its type
 export const getPropertyValue = (
-  prop: ModelRegistryCustomPropertyString | ModelRegistryCustomPropertyInt | ModelRegistryCustomPropertyDouble,
+  prop:
+    | ModelRegistryCustomPropertyString
+    | ModelRegistryCustomPropertyInt
+    | ModelRegistryCustomPropertyDouble,
 ): string => {
   switch (prop.metadataType) {
     case ModelRegistryMetadataType.STRING:
@@ -106,6 +110,9 @@ export const getProperties = <T extends ModelRegistryCustomProperties>(
   }, initial);
 };
 
+const INTEGER_INPUT_PATTERN = /^-?\d+$/;
+const DECIMAL_INPUT_PATTERN = /^-?\d+\.\d+$/;
+
 // Returns the customProperties object with a single property added, updated or deleted
 // Detects numeric types from value string and saves with appropriate type
 export const mergeUpdatedProperty = (
@@ -123,18 +130,15 @@ export const mergeUpdatedProperty = (
   if (op === 'create' || op === 'update') {
     const { key, value } = args.newPair;
 
-    // Detect type from value string:
-    // - Integer: matches pattern /^-?\d+$/
-    // - Double: matches pattern /^-?\d+\.\d+$/
-    // - Otherwise: String
-    if (/^-?\d+$/.test(value)) {
+    // Detect type from value string: INTEGER_INPUT_PATTERN → INT, DECIMAL_INPUT_PATTERN → DOUBLE, else STRING
+    if (INTEGER_INPUT_PATTERN.test(value)) {
       // Integer value
       customPropertiesCopy[key] = {
         // eslint-disable-next-line camelcase
         int_value: value,
         metadataType: ModelRegistryMetadataType.INT,
       };
-    } else if (/^-?\d+\.\d+$/.test(value)) {
+    } else if (DECIMAL_INPUT_PATTERN.test(value)) {
       // Decimal value
       customPropertiesCopy[key] = {
         // eslint-disable-next-line camelcase

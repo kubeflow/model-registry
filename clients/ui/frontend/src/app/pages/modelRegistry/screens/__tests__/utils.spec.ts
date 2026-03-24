@@ -3,7 +3,9 @@ import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import {
   ModelRegistryCustomProperties,
-  ModelRegistryStringCustomProperties,
+  ModelRegistryCustomPropertyDouble,
+  ModelRegistryCustomPropertyInt,
+  ModelRegistryCustomPropertyString,
   ModelRegistryMetadataType,
   RegisteredModel,
   ModelVersion,
@@ -206,32 +208,50 @@ describe('getCustomPropString', () => {
 
 describe('getPropertyValue', () => {
   it('should extract string value from STRING property', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.STRING, string_value: 'test value' };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: 'test value',
+    } satisfies ModelRegistryCustomPropertyString;
     expect(getPropertyValue(prop)).toBe('test value');
   });
 
   it('should extract int value from INT property', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.INT, int_value: '42' };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.INT,
+      int_value: '42',
+    } satisfies ModelRegistryCustomPropertyInt;
     expect(getPropertyValue(prop)).toBe('42');
   });
 
   it('should extract and convert double value from DOUBLE property', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 3.14159 };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.DOUBLE,
+      double_value: 3.14159,
+    } satisfies ModelRegistryCustomPropertyDouble;
     expect(getPropertyValue(prop)).toBe('3.14159');
   });
 
   it('should handle negative integer values', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.INT, int_value: '-100' };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.INT,
+      int_value: '-100',
+    } satisfies ModelRegistryCustomPropertyInt;
     expect(getPropertyValue(prop)).toBe('-100');
   });
 
   it('should handle negative double values', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: -0.5 };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.DOUBLE,
+      double_value: -0.5,
+    } satisfies ModelRegistryCustomPropertyDouble;
     expect(getPropertyValue(prop)).toBe('-0.5');
   });
 
   it('should handle empty string value', () => {
-    const prop = { metadataType: ModelRegistryMetadataType.STRING, string_value: '' };
+    const prop = {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '',
+    } satisfies ModelRegistryCustomPropertyString;
     expect(getPropertyValue(prop)).toBe('');
   });
 });
