@@ -19,5 +19,10 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
+**Environment**
+
+- *Kubernetes version*: (e.g., 1.28.0)
+- *Kubernetes distribution*: (e.g., OpenShift, EKS, GKE, AKS, Kind, Minikube)
+
 **Additional context**
 Add any other context about the problem here.
