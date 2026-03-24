@@ -38,9 +38,13 @@ Before writing code, agents should:
 api/openapi/                     # OpenAPI specs (model-registry.yaml, catalog.yaml)
 ├── src/                           # Source YAML files merged into final specs
 catalog/                         # Catalog service — federated model discovery
+├── clients/python/                # Python client for catalog API (Poetry)
 ├── internal/                      # Catalog business logic & server
 ├── pkg/openapi/                   # Generated OpenAPI client for catalog
 ├── Makefile                       # Catalog-specific build/test targets
+clients/                         # Client libraries and UI
+├── python/                        # Python client for model-registry API (Poetry)
+└── ui/                            # React UI + Go BFF (separate workflow, not covered here)
 cmd/                             # CLI entry points
 ├── controller/                    # Kubernetes controller for ModelRegistry CRDs
 ├── csi/                           # Container Storage Interface (storage-initializer)
@@ -123,6 +127,62 @@ make -C catalog test              # Run catalog unit tests
 make -C catalog test-cover        # Run catalog tests with coverage
 ```
 
+#### Model Registry Python client tests
+
+```bash
+cd clients/python
+make install                      # Generate OpenAPI client and install dependencies via Poetry
+make test                         # Run unit tests (pytest)
+make lint                         # Run ruff + mypy
+```
+
+**E2E tests** (fully automated — creates a KinD cluster, builds and deploys the server image, Minio, OCI registry, runs tests, then cleans up):
+
+```bash
+cd clients/python
+make test-e2e                     # All-in-one: deploy infra + run E2E + cleanup
+```
+
+If you need to manage the environment manually:
+
+```bash
+cd clients/python
+make deploy-latest-mr             # Build image, create KinD cluster, deploy MR, start port-forward
+make deploy-test-minio            # Deploy Minio for storage tests
+make deploy-local-registry        # Deploy local OCI registry
+make test-e2e-run                 # Run E2E tests only (infra must already be running)
+make test-e2e-cleanup             # Cleanup DB and stop port-forwards
+```
+
+#### Model Catalog Python client tests
+
+```bash
+cd catalog/clients/python
+make install                      # Generate OpenAPI client and install dependencies via Poetry
+make lint                         # Run ruff + mypy
+```
+
+**E2E tests** (two-step — deploy, then test):
+
+```bash
+cd catalog/clients/python
+make deploy                       # All-in-one: KinD cluster + build image + deploy catalog + port-forward
+make test-e2e                     # Run E2E tests (requires catalog already deployed)
+make deploy-cleanup               # Tear down KinD cluster and port-forwards
+```
+
+If you need finer control over deployment:
+
+```bash
+cd catalog/clients/python
+make deploy-kind                  # Create KinD cluster
+make deploy-build                 # Build Docker image
+make deploy-load                  # Load image into KinD
+make deploy-k8s                   # Deploy to existing cluster (namespace + kustomize)
+make deploy-forward               # Start port-forward to catalog service
+make deploy-restart               # Rebuild and redeploy catalog only (quick dev cycle)
+```
+
 #### Async upload job tests (Python)
 
 ```bash
@@ -179,6 +239,7 @@ The following checks run automatically on pull requests:
 | **Go Mod Tidy** | `go-mod-tidy-diff-check.yml` | Ensures `go.mod` / `go.sum` are tidy |
 | **Controller Tests** | `controller-test.yml` | `make controller/test` (triggered by controller path changes) |
 | **CSI Tests** | `csi-test.yml` | E2E tests on KinD cluster (triggered by CSI path changes) |
+| **Python Client Tests** | `python-tests.yml` | Lint, unit tests, E2E on KinD (model-registry + catalog Python clients) |
 | **Async Upload Tests** | `async-upload-test.yml` | Python pytest + E2E (triggered by `jobs/async-upload/` changes) |
 
 Before submitting a PR, at minimum run:
