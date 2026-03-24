@@ -227,9 +227,9 @@ run_scenario() {
     local storage_uri
     if [ "$use_custom_mr" = true ]; then
         if [ -n "$version_name" ]; then
-            storage_uri="model-registry://$MODEL_REGISTRY_SERVICE.${mr_namespace}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/$model_name/$version_name"
+            storage_uri="model-registry://$model_name/$version_name?namespace=$mr_namespace"
         else
-            storage_uri="model-registry://$MODEL_REGISTRY_SERVICE.${mr_namespace}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/$model_name"
+            storage_uri="model-registry://$model_name?namespace=$mr_namespace"
         fi
     else
         if [ -n "$version_name" ]; then

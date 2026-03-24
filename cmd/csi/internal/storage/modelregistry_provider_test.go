@@ -17,11 +17,11 @@ func TestParseModelVersion(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                 string
-		storageUri           string
-		expectedModel        string
-		expectedVersion      *string
-		expectError          bool
+		name            string
+		storageUri      string
+		expectedModel   string
+		expectedVersion *string
+		expectError     bool
 	}{
 		{
 			name:            "basic model",

@@ -124,7 +124,7 @@ func (p *ModelRegistryProvider) parseModelVersion(storageUri string) (string, *s
 	var versionName *string
 
 	// Strip query parameters
-	storageUri = strings.Split(storageUri, "?")[0]
+	storageUri, _, _ = strings.Cut(storageUri, "?")
 
 	// Parse the URI to retrieve the needed information to query model registry (modelArtifact)
 	mrUri := strings.TrimPrefix(storageUri, string(constants.MR))
