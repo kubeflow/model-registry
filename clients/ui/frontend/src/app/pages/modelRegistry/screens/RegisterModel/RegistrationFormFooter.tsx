@@ -18,6 +18,12 @@ export type RegistrationInlineAlert = {
   message: React.ReactNode;
 };
 
+const FOOTER_STYLE: React.CSSProperties = {
+  backgroundColor: 'var(--pf-t--global--background--color--primary--default)',
+  zIndex: 100,
+  boxShadow: '0 -0.0625rem 0.25rem 0 rgba(3, 3, 3, 0.12)',
+};
+
 type RegistrationFormFooterProps = {
   submitLabel: string;
   submitError?: Error;
@@ -43,7 +49,11 @@ const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
   modelName,
   inlineAlert,
 }) => (
-  <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
+  <PageSection
+    hasBodyWrapper={false}
+    stickyOnBreakpoint={{ default: 'bottom' }}
+    style={FOOTER_STYLE}
+  >
     <Stack hasGutter>
       {inlineAlert && (
         <StackItem>
