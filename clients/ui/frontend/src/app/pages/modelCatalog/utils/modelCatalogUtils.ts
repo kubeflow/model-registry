@@ -505,7 +505,7 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
   const allLabels = new Set<string>();
 
   catalogSources.items.forEach((source) => {
-    // Only include labels from sources that are enabled AND have available models
+    // Only include labels from sources that are enabled AND have models (available or partially-available)
     if (source.enabled && isSourceStatusWithModels(source.status) && source.labels.length > 0) {
       source.labels.forEach((label) => {
         if (label.trim()) {
@@ -524,7 +524,7 @@ export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null
   }
 
   return catalogSources.items.some((source) => {
-    // Only consider sources that are enabled AND have available models
+    // Only consider sources that are enabled AND have models (available or partially-available)
     if (source.enabled !== false && isSourceStatusWithModels(source.status)) {
       // Check if source has no labels or only empty/whitespace labels
       return source.labels.length === 0 || source.labels.every((label) => !label.trim());
@@ -603,8 +603,8 @@ export const isValueDifferentFromDefault = (
 };
 
 /**
- * Filters catalog sources to only include those with available models.
- * A source has models if its status is AVAILABLE.
+ * Filters catalog sources to only include those with discoverable models.
+ * A source has models if its status is AVAILABLE or PARTIALLY_AVAILABLE.
  * This is used to filter out disabled sources or sources with errors from the switcher.
  */
 export const filterSourcesWithModels = (
@@ -627,7 +627,7 @@ export const filterSourcesWithModels = (
 
 /**
  * Checks if there are any catalog sources that have models available.
- * Returns true if at least one source has status === AVAILABLE.
+ * Returns true if at least one source has status AVAILABLE or PARTIALLY_AVAILABLE.
  */
 export const hasSourcesWithModels = (catalogSources: CatalogSourceList | null): boolean => {
   if (!catalogSources?.items) {
