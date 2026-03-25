@@ -19,7 +19,10 @@ import {
   ModelCatalogTensorType,
   UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
-import { CatalogSourceStatus, isSourceStatusWithModels } from '~/concepts/modelCatalogSettings/const';
+import {
+  CatalogSourceStatus,
+  isSourceStatusWithModels,
+} from '~/concepts/modelCatalogSettings/const';
 import {
   filtersToFilterQuery,
   filterEnabledCatalogSources,
