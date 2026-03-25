@@ -357,8 +357,13 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		})
 	}
 
-	// Convert artifacts to JSON
+	// Validate and convert artifacts to JSON
 	if len(ys.Artifacts) > 0 {
+		for i, artifact := range ys.Artifacts {
+			if err := basecatalog.ValidateArtifactURI(artifact.URI); err != nil {
+				return MCPServerProviderRecord{Error: fmt.Errorf("server %q artifact %d: %w", ys.Name, i, err)}
+			}
+		}
 		if jsonBytes, err := json.Marshal(ys.Artifacts); err == nil {
 			properties = append(properties, mrmodels.NewStringProperty("artifacts", string(jsonBytes), false))
 		}

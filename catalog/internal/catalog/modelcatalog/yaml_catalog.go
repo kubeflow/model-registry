@@ -252,9 +252,15 @@ func (ym *yamlModel) ToModelProviderRecord() ModelProviderRecord {
 		model.CustomProperties = &customProperties
 	}
 
-	// Convert artifacts
+	// Convert artifacts with URI validation
 	for j := range ym.Artifacts {
 		if ym.Artifacts[j].CatalogModelArtifact != nil {
+			// Validate artifact URI before processing
+			if err := basecatalog.ValidateArtifactURI(ym.Artifacts[j].CatalogModelArtifact.Uri); err != nil {
+				return ModelProviderRecord{
+					Error: fmt.Errorf("model %q artifact %d: %w", ym.Name, j, err),
+				}
+			}
 			artifacts[j] = *convertModelArtifact(ym.Artifacts[j].CatalogModelArtifact)
 		} else if ym.Artifacts[j].CatalogMetricsArtifact != nil {
 			artifacts[j] = *convertMetricsArtifact(ym.Artifacts[j].CatalogMetricsArtifact)

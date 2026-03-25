@@ -2,6 +2,8 @@ package modelcatalog
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -355,4 +358,155 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 	// Note: Lifecycle tests (StartReadOnly/StartLeader) are now tested
 	// at the integration level with the unified catalog.Loader
+}
+
+// TestSourceStatusPartialVsFull verifies that when some models load and
+// others fail, the source is partially-available; when all models fail, the
+// source is error (not partially-available).
+func TestSourceStatusPartialVsFull(t *testing.T) {
+	const sourceID = "status-test-source"
+
+	tests := []struct {
+		name           string
+		providerFunc   func(ctx context.Context) (<-chan ModelProviderRecord, error)
+		wantStatus     string
+		wantErrContain string
+	}{
+		{
+			name: "partially_available_when_one_model_succeeds_and_hf_partial_failure",
+			providerFunc: func(ctx context.Context) (<-chan ModelProviderRecord, error) {
+				ch := make(chan ModelProviderRecord, 4)
+				go func() {
+					defer close(ch)
+					modelName := "ok-model"
+					ch <- ModelProviderRecord{
+						Model: &models.CatalogModelImpl{
+							Attributes: &models.CatalogModelAttributes{Name: &modelName},
+						},
+						Artifacts: []sharedmodels.CatalogArtifact{},
+					}
+					ch <- ModelProviderRecord{
+						Model: nil,
+						Error: &PartiallyAvailableError{FailedModels: []string{"missing-model"}},
+					}
+				}()
+				return ch, nil
+			},
+			wantStatus:     basecatalog.SourceStatusPartiallyAvailable,
+			wantErrContain: "Failed models",
+		},
+		{
+			name: "error_when_no_models_succeed_and_hf_partial_failure",
+			providerFunc: func(ctx context.Context) (<-chan ModelProviderRecord, error) {
+				ch := make(chan ModelProviderRecord, 2)
+				go func() {
+					defer close(ch)
+					ch <- ModelProviderRecord{
+						Model: nil,
+						Error: &PartiallyAvailableError{FailedModels: []string{"only-failure"}},
+					}
+				}()
+				return ch, nil
+			},
+			wantStatus:     basecatalog.SourceStatusError,
+			wantErrContain: "Failed models",
+		},
+		{
+			name: "error_when_all_models_fail_validation",
+			providerFunc: func(ctx context.Context) (<-chan ModelProviderRecord, error) {
+				ch := make(chan ModelProviderRecord, 4)
+				go func() {
+					defer close(ch)
+					ch <- ModelProviderRecord{
+						Model: nil,
+						Error: fmt.Errorf("model %q artifact 0: URI invalid", "bad-model"),
+					}
+					ch <- ModelProviderRecord{}
+				}()
+				return ch, nil
+			},
+			wantStatus:     basecatalog.SourceStatusError,
+			wantErrContain: "all catalog models failed to load from source",
+		},
+		{
+			name: "partially_available_when_one_model_succeeds_and_one_validation_fails",
+			providerFunc: func(ctx context.Context) (<-chan ModelProviderRecord, error) {
+				ch := make(chan ModelProviderRecord, 4)
+				go func() {
+					defer close(ch)
+					ch <- ModelProviderRecord{
+						Model: nil,
+						Error: fmt.Errorf("model %q artifact 0: URI invalid", "bad-model"),
+					}
+					goodName := "good-model"
+					ch <- ModelProviderRecord{
+						Model: &models.CatalogModelImpl{
+							Attributes: &models.CatalogModelAttributes{Name: &goodName},
+						},
+						Artifacts: []sharedmodels.CatalogArtifact{},
+					}
+					ch <- ModelProviderRecord{}
+				}()
+				return ch, nil
+			},
+			wantStatus:     basecatalog.SourceStatusPartiallyAvailable,
+			wantErrContain: "Failed to load",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			providerName := "status-provider-" + strings.ReplaceAll(t.Name(), "/", "_")
+			require.NoError(t, RegisterModelProvider(providerName, func(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
+				return tt.providerFunc(ctx)
+			}))
+
+			mockSourceRepo := &MockCatalogSourceRepository{}
+			services := service.NewServices(
+				&MockCatalogModelRepository{},
+				&MockCatalogArtifactRepository{},
+				&MockCatalogModelArtifactRepository{},
+				&MockCatalogMetricsArtifactRepository{},
+				mockSourceRepo,
+				&MockPropertyOptionsRepository{},
+				nil,
+				nil,
+			)
+
+			baseLoader := basecatalog.NewBaseLoader([]string{})
+			baseLoader.SetLeader(true)
+			loader := NewModelLoader(services, baseLoader)
+
+			cfg := &basecatalog.SourceConfig{
+				ModelCatalogs: []basecatalog.ModelSource{
+					{
+						CatalogSource: apimodels.CatalogSource{
+							Id:      sourceID,
+							Name:    "Test",
+							Enabled: apiutils.Of(true),
+						},
+						Type: providerName,
+					},
+				},
+			}
+			require.NoError(t, loader.updateSources("test-path", cfg))
+
+			ctx := context.Background()
+			require.NoError(t, loader.PerformLeaderOperations(ctx, mapset.NewSet(sourceID)))
+
+			var st sharedmodels.SourceStatus
+			assert.Eventually(t, func() bool {
+				statuses, err := mockSourceRepo.GetAllStatuses()
+				if err != nil {
+					return false
+				}
+				var ok bool
+				st, ok = statuses[sourceID]
+				return ok && st.Status == tt.wantStatus
+			}, 3*time.Second, 10*time.Millisecond, "expected status %q for source %s", tt.wantStatus, sourceID)
+
+			assert.Equal(t, tt.wantStatus, st.Status)
+			assert.Contains(t, st.Error, tt.wantErrContain)
+		})
+	}
 }

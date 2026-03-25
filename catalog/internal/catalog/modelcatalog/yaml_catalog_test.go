@@ -436,6 +436,109 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
 			},
 		},
+		{
+			name: "artifact with invalid URI returns error",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-invalid-uri",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "not-a-valid-uri",
+							},
+						},
+					},
+				},
+			},
+			expectError: true,
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.Error(t, record.Error)
+				assert.Contains(t, record.Error.Error(), "must have a scheme")
+				assert.Contains(t, record.Error.Error(), "model-with-invalid-uri")
+			},
+		},
+		{
+			name: "artifact with unsupported URI scheme returns error",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-ftp-uri",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "ftp://example.com/model.bin",
+							},
+						},
+					},
+				},
+			},
+			expectError: true,
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.Error(t, record.Error)
+				assert.Contains(t, record.Error.Error(), "unsupported scheme")
+				assert.Contains(t, record.Error.Error(), "ftp")
+			},
+		},
+		{
+			name: "artifact with empty URI returns error",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-empty-uri",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "",
+							},
+						},
+					},
+				},
+			},
+			expectError: true,
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.Error(t, record.Error)
+				assert.Contains(t, record.Error.Error(), "cannot be empty")
+			},
+		},
+		{
+			name: "valid artifact followed by invalid artifact returns error",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-mixed-artifacts",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "s3://valid-bucket/model.bin",
+							},
+						},
+					},
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "invalid-uri-without-scheme",
+							},
+						},
+					},
+				},
+			},
+			expectError: true,
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.Error(t, record.Error)
+				assert.Contains(t, record.Error.Error(), "artifact 1")
+				assert.Contains(t, record.Error.Error(), "must have a scheme")
+			},
+		},
 	}
 
 	for _, tt := range tests {
