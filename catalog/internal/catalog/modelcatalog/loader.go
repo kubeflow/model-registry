@@ -397,10 +397,19 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 			defer wg.Done()
 
 			modelNames := []string{}
+			failedModels := []string{}
 			statusSaved := false
 
 			for r := range records {
+				// Check for validation/provider errors first (record has Error but no Model)
+				if r.Error != nil && r.Model == nil {
+					glog.Errorf("%s: model validation error: %v", sourceID, r.Error)
+					failedModels = append(failedModels, r.Error.Error())
+					continue
+				}
+
 				if r.Model == nil {
+
 					glog.Infof("%s: loaded %d models", sourceID, len(modelNames))
 
 					// Copy the list of model names, then clear it.
@@ -421,6 +430,11 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 						if errors.Is(r.Error, ErrPartiallyAvailable) {
 							glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
 							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error())
+						} else if len(failedModels) > 0 {
+							// Some models failed validation but others succeeded
+							errMsg := fmt.Sprintf("Failed to load %d model(s): %v", len(failedModels), failedModels)
+							glog.Warningf("%s: %s", sourceID, errMsg)
+							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, errMsg)
 						} else {
 							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
 						}
