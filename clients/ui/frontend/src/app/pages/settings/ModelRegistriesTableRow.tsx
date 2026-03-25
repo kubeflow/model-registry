@@ -3,7 +3,12 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { FetchStateObject } from 'mod-arch-shared/dist/types/common';
-import { ModelRegistryKind, ResourceNameTooltip, RoleBindingKind } from 'mod-arch-shared';
+import {
+  ModelRegistryKind,
+  ResourceNameTooltip,
+  RoleBindingKind,
+  TruncatedText,
+} from 'mod-arch-shared';
 import { DeploymentMode, useModularArchContext } from 'mod-arch-core';
 import { ModelRegistryTableRowStatus } from './ModelRegistryTableRowStatus';
 
@@ -39,7 +44,10 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
           </strong>
         </ResourceNameTooltip>
         {mr.metadata.annotations?.['openshift.io/description'] && (
-          <p>{mr.metadata.annotations['openshift.io/description']}</p>
+          <TruncatedText
+            maxLines={2}
+            content={mr.metadata.annotations['openshift.io/description']}
+          />
         )}
       </Td>
       <Td dataLabel="Status" style={{ verticalAlign: 'middle' }}>
