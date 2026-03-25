@@ -34,7 +34,7 @@ import {
   CatalogModelCustomPropertyKey,
   ModelType,
 } from '~/concepts/modelCatalog/const';
-import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
+import { isSourceStatusWithModels } from '~/concepts/modelCatalogSettings/const';
 import { ModelRegistryMetadataType } from '~/app/types';
 
 /**
@@ -80,9 +80,9 @@ export const filterEnabledCatalogSources = (
     return null;
   }
 
-  // Filter sources that are enabled AND have available models
+  // Filter sources that are enabled AND have available models (including partially-available)
   const filteredItems = catalogSources.items?.filter(
-    (source) => source.enabled !== false && source.status === CatalogSourceStatus.AVAILABLE,
+    (source) => source.enabled !== false && isSourceStatusWithModels(source.status),
   );
 
   return {
@@ -506,11 +506,7 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
 
   catalogSources.items.forEach((source) => {
     // Only include labels from sources that are enabled AND have available models
-    if (
-      source.enabled &&
-      source.status === CatalogSourceStatus.AVAILABLE &&
-      source.labels.length > 0
-    ) {
+    if (source.enabled && isSourceStatusWithModels(source.status) && source.labels.length > 0) {
       source.labels.forEach((label) => {
         if (label.trim()) {
           allLabels.add(label.trim());
@@ -529,7 +525,7 @@ export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null
 
   return catalogSources.items.some((source) => {
     // Only consider sources that are enabled AND have available models
-    if (source.enabled !== false && source.status === CatalogSourceStatus.AVAILABLE) {
+    if (source.enabled !== false && isSourceStatusWithModels(source.status)) {
       // Check if source has no labels or only empty/whitespace labels
       return source.labels.length === 0 || source.labels.every((label) => !label.trim());
     }
@@ -618,8 +614,8 @@ export const filterSourcesWithModels = (
     return null;
   }
 
-  const filteredItems = catalogSources.items?.filter(
-    (source) => source.status === CatalogSourceStatus.AVAILABLE,
+  const filteredItems = catalogSources.items?.filter((source) =>
+    isSourceStatusWithModels(source.status),
   );
 
   return {
@@ -638,7 +634,7 @@ export const hasSourcesWithModels = (catalogSources: CatalogSourceList | null): 
     return false;
   }
 
-  return catalogSources.items.some((source) => source.status === CatalogSourceStatus.AVAILABLE);
+  return catalogSources.items.some((source) => isSourceStatusWithModels(source.status));
 };
 
 export const generateCategoryName = (name: string): string =>

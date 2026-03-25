@@ -30,7 +30,7 @@ export type CatalogSource = {
   name: string;
   labels: string[];
   enabled?: boolean;
-  status?: 'available' | 'error' | 'disabled';
+  status?: 'available' | 'partially-available' | 'error' | 'disabled';
   error?: string;
 };
 

@@ -19,7 +19,7 @@ import {
   ModelCatalogTensorType,
   UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
-import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
+import { CatalogSourceStatus, isSourceStatusWithModels } from '~/concepts/modelCatalogSettings/const';
 import {
   filtersToFilterQuery,
   filterEnabledCatalogSources,
@@ -454,6 +454,21 @@ describe('catalog source filtering utilities', () => {
       const result = filterEnabledCatalogSources(sources);
       expect(result?.items).toHaveLength(2);
     });
+
+    it('includes partially-available sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', enabled: true, status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({
+          id: '2',
+          enabled: true,
+          status: CatalogSourceStatus.PARTIALLY_AVAILABLE,
+        }),
+        createMockSource({ id: '3', enabled: true, status: CatalogSourceStatus.ERROR }),
+      ]);
+      const result = filterEnabledCatalogSources(sources);
+      expect(result?.items).toHaveLength(2);
+      expect(result?.items?.map((s) => s.id)).toEqual(['1', '2']);
+    });
   });
 
   describe('filterSourcesWithModels', () => {
@@ -479,6 +494,17 @@ describe('catalog source filtering utilities', () => {
       ]);
       const result = filterSourcesWithModels(sources);
       expect(result?.items).toHaveLength(0);
+    });
+
+    it('includes partially-available sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.PARTIALLY_AVAILABLE }),
+        createMockSource({ id: '3', status: CatalogSourceStatus.ERROR }),
+      ]);
+      const result = filterSourcesWithModels(sources);
+      expect(result?.items).toHaveLength(2);
+      expect(result?.items?.map((s) => s.id)).toEqual(['1', '2']);
     });
   });
 
@@ -511,6 +537,14 @@ describe('catalog source filtering utilities', () => {
       const sources = createMockSourceList([
         createMockSource({ id: '1', status: CatalogSourceStatus.AVAILABLE }),
         createMockSource({ id: '2', status: CatalogSourceStatus.AVAILABLE }),
+      ]);
+      expect(hasSourcesWithModels(sources)).toBe(true);
+    });
+
+    it('returns true when a source has partially-available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.PARTIALLY_AVAILABLE }),
       ]);
       expect(hasSourcesWithModels(sources)).toBe(true);
     });
@@ -583,6 +617,27 @@ describe('catalog source filtering utilities', () => {
       ]);
       const labels = getUniqueSourceLabels(sources);
       expect(labels).toEqual(['Red Hat']);
+    });
+
+    it('includes labels from partially-available sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: ['Partial Source'],
+          enabled: true,
+          status: CatalogSourceStatus.PARTIALLY_AVAILABLE,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toHaveLength(2);
+      expect(labels).toContain('Red Hat');
+      expect(labels).toContain('Partial Source');
     });
 
     it('trims whitespace from labels', () => {
@@ -704,6 +759,42 @@ describe('catalog source filtering utilities', () => {
       ]);
       expect(hasSourcesWithoutLabels(sources)).toBe(false);
     });
+
+    it('returns true when a partially-available source has no labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: [],
+          enabled: true,
+          status: CatalogSourceStatus.PARTIALLY_AVAILABLE,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(true);
+    });
+  });
+});
+
+describe('isSourceStatusWithModels', () => {
+  it('returns true for available status', () => {
+    expect(isSourceStatusWithModels(CatalogSourceStatus.AVAILABLE)).toBe(true);
+  });
+
+  it('returns true for partially-available status', () => {
+    expect(isSourceStatusWithModels(CatalogSourceStatus.PARTIALLY_AVAILABLE)).toBe(true);
+  });
+
+  it('returns false for error status', () => {
+    expect(isSourceStatusWithModels(CatalogSourceStatus.ERROR)).toBe(false);
+  });
+
+  it('returns false for disabled status', () => {
+    expect(isSourceStatusWithModels(CatalogSourceStatus.DISABLED)).toBe(false);
   });
 });
 
