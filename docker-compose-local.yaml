@@ -111,6 +111,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/pginit.sql:/docker-entrypoint-initdb.d/pginit.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d model_registry"]
       interval: 10s
@@ -119,16 +120,7 @@ services:
       start_period: 20s
     profiles:
       - postgres
-    configs:
-      - source: pginit
-        target: /docker-entrypoint-initdb.d/pginit.sql
 
 volumes:
   mysql_data:
   postgres_data:
-
-configs:
-  pginit:
-    content: |
-      CREATE DATABASE model_catalog;
-      GRANT ALL PRIVILEGES ON model_catalog TO postgres;
