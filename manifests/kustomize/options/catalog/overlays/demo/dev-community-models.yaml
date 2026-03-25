@@ -10,7 +10,7 @@ models:
       # Falcon-Mini-2B
 
       **Model Summary:**
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is a community-contributed model designed for efficient inference.
+      This is a community-contributed model designed for efficient inference.
 
       - **Developers:** Open Models Foundation Community
       - **Release Date**: October 5th, 2024
@@ -22,7 +22,6 @@ models:
       * Edge-optimized
       * Multilingual support
 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
     language: ["en", "es", "fr"]
     license: mit
     licenseLink: https://opensource.org/licenses/MIT
@@ -66,7 +65,6 @@ models:
       * Social media analysis
       * Customer feedback processing
 
-      Sunt in culpa qui officia deserunt mollit anim id est laborum.
     language: ["en"]
     license: apache-2.0
     licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
@@ -111,8 +109,6 @@ models:
       * Creative writing assistance
       * Character development
       * Plot ideation
-
-      Itaque earum rerum hic tenetur a sapiente delectus.
 
       **Note:** This is an experimental community model and outputs should be reviewed for quality.
     language: ["en"]
@@ -161,7 +157,6 @@ models:
       * Optimized for short text
       * API-friendly
 
-      Omnis voluptas assumenda est, omnis dolor repellendus.
 
       **Limitations:**
       Best suited for short texts (< 512 tokens). For longer documents, consider using larger models.
