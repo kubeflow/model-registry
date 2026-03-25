@@ -98,7 +98,6 @@ export type ModelRegistryCustomProperty =
   | ModelRegistryCustomPropertyBool;
 
 export type ModelRegistryCustomProperties = Record<string, ModelRegistryCustomProperty>;
-export type ModelRegistryStringCustomProperties = Record<string, ModelRegistryCustomPropertyString>;
 
 export type ModelRegistryBase = {
   id: string;
