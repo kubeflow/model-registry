@@ -19,7 +19,7 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
       ),
     info: {
       popover:
-        'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, google). Only models within this organization are included in the catalog.',
+        'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, meta-llama). Only models within this organization are included in the catalog.',
     },
     width: 15,
   },
