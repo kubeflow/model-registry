@@ -463,7 +463,7 @@ compose/local/up/postgres: ## Start services using docker-compose-local.yaml wit
 
 .PHONY: compose/local/down
 compose/local/down: ## Stop services using docker-compose-local.yaml
-	$(COMPOSE_CMD) -f docker-compose-local.yaml down
+	$(COMPOSE_CMD) -f docker-compose-local.yaml --profile mysql --profile postgres down
 
 .PHONY: compose/clean
 compose/clean: ## Remove all Docker Compose volumes and networks
