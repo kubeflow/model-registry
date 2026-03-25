@@ -43,7 +43,13 @@ const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
   modelName,
   inlineAlert,
 }) => (
-  <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
+  <PageSection
+    hasBodyWrapper={false}
+    stickyOnBreakpoint={{ default: 'bottom' }}
+    variant="default"
+    hasShadowTop
+    style={{ zIndex: 100 }}
+  >
     <Stack hasGutter>
       {inlineAlert && (
         <StackItem>
