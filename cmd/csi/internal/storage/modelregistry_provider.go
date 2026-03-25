@@ -123,6 +123,9 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 func (p *ModelRegistryProvider) parseModelVersion(storageUri string) (string, *string, error) {
 	var versionName *string
 
+	// Strip query parameters
+	storageUri, _, _ = strings.Cut(storageUri, "?")
+
 	// Parse the URI to retrieve the needed information to query model registry (modelArtifact)
 	mrUri := strings.TrimPrefix(storageUri, string(constants.MR))
 

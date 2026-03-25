@@ -427,6 +427,109 @@ func TestYamlMCPEndpointsJSONKeys(t *testing.T) {
 	assert.NotContains(t, jsonStr, `"SSE":`, "JSON key must not be uppercase 'SSE'")
 }
 
+func TestYamlMCPArtifactURIValidation(t *testing.T) {
+	tests := []struct {
+		name        string
+		server      *yamlMCPServer
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "artifact with valid oci URI passes",
+			server: &yamlMCPServer{
+				Name: "server-oci-artifact",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "container", URI: "oci://registry.example.com/image:v1", Type: "container"},
+				},
+			},
+		},
+		{
+			name: "artifact with valid https URI passes",
+			server: &yamlMCPServer{
+				Name: "server-https-artifact",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "model", URI: "https://example.com/model.bin", Type: "model"},
+				},
+			},
+		},
+		{
+			name: "artifact with valid s3 URI passes",
+			server: &yamlMCPServer{
+				Name: "server-s3-artifact",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "weights", URI: "s3://bucket/path/to/weights", Type: "weights"},
+				},
+			},
+		},
+		{
+			name: "artifact with invalid URI (no scheme) is rejected",
+			server: &yamlMCPServer{
+				Name: "server-invalid-uri",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "bad", URI: "not-a-valid-uri", Type: "model"},
+				},
+			},
+			wantErr:     true,
+			errContains: "must have a scheme",
+		},
+		{
+			name: "artifact with unsupported scheme is rejected",
+			server: &yamlMCPServer{
+				Name: "server-ftp-artifact",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "bad", URI: "ftp://example.com/model.bin", Type: "model"},
+				},
+			},
+			wantErr:     true,
+			errContains: "unsupported scheme",
+		},
+		{
+			name: "artifact with empty URI is rejected",
+			server: &yamlMCPServer{
+				Name: "server-empty-uri",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "empty", URI: "", Type: "model"},
+				},
+			},
+			wantErr:     true,
+			errContains: "cannot be empty",
+		},
+		{
+			name: "multiple artifacts with one invalid URI is rejected",
+			server: &yamlMCPServer{
+				Name: "server-mixed-artifacts",
+				Artifacts: []*yamlMCPArtifact{
+					{Name: "good", URI: "s3://bucket/valid", Type: "model"},
+					{Name: "bad", URI: "invalid-uri", Type: "model"},
+				},
+			},
+			wantErr:     true,
+			errContains: "artifact 1",
+		},
+		{
+			name: "server with no artifacts passes",
+			server: &yamlMCPServer{
+				Name: "server-no-artifacts",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			record := tc.server.ToMCPServerProviderRecord()
+			if tc.wantErr {
+				assert.NotNil(t, record.Error, "expected an error but got none")
+				if tc.errContains != "" {
+					assert.Contains(t, record.Error.Error(), tc.errContains)
+				}
+			} else {
+				assert.Nil(t, record.Error, "expected no error but got: %v", record.Error)
+				assert.NotNil(t, record.Server)
+			}
+		})
+	}
+}
+
 func TestYamlMCPServerLicenseTransformation(t *testing.T) {
 	tests := []struct {
 		name            string
