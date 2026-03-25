@@ -28,7 +28,7 @@ const ModelCatalogFilters: React.FC = () => {
     filters && filterKey in filters ? filters : undefined;
 
   return (
-    <Stack hasGutter>
+    <Stack hasGutter style={{ paddingRight: 'var(--pf-t--global--spacer--sm)' }}>
       <ModelPerformanceViewToggleCard />
       <TaskFilter filters={getFilterProps(ModelCatalogStringFilterKey.TASK)} />
       <ProviderFilter filters={getFilterProps(ModelCatalogStringFilterKey.PROVIDER)} />
