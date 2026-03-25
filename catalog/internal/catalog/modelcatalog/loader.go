@@ -401,8 +401,10 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 			statusSaved := false
 
 			for r := range records {
-				// Check for validation/provider errors first (record has Error but no Model)
-				if r.Error != nil && r.Model == nil {
+				// Per-model validation errors (Error set, no Model). The Hugging Face
+				// provider also sends a nil-Model completion record with
+				// ErrPartiallyAvailable; that is handled below as batch completion, not here.
+				if r.Error != nil && r.Model == nil && !errors.Is(r.Error, ErrPartiallyAvailable) {
 					glog.Errorf("%s: model validation error: %v", sourceID, r.Error)
 					failedModels = append(failedModels, r.Error.Error())
 					continue
@@ -426,15 +428,30 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 
 					// Only save status if context is still valid (no reload in progress)
 					if ctx.Err() == nil {
-						// Check if there was a partial error (some models failed to load)
-						if errors.Is(r.Error, ErrPartiallyAvailable) {
-							glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
-							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error())
-						} else if len(failedModels) > 0 {
-							// Some models failed validation but others succeeded
-							errMsg := fmt.Sprintf("Failed to load %d model(s): %v", len(failedModels), failedModels)
-							glog.Warningf("%s: %s", sourceID, errMsg)
-							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, errMsg)
+						successCount := modelNameSet.Cardinality()
+						hasPartialFailure := errors.Is(r.Error, ErrPartiallyAvailable)
+						hasValidationFailures := len(failedModels) > 0
+
+						if successCount > 0 {
+							if hasPartialFailure {
+								glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error())
+							} else if hasValidationFailures {
+								errMsg := fmt.Sprintf("Failed to load %d model(s): %v", len(failedModels), failedModels)
+								glog.Warningf("%s: %s", sourceID, errMsg)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, errMsg)
+							} else {
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
+							}
+						} else if hasPartialFailure || hasValidationFailures {
+							if hasPartialFailure {
+								glog.Warningf("%s: all catalog models failed to load from source: %v", sourceID, r.Error)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, r.Error.Error())
+							} else {
+								errMsg := fmt.Sprintf("all catalog models failed to load from source %s (failed: %v)", sourceID, failedModels)
+								glog.Warningf("%s: %s", sourceID, errMsg)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, errMsg)
+							}
 						} else {
 							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
 						}
