@@ -131,19 +131,35 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             : {})}
         >
           <ToolbarContent rowWrap={{ default: 'wrap' }}>
-            <Flex>
-              <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>
-                <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
-                  <ToolbarItem>
+            <Flex style={{ flex: 1 }}>
+              <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />} style={{ flex: 1 }}>
+                <ToolbarGroup
+                  variant="filter-group"
+                  gap={{ default: 'gapMd' }}
+                  alignItems="center"
+                  style={{ flex: 1 }}
+                >
+                  <ToolbarItem style={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <style>{`
+                      .catalog-search-input {
+                        flex: 1 1 0;
+                        min-width: 0;
+                      }
+                      .catalog-search-input .pf-v6-c-form-control,
+                      .catalog-search-input .pf-v6-c-form-control > input {
+                        width: 100%;
+                      }
+                      .catalog-search-input > .pf-v6-c-input-group__item:not(.pf-m-search-action) {
+                        flex: 1 1 0;
+                        min-width: 0;
+                      }
+                    `}</style>
                     <ThemeAwareSearchInput
                       data-testid="search-input"
                       aria-label="Search with submit button"
-                      className="toolbar-fieldset-wrapper"
+                      className="catalog-search-input"
                       placeholder="Filter by name, description and provider"
                       value={inputValue}
-                      style={{
-                        minWidth: '600px',
-                      }}
                       onChange={handleSearchInputChange}
                       onSearch={handleSearchInputSearch}
                       onClear={handleClear}
