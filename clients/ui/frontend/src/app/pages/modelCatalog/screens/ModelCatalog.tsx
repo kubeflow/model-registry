@@ -42,7 +42,14 @@ const ModelCatalog: React.FC = () => {
         provideChildrenPadding
       >
         <Sidebar hasBorder hasGutter>
-          <SidebarPanel>
+          <SidebarPanel
+            style={{
+              position: 'sticky',
+              top: 0,
+              maxHeight: '100vh',
+              overflowY: 'auto',
+            }}
+          >
             <ModelCatalogFilters />
           </SidebarPanel>
           <SidebarContent>
