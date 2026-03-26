@@ -33,6 +33,8 @@ export {
 export const NamespaceSelectorMessages = {
   SELECTOR_TOOLTIP:
     'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.',
+  TEXT_INPUT_TOOLTIP:
+    'Enter the name of the namespace where you want to run the model transfer job. The namespace must have access to the selected model registry.',
   NO_ACCESS:
     'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.',
   SELECTED_NAMESPACE_NO_ACCESS:

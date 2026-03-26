@@ -134,25 +134,13 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.shouldShowSelectedNamespace('namespace-2');
   });
 
-  it('Should handle empty namespace list gracefully', () => {
+  it('Should show text input when namespace list is empty', () => {
     initIntercepts({ namespaces: [] });
     registerAndStoreFields.visit();
     registerAndStoreFields.selectRegisterAndStoreMode();
 
-    registerAndStoreFields.findNamespaceSelector().should('exist');
-    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
-    registerAndStoreFields.shouldShowNoNamespacesMessage();
-    registerAndStoreFields.shouldShowPlaceholder('Select a namespace');
-  });
-
-  it('Should show no-access message and keep dropdown disabled when no namespaces', () => {
-    initIntercepts({ namespaces: [] });
-    registerAndStoreFields.visit();
-    registerAndStoreFields.selectRegisterAndStoreMode();
-
-    registerAndStoreFields.findNamespaceSelector().should('exist');
-    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
-    registerAndStoreFields.shouldShowNoNamespacesMessage();
+    registerAndStoreFields.findNamespaceTextInput().should('exist');
+    registerAndStoreFields.findNamespaceSelector().should('not.exist');
   });
 });
 
@@ -263,15 +251,21 @@ describe('Register and Store Fields - Namespace access check error', () => {
   });
 });
 
-describe('Register and Store Fields - Who is my admin popover (namespace wording)', () => {
+describe('Register and Store Fields - Who is my admin popover', () => {
   beforeEach(() => {
-    initIntercepts({ namespaces: [] });
-    registerAndStoreFields.visit();
+    initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: false } },
+    }).as('checkNamespaceAccess');
+    registerAndStoreFields.visit('namespace-1');
     registerAndStoreFields.selectRegisterAndStoreMode();
   });
 
-  it('Should show Who is my admin popover with namespace wording when no namespaces', () => {
-    registerAndStoreFields.shouldShowNoNamespacesMessage();
+  it('Should show Who is my admin popover with namespace wording when no access', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldShowNoAccessWarning();
     registerAndStoreFields.openWhoIsMyAdminPopover();
     registerAndStoreFields.shouldShowWhoIsMyAdminPopoverWithNamespaceWording();
   });

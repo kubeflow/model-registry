@@ -2,12 +2,14 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
-	"net/http"
-
-	"github.com/julienschmidt/httprouter"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type NamespacesEnvelope Envelope[[]models.NamespaceModel, None]
@@ -29,6 +31,10 @@ func (app *App) GetNamespacesHandler(w http.ResponseWriter, r *http.Request, _ h
 
 	namespaces, err := app.repositories.Namespace.GetNamespaces(client, ctx, identity)
 	if err != nil {
+		if apierrors.IsForbidden(err) || apierrors.IsUnauthorized(err) || strings.Contains(err.Error(), "forbidden") {
+			app.forbiddenResponse(w, r, err.Error())
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}

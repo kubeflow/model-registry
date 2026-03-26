@@ -8,6 +8,7 @@ import {
   Popover,
   Stack,
   StackItem,
+  TextInput,
 } from '@patternfly/react-core';
 import { SimpleSelect } from 'mod-arch-shared';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
@@ -54,7 +55,47 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
   const [namespaces, namespacesLoaded, namespacesLoadError] = useNamespaces();
-  const isDisabled = namespaces.length === 0;
+  const [textInputValue, setTextInputValue] = React.useState(selectedNamespace);
+  const debounceTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+
+  // TODO: Replace this string matching with proper error code detection once mod-arch-core's
+  // handleRestFailures is updated to preserve the HTTP status code from BFF error responses.
+  // Currently handleRestFailures discards the error code and only keeps the message string.
+  const cannotListNamespaces =
+    namespacesLoadError?.message.toLowerCase().includes('forbidden') ?? false;
+
+  const showTextInput =
+    cannotListNamespaces || (namespacesLoaded && !namespacesLoadError && namespaces.length === 0);
+
+  const handleTextInputChange = (_event: React.FormEvent, value: string) => {
+    setTextInputValue(value);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    if (value) {
+      debounceTimerRef.current = setTimeout(() => {
+        onSelect(value);
+      }, 1000);
+    }
+  };
+
+  const handleTextInputBlur = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    if (textInputValue && textInputValue !== selectedNamespace) {
+      onSelect(textInputValue);
+    }
+  };
+
+  React.useEffect(
+    () => () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const options: SimpleSelectOption[] = namespaces.map((ns) => ({
     key: ns.name,
@@ -68,14 +109,23 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
     onSelect(key);
   };
 
-  const namespaceSelectorElement = (
+  const namespaceInputElement = showTextInput ? (
+    <TextInput
+      data-testid="form-namespace-text-input"
+      value={textInputValue}
+      onChange={handleTextInputChange}
+      onBlur={handleTextInputBlur}
+      placeholder="Enter a namespace name"
+      aria-label="Namespace"
+    />
+  ) : (
     <div data-testid="form-namespace-selector-trigger">
       <SimpleSelect
         options={options}
         value={selectedNamespace}
         onChange={handleChange}
         placeholder="Select a namespace"
-        isDisabled={isDisabled}
+        isDisabled={namespaces.length === 0}
         isFullWidth
         isScrollable
         maxMenuHeight="300px"
@@ -84,16 +134,14 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
     </div>
   );
 
-  const showNoAccessMessage = namespacesLoaded && !namespacesLoadError && namespaces.length === 0;
-  const showNoAccessAlert =
-    namespaces.length > 0 && selectedNamespace && !isLoading && hasAccess === false;
+  const showNoAccessAlert = selectedNamespace && !isLoading && hasAccess === false;
+
+  const tooltipContent = showTextInput
+    ? NamespaceSelectorMessages.TEXT_INPUT_TOOLTIP
+    : NamespaceSelectorMessages.SELECTOR_TOOLTIP;
 
   const labelHelp = (
-    <Popover
-      triggerRef={labelHelpRef}
-      bodyContent={NamespaceSelectorMessages.SELECTOR_TOOLTIP}
-      aria-label={NamespaceSelectorMessages.SELECTOR_TOOLTIP}
-    >
+    <Popover triggerRef={labelHelpRef} bodyContent={tooltipContent} aria-label={tooltipContent}>
       <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
     </Popover>
   );
@@ -105,7 +153,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
           <HelperTextItem>Loading namespaces...</HelperTextItem>
         </HelperText>
       )}
-      {namespacesLoadError && (
+      {namespacesLoadError && !cannotListNamespaces && (
         <Alert
           isInline
           variant="danger"
@@ -121,11 +169,11 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
           <HelperTextItem>Checking access...</HelperTextItem>
         </HelperText>
       )}
-      {showNoAccessMessage && (
+      {showNoAccessAlert && (
         <Alert
           isInline
           variant="warning"
-          title={NamespaceSelectorMessages.NO_ACCESS}
+          title={NamespaceSelectorMessages.SELECTED_NAMESPACE_NO_ACCESS}
           data-testid="namespace-registry-access-alert"
           className="pf-v6-u-mt-sm"
         >
@@ -141,15 +189,6 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
             </Button>
           </Popover>
         </Alert>
-      )}
-      {showNoAccessAlert && (
-        <Alert
-          isInline
-          variant="warning"
-          title={NamespaceSelectorMessages.SELECTED_NAMESPACE_NO_ACCESS}
-          data-testid="namespace-registry-access-alert"
-          className="pf-v6-u-mt-sm"
-        />
       )}
       {error && (
         <Alert
@@ -174,7 +213,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
       helperTextNode={helperTextNode}
       data-testid="namespace-form-group"
     >
-      {namespaceSelectorElement}
+      {namespaceInputElement}
     </ThemeAwareFormGroupWrapper>
   );
 };
