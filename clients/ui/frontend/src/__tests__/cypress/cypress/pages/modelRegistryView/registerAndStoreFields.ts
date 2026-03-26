@@ -15,6 +15,10 @@ class RegisterAndStoreFields {
     return cy.findByTestId('form-namespace-selector');
   }
 
+  findNamespaceTextInput() {
+    return cy.findByTestId('form-namespace-text-input');
+  }
+
   findNamespaceSelectTrigger() {
     return cy.findByTestId('form-namespace-selector-trigger');
   }

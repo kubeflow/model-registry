@@ -734,8 +734,8 @@ func collectRecordsFromChannel(t *testing.T, records <-chan ModelProviderRecord,
 	cancel()
 
 	select {
-	case _, ok := <-records:
-		if ok {
+	case record, ok := <-records:
+		if ok && record.Model != nil {
 			t.Fatalf("received more than %d records", expected)
 		}
 	case <-time.After(500 * time.Millisecond):

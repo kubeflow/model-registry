@@ -34,7 +34,7 @@ mcp_servers:
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzOCIgaGVpZ2h0PSIzOCIgdmlld0JveD0iMCAwIDM4IDM4Ij4KICA8dGl0bGU+TUNQIFNlcnZlciBpY29uPC90aXRsZT4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmJne2ZpbGw6I2ZmZjt9CiAgICAgIC5ib3JkZXJ7ZmlsbDojZTBlMGUwO30KICAgICAgLmFjY2VudHtmaWxsOiMwMDY2Y2M7fQogICAgICAubm9kZXtmaWxsOiMwMDY2Y2M7fQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPHJlY3QgY2xhc3M9ImJvcmRlciIgeD0iMCIgeT0iMCIgd2lkdGg9IjM4IiBoZWlnaHQ9IjM4IiByeD0iNCIgcnk9IjQiLz4KICA8cmVjdCBjbGFzcz0iYmciIHg9IjEiIHk9IjEiIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgcng9IjMiIHJ5PSIzIi8+CiAgPGNpcmNsZSBjbGFzcz0ibm9kZSIgY3g9IjE5IiBjeT0iMTkiIHI9IjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iMTkiIGN5PSI3IiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iMjkiIGN5PSIxMyIgcj0iMi41Ii8+CiAgPGNpcmNsZSBjbGFzcz0ibm9kZSIgY3g9IjI5IiBjeT0iMjUiIHI9IjIuNSIvPgogIDxjaXJjbGUgY2xhc3M9Im5vZGUiIGN4PSIxOSIgY3k9IjMxIiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iOSIgY3k9IjI1IiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iOSIgY3k9IjEzIiByPSIyLjUiLz4KICA8bGluZSB4MT0iMTkiIHkxPSIxNCIgeDI9IjE5IiB5Mj0iOSIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIyMyIgeTE9IjE2IiB4Mj0iMjciIHkyPSIxNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIyMyIgeTE9IjIyIiB4Mj0iMjciIHkyPSIyNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxOSIgeTE9IjI0IiB4Mj0iMTkiIHkyPSIyOSIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjIyIiB4Mj0iMTEiIHkyPSIyNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjE2IiB4Mj0iMTEiIHkyPSIxNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4K
     repositoryUrl: https://github.com/manusa/kubernetes-mcp-server
     sourceCode: manusa/kubernetes-mcp-server
-    publishedDate: "2025-03-01"
+    publishedDate: "2025-03-01T00:00:00Z"
     tools:
       - name: list_pods
         description: List pods in a namespace
@@ -178,7 +178,7 @@ mcp_servers:
     documentationUrl: https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform
     repositoryUrl: https://github.com/ansible/aap-mcp-server
     sourceCode: ansible/aap-mcp-server
-    publishedDate: "2025-04-01"
+    publishedDate: "2025-04-01T00:00:00Z"
     tools:
       - name: list_job_templates
         description: List available job templates in Ansible Automation Platform
@@ -303,7 +303,7 @@ mcp_servers:
     documentationUrl: https://docs.redhat.com/en/documentation/red_hat_satellite
     repositoryUrl: https://github.com/theforeman/foreman-mcp-server
     sourceCode: theforeman/foreman-mcp-server
-    publishedDate: "2025-02-15"
+    publishedDate: "2025-02-15T00:00:00Z"
     tools:
       - name: list_hosts
         description: List managed hosts registered with Satellite
@@ -427,7 +427,7 @@ mcp_servers:
     documentationUrl: https://docs.redhat.com/en/documentation/red_hat_insights
     repositoryUrl: https://github.com/RedHatInsights/red-hat-lightspeed-mcp
     sourceCode: RedHatInsights/red-hat-lightspeed-mcp
-    publishedDate: "2025-03-15"
+    publishedDate: "2025-03-15T00:00:00Z"
     tools:
       - name: get_recommendations
         description: Retrieve Insights recommendations for registered systems
@@ -557,7 +557,7 @@ mcp_servers:
     documentationUrl: https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-extensions/using-the-github-mcp-server
     repositoryUrl: https://github.com/github/github-mcp-server
     sourceCode: github/github-mcp-server
-    publishedDate: "2025-01-10"
+    publishedDate: "2025-01-10T00:00:00Z"
     tools:
       - name: search_code
         description: Search for code across GitHub repositories

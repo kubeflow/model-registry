@@ -110,7 +110,7 @@ type yamlMCPServer struct {
 	Version                  *string                             `yaml:"version,omitempty"`
 	Logo                     *string                             `yaml:"logo,omitempty"`
 	License                  *string                             `yaml:"license,omitempty"`
-	LicenseLink              *string                             `yaml:"licenseLink,omitempty"`
+	LicenseLink              *string                             `yaml:"license_link,omitempty"`
 	DocumentationUrl         *string                             `yaml:"documentationUrl,omitempty"`
 	RepositoryUrl            *string                             `yaml:"repositoryUrl,omitempty"`
 	SourceCode               *string                             `yaml:"sourceCode,omitempty"`

@@ -451,7 +451,7 @@ compose/up/postgres: ## Start services using docker-compose.yaml with PostgreSQL
 
 .PHONY: compose/down
 compose/down: ## Stop services using docker-compose.yaml
-	$(COMPOSE_CMD) down
+	$(COMPOSE_CMD) --profile mysql --profile postgres down
 
 .PHONY: compose/local/up
 compose/local/up: ## Start services using docker-compose-local.yaml with MySQL (builds from source)
@@ -463,12 +463,12 @@ compose/local/up/postgres: ## Start services using docker-compose-local.yaml wit
 
 .PHONY: compose/local/down
 compose/local/down: ## Stop services using docker-compose-local.yaml
-	$(COMPOSE_CMD) -f docker-compose-local.yaml down
+	$(COMPOSE_CMD) -f docker-compose-local.yaml --profile mysql --profile postgres down
 
 .PHONY: compose/clean
 compose/clean: ## Remove all Docker Compose volumes and networks
-	$(COMPOSE_CMD) down -v --remove-orphans
-	$(COMPOSE_CMD) -f docker-compose-local.yaml down -v --remove-orphans
+	$(COMPOSE_CMD) --profile mysql --profile postgres down -v --remove-orphans
+	$(COMPOSE_CMD) -f docker-compose-local.yaml --profile mysql --profile postgres down -v --remove-orphans
 
 ##@ Tools
 
