@@ -228,10 +228,9 @@ export const usePaginatedCatalogPerformanceArtifacts = (
     enabled,
   ]);
 
-  // When query inputs change: clear list and pagination (same pattern as useCatalogModelsBySource).
-  // Tradeoff: short empty/spinner while refetching vs showing old rows that no longer match totals.
+  // When query inputs change: reset pagination state, but keep current rows visible until
+  // the refreshed first page arrives. This avoids a full table "flash" on sort/filter changes.
   React.useEffect(() => {
-    setAllItems([]);
     setNextPageToken('');
     isLoadingMoreRef.current = false;
     setIsLoadingMore(false);

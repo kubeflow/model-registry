@@ -13,7 +13,11 @@ import {
 } from '@patternfly/react-core';
 import { useParams } from 'react-router-dom';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
-import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import {
+  CatalogModel,
+  CatalogModelDetailsParams,
+  PerformanceArtifactsParams,
+} from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { usePaginatedCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import {
@@ -83,6 +87,9 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
   const latencyProperty = latencyFieldName
     ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
+  const [tableSort, setTableSort] = React.useState<
+    Pick<PerformanceArtifactsParams, 'orderBy' | 'sortOrder'>
+  >({});
 
   // Fetch performance artifacts from server with filtering and cursor-based pagination
   const {
@@ -97,6 +104,8 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
       latencyProperty,
       recommendations: true,
       pageSize: String(HARDWARE_CONFIG_PAGE_SIZE),
+      orderBy: tableSort.orderBy,
+      sortOrder: tableSort.sortOrder,
     },
     filterData,
     filterOptions,
@@ -152,7 +161,8 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
               <FlexItem>
                 <HardwareConfigurationTable
                   performanceArtifacts={performanceArtifacts.items}
-                  isLoading={!performanceArtifactsLoaded}
+                  isLoading={!performanceArtifactsLoaded && performanceArtifacts.items.length === 0}
+                  onSortChange={setTableSort}
                 />
               </FlexItem>
               {performanceArtifacts.loadMoreError && (

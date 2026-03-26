@@ -6,6 +6,7 @@ import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { SortOrder } from '~/concepts/modelCatalog/const';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
 import { useHardwareConfigColumns, ControlledTableSortProps } from './useHardwareConfigColumns';
@@ -13,11 +14,13 @@ import { useHardwareConfigColumns, ControlledTableSortProps } from './useHardwar
 type HardwareConfigurationTableProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
   isLoading?: boolean;
+  onSortChange?: (sort: { orderBy?: string; sortOrder?: string }) => void;
 };
 
 const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   performanceArtifacts,
   isLoading = false,
+  onSortChange,
 }) => {
   const { filterData, resetPerformanceFiltersToDefaults } = React.useContext(ModelCatalogContext);
 
@@ -31,8 +34,25 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   const {
     columns,
     manageColumnsResult,
-    sortState: { sortIndex, sortDirection, onSortIndexChange, onSortDirectionChange },
+    sortState: {
+      sortIndex,
+      sortDirection,
+      sortColumnField,
+      onSortIndexChange,
+      onSortDirectionChange,
+    },
   } = useHardwareConfigColumns(activeLatencyField);
+
+  React.useEffect(() => {
+    if (sortColumnField === null) {
+      return;
+    }
+
+    onSortChange?.({
+      orderBy: sortColumnField,
+      sortOrder: sortDirection === 'asc' ? SortOrder.ASC : SortOrder.DESC,
+    });
+  }, [onSortChange, sortColumnField, sortDirection]);
 
   if (isLoading) {
     return <Spinner size="lg" />;
@@ -62,13 +82,20 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
     />
   );
 
-  // Controlled sort props exist at runtime but not in mod-arch-shared Table typings yet
-  const controlledSortProps: ControlledTableSortProps = {
-    sortIndex,
-    sortDirection,
-    onSortIndexChange,
-    onSortDirectionChange,
-  };
+  const hasActiveSort = sortColumnField !== null && sortIndex >= 0;
+
+  // Keep callbacks wired for sort interactions, but only control index/direction when active.
+  const controlledSortProps: Partial<ControlledTableSortProps> = hasActiveSort
+    ? {
+        sortIndex,
+        sortDirection,
+        onSortIndexChange,
+        onSortDirectionChange,
+      }
+    : {
+        onSortIndexChange,
+        onSortDirectionChange,
+      };
 
   return (
     <>
@@ -82,7 +109,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
           columns={columns}
           toolbarContent={toolbarContent}
           onClearFilters={handleClearFilters}
-          defaultSortColumn={sortIndex}
+          {...(hasActiveSort ? { defaultSortColumn: sortIndex } : {})}
           {...controlledSortProps}
           emptyTableView={<DashboardEmptyTableView onClearFilters={handleClearFilters} />}
           rowRenderer={(artifact: CatalogPerformanceMetricsArtifact) => (
