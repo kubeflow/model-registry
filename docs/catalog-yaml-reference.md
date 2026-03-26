@@ -402,8 +402,6 @@ tools:
   - name: list_pods                  # Required
     description: List pods           # Tool purpose
     accessType: read_only            # read_only | read_write | execute
-    revoked: false                   # Optional: disable a tool
-    revokedReason: ""                # Optional: reason for revocation
     parameters:
       - name: namespace             # Required
         type: string                # Required (string, number, object, etc.)
@@ -416,8 +414,6 @@ tools:
 | `name` | string | **Yes** | Tool identifier |
 | `description` | string | No | What the tool does |
 | `accessType` | string | **Yes** | `read_only`, `read_write`, or `execute` |
-| `revoked` | boolean | No | If `true`, the tool is disabled |
-| `revokedReason` | string | No | Human-readable reason for revocation |
 | `parameters` | array | No | Input parameters (use `[]` for none) |
 
 | Parameter Field | Type | Required | Description |
