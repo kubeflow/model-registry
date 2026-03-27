@@ -525,6 +525,70 @@ func TestMCPServerToolRepository(t *testing.T) {
 		assert.ErrorIs(t, err, ErrMCPServerToolNameEmpty)
 	})
 
+	t.Run("TestListToolsByParent_WithPageSize", func(t *testing.T) {
+		// Create parent server
+		parentServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
+				Name: apiutils.Of("server-with-tools-pagesize"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-pagesize")},
+				{Name: "version", StringValue: apiutils.Of("1.0.0")},
+			},
+		}
+		savedServer, err := serverRepo.Save(parentServer)
+		require.NoError(t, err)
+		parentID := *savedServer.GetID()
+
+		// Create 5 tools for the server
+		for i := 1; i <= 5; i++ {
+			tool := &models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
+					Name: apiutils.Of(fmt.Sprintf("pagesize-tool-%d", i)),
+				},
+				Properties: &[]dbmodels.Properties{
+					{Name: "accessType", StringValue: apiutils.Of("read-only")},
+				},
+			}
+			_, err := toolRepo.Save(tool, &parentID)
+			require.NoError(t, err)
+		}
+
+		// List with PageSize=1 should return exactly 1 tool
+		pageSize1 := int32(1)
+		tools, err := toolRepo.List(models.MCPServerToolListOptions{
+			Pagination: dbmodels.Pagination{PageSize: &pageSize1},
+			ParentID:   parentID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, tools, 1, "PageSize=1 should limit results to 1 tool")
+
+		// List with PageSize=3 should return exactly 3 tools
+		pageSize3 := int32(3)
+		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+			Pagination: dbmodels.Pagination{PageSize: &pageSize3},
+			ParentID:   parentID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, tools, 3, "PageSize=3 should limit results to 3 tools")
+
+		// List with PageSize=10 (greater than total) should return all 5 tools
+		pageSize10 := int32(10)
+		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+			Pagination: dbmodels.Pagination{PageSize: &pageSize10},
+			ParentID:   parentID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, tools, 5, "PageSize=10 (greater than total) should return all 5 tools")
+
+		// List without PageSize should still return all 5 tools
+		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+			ParentID: parentID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, tools, 5, "No PageSize should return all tools")
+	})
+
 	t.Run("TestListToolsForNonExistentParent", func(t *testing.T) {
 		// List tools for a non-existent parent ID
 		nonExistentParentID := int32(999999)

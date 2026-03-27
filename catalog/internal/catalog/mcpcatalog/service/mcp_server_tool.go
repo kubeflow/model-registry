@@ -72,13 +72,18 @@ func (r *MCPServerToolRepositoryImpl) List(listOptions models.MCPServerToolListO
 		return nil, fmt.Errorf("error applying filter query: %w", err)
 	}
 
-	// 3. Execute query
+	// 3. Apply pagination limit
+	if listOptions.Pagination.PageSize != nil {
+		query = query.Limit(int(*listOptions.Pagination.PageSize))
+	}
+
+	// 4. Execute query
 	err = query.Find(&executions).Error
 	if err != nil {
 		return nil, fmt.Errorf("error listing %s by parent: %w", config.EntityName, err)
 	}
 
-	// 4. Load properties for each execution
+	// 5. Load properties for each execution
 	var tools []models.MCPServerTool
 	for _, exec := range executions {
 		var properties []schema.ExecutionProperty
