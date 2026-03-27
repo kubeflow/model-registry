@@ -132,6 +132,8 @@ export const usePaginatedCatalogPerformanceArtifacts = (
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const isLoadingMoreRef = React.useRef(false);
   const [loadMoreError, setLoadMoreError] = React.useState<Error | undefined>();
+  const queryVersionRef = React.useRef(0);
+  const queryVersion = queryVersionRef.current;
 
   const normalizedParams = useNormalizedPerformanceParams(params);
 
@@ -185,6 +187,9 @@ export const usePaginatedCatalogPerformanceArtifacts = (
     if (!nextPageToken || !apiAvailable || !enabled) {
       return;
     }
+    if (queryVersion !== queryVersionRef.current) {
+      return;
+    }
     if (isLoadingMoreRef.current) {
       return;
     }
@@ -225,12 +230,14 @@ export const usePaginatedCatalogPerformanceArtifacts = (
     filterData,
     filterOptions,
     nextPageToken,
+    queryVersion,
     enabled,
   ]);
 
   // When query inputs change: reset pagination state, but keep current rows visible until
   // the refreshed first page arrives. This avoids a full table "flash" on sort/filter changes.
   React.useEffect(() => {
+    queryVersionRef.current += 1;
     setNextPageToken('');
     isLoadingMoreRef.current = false;
     setIsLoadingMore(false);

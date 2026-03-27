@@ -45,6 +45,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
 
   React.useEffect(() => {
     if (sortColumnField === null) {
+      onSortChange?.({});
       return;
     }
 
