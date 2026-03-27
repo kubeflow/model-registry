@@ -21,7 +21,7 @@ type CheckNamespaceRegistryAccessRequest struct {
 type CheckNamespaceRegistryAccessRequestEnvelope Envelope[CheckNamespaceRegistryAccessRequest, None]
 
 type CheckNamespaceRegistryAccessResponse struct {
-	HasAccess  bool `json:"hasAccess"`
+	HasAccess   bool `json:"hasAccess"`
 	CannotCheck bool `json:"cannotCheck"`
 }
 
