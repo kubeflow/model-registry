@@ -61,6 +61,7 @@ export type CheckNamespaceRegistryAccessRequest = {
 
 export type CheckNamespaceRegistryAccessResponse = {
   hasAccess: boolean;
+  cannotCheck: boolean;
 };
 
 export const checkNamespaceRegistryAccess =
