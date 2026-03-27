@@ -64,6 +64,7 @@ const RegisterModel: React.FC = () => {
     hasAccess: namespaceHasAccess,
     isLoading: isNamespaceAccessLoading,
     error: namespaceAccessError,
+    cannotCheck: namespaceCannotCheck,
   } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace);
 
   const isModelNameValid = isNameValid(formData.modelName);
@@ -167,6 +168,8 @@ const RegisterModel: React.FC = () => {
                 namespaceHasAccess={namespaceHasAccess}
                 isNamespaceAccessLoading={isNamespaceAccessLoading}
                 namespaceAccessError={namespaceAccessError}
+                namespaceCannotCheck={namespaceCannotCheck}
+                registryName={mrName}
               />
             </StackItem>
           </Stack>

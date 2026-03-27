@@ -105,6 +105,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     hasAccess: namespaceHasAccess,
     isLoading: isNamespaceAccessLoading,
     error: namespaceAccessError,
+    cannotCheck: namespaceCannotCheck,
   } = useCheckNamespaceRegistryAccess(
     preferredModelRegistry.name,
     registryNamespace,
@@ -252,6 +253,8 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 namespaceHasAccess={namespaceHasAccess}
                 isNamespaceAccessLoading={isNamespaceAccessLoading}
                 namespaceAccessError={namespaceAccessError}
+                namespaceCannotCheck={namespaceCannotCheck}
+                registryName={preferredModelRegistry.name}
               />
             </StackItem>
           </Stack>
