@@ -69,4 +69,45 @@ describe('MarkdownComponent', () => {
     expect(receivedProps.components).toBeDefined();
     expect(typeof receivedProps.components).toBe('object');
   });
+
+  it('provides pre and code component mappers', () => {
+    render(<MarkdownComponent data="test" />);
+
+    const receivedProps = (ReactMarkdown as jest.Mock).mock.calls[0][0];
+    const { pre, code } = receivedProps.components;
+
+    expect(pre).toBeDefined();
+    expect(code).toBeDefined();
+  });
+
+  it('code mapper renders inline code element', () => {
+    render(<MarkdownComponent data="test" />);
+
+    const receivedProps = (ReactMarkdown as jest.Mock).mock.calls[0][0];
+    const CodeMapper = receivedProps.components.code;
+
+    const { container } = render(<CodeMapper className="language-js">const x = 1;</CodeMapper>);
+
+    const codeEl = container.querySelector('code');
+    expect(codeEl).toBeInTheDocument();
+    expect(codeEl).toHaveClass('language-js');
+    expect(codeEl).toHaveTextContent('const x = 1;');
+  });
+
+  it('pre mapper extracts text from code children', () => {
+    render(<MarkdownComponent data="test" />);
+
+    const receivedProps = (ReactMarkdown as jest.Mock).mock.calls[0][0];
+    const PreMapper = receivedProps.components.pre;
+
+    const { container } = render(
+      <PreMapper>
+        <code>pip install torch</code>
+      </PreMapper>,
+    );
+
+    expect(container.querySelector('.pf-v6-c-code-block')).toBeInTheDocument();
+    expect(screen.getByText('pip install torch')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy to clipboard' })).toBeInTheDocument();
+  });
 });

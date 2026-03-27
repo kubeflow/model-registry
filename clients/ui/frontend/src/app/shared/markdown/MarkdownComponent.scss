@@ -24,17 +24,19 @@
     }
   }
 
-  // Code blocks
-  pre {
+  // Code blocks — overlay the copy button on the code content
+  .pf-v6-c-code-block {
+    position: relative;
     margin: var(--pf-t--global--spacer--sm) 0;
-    padding: var(--pf-t--global--spacer--sm);
-    background-color: var(--pf-t--global--background--color--secondary--default);
-    overflow-x: auto;
 
-    code {
-      font-family: var(--pf-t--global--font--family--mono);
-      font-size: var(--pf-t--global--font--size--body--sm);
-      white-space: pre-wrap;
+    .pf-v6-c-code-block__header {
+      position: absolute;
+      top: var(--pf-t--global--spacer--xs);
+      right: var(--pf-t--global--spacer--xs);
+      z-index: 1;
+      background: none;
+      border: none;
+      padding: 0;
     }
   }
 
