@@ -15,6 +15,7 @@ AI agents should:
 - NEVER modify configuration, CI/CD, or release automation unless explicitly requested.
 - Use `AGENTS.md` and `Makefile` as the source of truth for development commands.
 - Ignore the `clients/ui/` directory — it has its own development workflow and is not covered here.
+- Follow the [Kubeflow AI Policy](https://raw.githubusercontent.com/kubeflow/website/refs/heads/master/content/en/docs/about/ai_policy.md)
 
 Agents must NOT:
 
