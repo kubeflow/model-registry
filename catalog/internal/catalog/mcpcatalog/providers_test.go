@@ -438,8 +438,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with valid oci URI passes",
 			server: &yamlMCPServer{
 				Name: "server-oci-artifact",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "container", URI: "oci://registry.example.com/image:v1", Type: "container"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "oci://registry.example.com/image:v1"},
 				},
 			},
 		},
@@ -447,8 +447,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with valid https URI passes",
 			server: &yamlMCPServer{
 				Name: "server-https-artifact",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "model", URI: "https://example.com/model.bin", Type: "model"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "https://example.com/model.bin"},
 				},
 			},
 		},
@@ -456,8 +456,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with valid s3 URI passes",
 			server: &yamlMCPServer{
 				Name: "server-s3-artifact",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "weights", URI: "s3://bucket/path/to/weights", Type: "weights"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "s3://bucket/path/to/weights"},
 				},
 			},
 		},
@@ -465,8 +465,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with invalid URI (no scheme) is rejected",
 			server: &yamlMCPServer{
 				Name: "server-invalid-uri",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "bad", URI: "not-a-valid-uri", Type: "model"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "not-a-valid-uri"},
 				},
 			},
 			wantErr:     true,
@@ -476,8 +476,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with unsupported scheme is rejected",
 			server: &yamlMCPServer{
 				Name: "server-ftp-artifact",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "bad", URI: "ftp://example.com/model.bin", Type: "model"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "ftp://example.com/model.bin"},
 				},
 			},
 			wantErr:     true,
@@ -487,8 +487,8 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "artifact with empty URI is rejected",
 			server: &yamlMCPServer{
 				Name: "server-empty-uri",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "empty", URI: "", Type: "model"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: ""},
 				},
 			},
 			wantErr:     true,
@@ -498,9 +498,9 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			name: "multiple artifacts with one invalid URI is rejected",
 			server: &yamlMCPServer{
 				Name: "server-mixed-artifacts",
-				Artifacts: []*yamlMCPArtifact{
-					{Name: "good", URI: "s3://bucket/valid", Type: "model"},
-					{Name: "bad", URI: "invalid-uri", Type: "model"},
+				Artifacts: []apimodels.MCPArtifact{
+					{Uri: "s3://bucket/valid"},
+					{Uri: "invalid-uri"},
 				},
 			},
 			wantErr:     true,
@@ -528,6 +528,40 @@ func TestYamlMCPArtifactURIValidation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestYamlMCPArtifactTimestampRoundTrip(t *testing.T) {
+	createTime := "1753292581000"
+	updateTime := "1774534350000"
+	server := &yamlMCPServer{
+		Name: "server-with-timestamps",
+		Artifacts: []apimodels.MCPArtifact{
+			{Uri: "oci://registry.example.com/image:v1", CreateTimeSinceEpoch: &createTime, LastUpdateTimeSinceEpoch: &updateTime},
+		},
+	}
+
+	record := server.ToMCPServerProviderRecord()
+	require.Nil(t, record.Error)
+	require.NotNil(t, record.Server.Properties)
+
+	var artifactsJSON string
+	for _, prop := range *record.Server.Properties {
+		if prop.Name == "artifacts" && prop.StringValue != nil {
+			artifactsJSON = *prop.StringValue
+		}
+	}
+	require.NotEmpty(t, artifactsJSON, "artifacts property should be set")
+
+	var artifacts []apimodels.MCPArtifact
+	err := json.Unmarshal([]byte(artifactsJSON), &artifacts)
+	require.NoError(t, err)
+	require.Len(t, artifacts, 1)
+
+	assert.Equal(t, "oci://registry.example.com/image:v1", artifacts[0].Uri)
+	require.NotNil(t, artifacts[0].CreateTimeSinceEpoch, "createTimeSinceEpoch should survive round-trip")
+	assert.Equal(t, "1753292581000", *artifacts[0].CreateTimeSinceEpoch)
+	require.NotNil(t, artifacts[0].LastUpdateTimeSinceEpoch, "lastUpdateTimeSinceEpoch should survive round-trip")
+	assert.Equal(t, "1774534350000", *artifacts[0].LastUpdateTimeSinceEpoch)
 }
 
 func TestYamlMCPServerLicenseTransformation(t *testing.T) {
