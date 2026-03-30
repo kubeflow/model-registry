@@ -717,7 +717,7 @@ This KEP follows a phased migration approach with clear gates:
 - New version published with container images at `ghcr.io/kubeflow/hub/*`
 - Internal documentation updated
 - `/catalog/` alias implemented
-- kubeflow.org documentation updated
+- kubeflow.org documentation updated including [updated logo](https://cncfservicedesk.atlassian.net/servicedesk/customer/portal/1/CNCFSD-3354?created=true).
 - kubeflow/manifests updated with new image references
 - No critical issues reported
 
