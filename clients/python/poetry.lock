@@ -1333,15 +1333,15 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "huggingface-hub"
-version = "1.7.1"
+version = "1.8.0"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
 optional = true
 python-versions = ">=3.9.0"
 groups = ["main"]
 markers = "extra == \"hf\""
 files = [
-    {file = "huggingface_hub-1.7.1-py3-none-any.whl", hash = "sha256:38c6cce7419bbde8caac26a45ed22b0cea24152a8961565d70ec21f88752bfaa"},
-    {file = "huggingface_hub-1.7.1.tar.gz", hash = "sha256:be38fe66e9b03c027ad755cb9e4b87ff0303c98acf515b5d579690beb0bf3048"},
+    {file = "huggingface_hub-1.8.0-py3-none-any.whl", hash = "sha256:d3eb5047bd4e33c987429de6020d4810d38a5bef95b3b40df9b17346b7f353f2"},
+    {file = "huggingface_hub-1.8.0.tar.gz", hash = "sha256:c5627b2fd521e00caf8eff4ac965ba988ea75167fad7ee72e17f9b7183ec63f3"},
 ]
 
 [package.dependencies]
@@ -4304,4 +4304,4 @@ signing = ["platformdirs", "rh-model-signing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.10, < 4.0"
-content-hash = "03c802aa17990420317ccca07a4dd2c52aaf6c1423c356191abf06feedd1411a"
+content-hash = "347fe99c6c7789249d40d1eb21af8a2e51907bb4b7a7f8513a37a846ee0d9439"
