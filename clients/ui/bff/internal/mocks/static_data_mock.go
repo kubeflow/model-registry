@@ -760,6 +760,35 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("huggingface"),
 		LibraryName: stringToPointer("transformers"),
+		Readme: stringToPointer(`# BERT Base Uncased
+
+BERT is a transformers model pretrained on a large corpus of English data.
+
+## Installation
+
+` + "```bash" + `
+pip install transformers torch
+` + "```" + `
+
+## Quick Start
+
+` + "```python" + `
+from transformers import BertTokenizer, BertModel
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertModel.from_pretrained('bert-base-uncased')
+
+text = "Replace this with your text"
+encoded = tokenizer(text, return_tensors='pt')
+output = model(**encoded)
+` + "```" + `
+
+## Using with Pipeline
+
+` + "```bash" + `
+python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model='bert-base-uncased'); print(nlp('The capital of France is [MASK].'))"
+` + "```" + `
+`),
 	}
 
 	huggingFaceModel2 := models.CatalogModel{
