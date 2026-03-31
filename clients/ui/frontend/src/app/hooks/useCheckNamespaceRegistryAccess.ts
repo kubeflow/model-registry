@@ -5,6 +5,7 @@ export type UseCheckNamespaceRegistryAccessResult = {
   hasAccess: boolean | undefined;
   isLoading: boolean;
   error: Error | undefined;
+  cannotCheck: boolean;
 };
 
 /**
@@ -20,11 +21,13 @@ export const useCheckNamespaceRegistryAccess = (
   const [hasAccess, setHasAccess] = React.useState<boolean | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>(undefined);
+  const [cannotCheck, setCannotCheck] = React.useState(false);
 
   React.useEffect(() => {
     if (!jobNamespace || !registryName || !registryNamespace) {
       setHasAccess(undefined);
       setError(undefined);
+      setCannotCheck(false);
       return;
     }
 
@@ -32,6 +35,7 @@ export const useCheckNamespaceRegistryAccess = (
     setIsLoading(true);
     setError(undefined);
     setHasAccess(undefined);
+    setCannotCheck(false);
 
     const run = async () => {
       try {
@@ -44,7 +48,8 @@ export const useCheckNamespaceRegistryAccess = (
           },
         );
         if (!cancelled) {
-          setHasAccess(result.hasAccess);
+          setCannotCheck(result.cannotCheck);
+          setHasAccess(result.cannotCheck ? undefined : result.hasAccess);
         }
       } catch (e) {
         if (!cancelled) {
@@ -64,5 +69,5 @@ export const useCheckNamespaceRegistryAccess = (
     };
   }, [jobNamespace, registryName, registryNamespace]);
 
-  return { hasAccess, isLoading, error };
+  return { hasAccess, isLoading, error, cannotCheck };
 };

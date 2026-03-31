@@ -34,6 +34,8 @@ type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> =
   namespaceHasAccess?: boolean;
   isNamespaceAccessLoading?: boolean;
   namespaceAccessError?: Error | undefined;
+  namespaceCannotCheck?: boolean;
+  registryName?: string;
 };
 
 const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
@@ -45,6 +47,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   namespaceHasAccess,
   isNamespaceAccessLoading,
   namespaceAccessError,
+  namespaceCannotCheck,
+  registryName,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   const isVersionNameValid = isNameValid(formData.versionName);
   const registrationMode = formData.registrationMode || RegistrationMode.Register;
@@ -214,6 +218,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             namespaceHasAccess={namespaceHasAccess}
             isNamespaceAccessLoading={isNamespaceAccessLoading}
             namespaceAccessError={namespaceAccessError}
+            namespaceCannotCheck={namespaceCannotCheck}
+            registryName={registryName}
           />
         )}
       </FormSection>

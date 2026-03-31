@@ -44,6 +44,8 @@ export type NamespaceSelectorFieldProps = {
   hasAccess?: boolean | undefined;
   isLoading?: boolean;
   error?: Error | undefined;
+  cannotCheck?: boolean;
+  registryName?: string;
 };
 
 const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
@@ -52,6 +54,8 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   hasAccess,
   isLoading,
   error,
+  cannotCheck,
+  registryName,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
   const [namespaces, namespacesLoaded, namespacesLoadError] = useNamespaces();
@@ -188,6 +192,18 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
               Who is my admin
             </Button>
           </Popover>
+        </Alert>
+      )}
+      {selectedNamespace && !isLoading && cannotCheck && (
+        <Alert
+          isInline
+          variant="info"
+          title="Cannot check registry access with your permissions"
+          data-testid="namespace-registry-cannot-check-alert"
+          className="pf-v6-u-mt-sm"
+        >
+          Make sure this namespace has access to the {registryName} registry before proceeding, or
+          the model storage job will fail.
         </Alert>
       )}
       {error && (

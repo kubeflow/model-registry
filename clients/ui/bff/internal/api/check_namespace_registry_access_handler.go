@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -20,7 +21,8 @@ type CheckNamespaceRegistryAccessRequest struct {
 type CheckNamespaceRegistryAccessRequestEnvelope Envelope[CheckNamespaceRegistryAccessRequest, None]
 
 type CheckNamespaceRegistryAccessResponse struct {
-	HasAccess bool `json:"hasAccess"`
+	HasAccess   bool `json:"hasAccess"`
+	CannotCheck bool `json:"cannotCheck"`
 }
 
 type CheckNamespaceRegistryAccessEnvelope Envelope[CheckNamespaceRegistryAccessResponse, None]
@@ -59,6 +61,15 @@ func (app *App) CheckNamespaceRegistryAccessHandler(w http.ResponseWriter, r *ht
 
 	hasAccess, err := client.CanNamespaceAccessRegistry(ctx, identity, req.Namespace, req.RegistryName, req.RegistryNamespace)
 	if err != nil {
+		if errors.Is(err, kubernetes.ErrSARForbidden) {
+			resp := CheckNamespaceRegistryAccessEnvelope{
+				Data: CheckNamespaceRegistryAccessResponse{HasAccess: false, CannotCheck: true},
+			}
+			if writeErr := app.WriteJSON(w, http.StatusOK, resp, nil); writeErr != nil {
+				app.serverErrorResponse(w, r, writeErr)
+			}
+			return
+		}
 		app.serverErrorResponse(w, r, fmt.Errorf("namespace registry access check failed: %w", err))
 		return
 	}

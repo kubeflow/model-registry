@@ -118,7 +118,7 @@ type yamlMCPServer struct {
 	PublishedDate            *string                             `yaml:"publishedDate,omitempty"`
 	Transports               []string                            `yaml:"transports,omitempty"`
 	Tools                    []*yamlMCPTool                      `yaml:"tools,omitempty"`
-	Artifacts                []*yamlMCPArtifact                  `yaml:"artifacts,omitempty"`
+	Artifacts                []apimodels.MCPArtifact              `yaml:"artifacts,omitempty"`
 	DeploymentMode           *string                             `yaml:"deploymentMode,omitempty"`
 	Endpoints                *yamlMCPEndpoints                   `yaml:"endpoints,omitempty"`
 	RuntimeMetadata          *apimodels.MCPRuntimeMetadata       `yaml:"runtimeMetadata,omitempty"`
@@ -136,13 +136,6 @@ type yamlMCPTool struct {
 	Schema      *string            `yaml:"schema,omitempty"`
 	AccessType  *string            `yaml:"accessType,omitempty"`
 	Parameters  []yamlMCPParameter `yaml:"parameters,omitempty"`
-}
-
-// yamlMCPArtifact represents an MCP artifact (e.g., container image)
-type yamlMCPArtifact struct {
-	Name string `yaml:"name"`
-	URI  string `yaml:"uri"`
-	Type string `yaml:"type"`
 }
 
 // yamlMCPEndpoints represents MCP server endpoints
@@ -360,7 +353,7 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 	// Validate and convert artifacts to JSON
 	if len(ys.Artifacts) > 0 {
 		for i, artifact := range ys.Artifacts {
-			if err := basecatalog.ValidateArtifactURI(artifact.URI); err != nil {
+			if err := basecatalog.ValidateArtifactURI(artifact.Uri); err != nil {
 				return MCPServerProviderRecord{Error: fmt.Errorf("server %q artifact %d: %w", ys.Name, i, err)}
 			}
 		}

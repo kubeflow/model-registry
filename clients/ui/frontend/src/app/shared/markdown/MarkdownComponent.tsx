@@ -60,31 +60,22 @@ const MarkdownComponent = ({
           );
         },
         summary: ({ children, ...props }) => <Content {...props}>{children}</Content>,
-        code: ({ node, className, children, ...props }) => {
+        pre: ({ children }) => {
           const code = React.Children.toArray(children)
+            .filter((child): child is React.ReactElement<{ children: React.ReactNode }> =>
+              React.isValidElement(child),
+            )
+            .flatMap((child) => React.Children.toArray(child.props.children))
             .map((child) => (typeof child === 'string' ? child : ''))
             .join('')
             .replace(/\n$/, '');
-
-          if (!node) {
-            return (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          }
-
-          const isPre = 'tagName' in node && node.tagName === 'pre';
-          if (isPre) {
-            return <CodeBlockComponent {...props}>{code}</CodeBlockComponent>;
-          }
-
-          return (
-            <code className={className} {...props}>
-              {children}
-            </code>
-          );
+          return <CodeBlockComponent>{code}</CodeBlockComponent>;
         },
+        code: ({ className, children, ...props }) => (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        ),
         h1: ({ children, ...props }) => (
           <Content component={shiftHeadingLevel(1, maxHeading)} {...props}>
             {children}
