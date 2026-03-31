@@ -28,7 +28,7 @@ export const useAdminSettings = (): NavDataItem[] => {
     return [];
   }
 
-  const settingsChildren = [{ label: 'Model Registry', path: '/model-registry-settings' }];
+  const settingsChildren = [{ label: 'Model registry settings', path: '/model-registry-settings' }];
   // Only show Model Catalog Settings in Standalone or Federated mode
   if (isStandalone || isFederated) {
     settingsChildren.push({ label: CATALOG_SETTINGS_PAGE_TITLE, path: catalogSettingsUrl() });

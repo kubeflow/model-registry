@@ -142,7 +142,7 @@ class ModelCatalogSettings {
 
   findHeading() {
     cy.findByTestId('app-page-title').should('exist');
-    cy.findByTestId('app-page-title').contains('Model catalog sources');
+    cy.findByTestId('app-page-title').contains('Model catalog settings');
   }
 
   findNavItem() {
@@ -242,7 +242,7 @@ class ManageSourcePage {
   }
 
   findBreadcrumb() {
-    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog sources');
+    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog settings');
   }
 
   findBreadcrumbAction() {

@@ -13,7 +13,7 @@ describe('useCheckNamespaceRegistryAccess', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckNamespaceRegistryAccess.mockReturnValue(
-      jest.fn().mockResolvedValue({ hasAccess: true }),
+      jest.fn().mockResolvedValue({ hasAccess: true, cannotCheck: false }),
     );
   });
 
@@ -23,6 +23,7 @@ describe('useCheckNamespaceRegistryAccess', () => {
     expect(result.current.hasAccess).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeUndefined();
+    expect(result.current.cannotCheck).toBe(false);
     expect(mockCheckNamespaceRegistryAccess).not.toHaveBeenCalled();
   });
 
@@ -49,7 +50,7 @@ describe('useCheckNamespaceRegistryAccess', () => {
   });
 
   it('should call API and set hasAccess to true when all params are provided', async () => {
-    const apiMock = jest.fn().mockResolvedValue({ hasAccess: true });
+    const apiMock = jest.fn().mockResolvedValue({ hasAccess: true, cannotCheck: false });
     mockCheckNamespaceRegistryAccess.mockReturnValue(apiMock);
 
     const { result } = testHook(useCheckNamespaceRegistryAccess)(
@@ -71,11 +72,12 @@ describe('useCheckNamespaceRegistryAccess', () => {
       },
     );
     expect(result.current.hasAccess).toBe(true);
+    expect(result.current.cannotCheck).toBe(false);
     expect(result.current.error).toBeUndefined();
   });
 
   it('should set hasAccess to false when API returns hasAccess false', async () => {
-    const apiMock = jest.fn().mockResolvedValue({ hasAccess: false });
+    const apiMock = jest.fn().mockResolvedValue({ hasAccess: false, cannotCheck: false });
     mockCheckNamespaceRegistryAccess.mockReturnValue(apiMock);
 
     const { result } = testHook(useCheckNamespaceRegistryAccess)(
@@ -89,6 +91,25 @@ describe('useCheckNamespaceRegistryAccess', () => {
     });
 
     expect(result.current.hasAccess).toBe(false);
+  });
+
+  it('should set cannotCheck and undefined hasAccess when API returns cannotCheck', async () => {
+    const apiMock = jest.fn().mockResolvedValue({ hasAccess: false, cannotCheck: true });
+    mockCheckNamespaceRegistryAccess.mockReturnValue(apiMock);
+
+    const { result } = testHook(useCheckNamespaceRegistryAccess)(
+      'my-registry',
+      'registry-ns',
+      'job-ns',
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.cannotCheck).toBe(true);
+    expect(result.current.hasAccess).toBeUndefined();
+    expect(result.current.error).toBeUndefined();
   });
 
   it('should set error when API throws', async () => {
