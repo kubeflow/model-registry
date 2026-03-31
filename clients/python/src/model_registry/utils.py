@@ -397,10 +397,7 @@ or
         # olot's tarball_from_file preserves subdirectory structure when given a
         # directory, but flattens everything to basename when given individual files.
         model_path = Path(model_files_path)
-        if model_path.is_file():
-            files = [model_path]
-        else:
-            files = sorted(model_path.iterdir())
+        files = [model_path] if model_path.is_file() else sorted(model_path.iterdir())
         oci_layers_on_top(local_image_path, files, modelcard)
         backend_def.push(local_image_path, oci_ref, **params)
 
