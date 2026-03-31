@@ -1,13 +1,19 @@
 import { useThemeContext } from 'mod-arch-kubeflow';
-import React, { ReactNode } from 'react';
+import React, { CSSProperties, ReactNode } from 'react';
 
 interface FormFieldsetProps {
   component: ReactNode;
   field?: string;
   className?: string;
+  fieldsetStyle?: CSSProperties;
 }
 
-const FormFieldset: React.FC<FormFieldsetProps> = ({ component, field, className }) => {
+const FormFieldset: React.FC<FormFieldsetProps> = ({
+  component,
+  field,
+  className,
+  fieldsetStyle,
+}) => {
   const { isMUITheme } = useThemeContext();
 
   if (!isMUITheme) {
@@ -17,7 +23,7 @@ const FormFieldset: React.FC<FormFieldsetProps> = ({ component, field, className
   return (
     <div className={className ?? 'form-fieldset-wrapper'}>
       {component}
-      <fieldset aria-hidden="true" className="form-fieldset">
+      <fieldset aria-hidden="true" className="form-fieldset" style={fieldsetStyle}>
         {field && (
           <legend className="form-fieldset-legend">
             <span>{field}</span>
