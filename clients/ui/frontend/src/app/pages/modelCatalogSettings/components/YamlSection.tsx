@@ -18,7 +18,7 @@ import { validateYamlContent } from '~/app/pages/modelCatalogSettings/utils/vali
 import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
-  HELP_TEXT,
+  DESCRIPTION_TEXT,
   EXPECTED_YAML_FORMAT_LABEL,
 } from '~/app/pages/modelCatalogSettings/constants';
 
@@ -114,7 +114,7 @@ const YamlSection: React.FC<YamlSectionProps> = ({
         <FormFieldset component={yamlInput} field="YAML" />
         <FormHelperText>
           <HelperText>
-            <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
+            <HelperTextItem>{DESCRIPTION_TEXT.YAML}</HelperTextItem>
           </HelperText>
         </FormHelperText>
         {isYamlTouched && !isYamlContentValid && (

@@ -20,7 +20,7 @@ import { validateOrganization } from '~/app/pages/modelCatalogSettings/utils/val
 import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
-  HELP_TEXT,
+  DESCRIPTION_TEXT,
   PLACEHOLDERS,
 } from '~/app/pages/modelCatalogSettings/constants';
 import { TempDevFeature, useTempDevFeatureAvailable } from '~/app/hooks/useTempDevFeatureAvailable';
@@ -67,7 +67,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     <>
       <FormHelperText>
         <HelperText>
-          <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
+          <HelperTextItem>{DESCRIPTION_TEXT.ORGANIZATION}</HelperTextItem>
         </HelperText>
       </FormHelperText>
     </>
@@ -116,7 +116,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       <FormGroup label={FORM_LABELS.ACCESS_TOKEN} fieldId="access-token">
         <FormHelperText>
           <HelperText>
-            <HelperTextItem>{HELP_TEXT.ACCESS_TOKEN}</HelperTextItem>
+            <HelperTextItem>{DESCRIPTION_TEXT.ACCESS_TOKEN}</HelperTextItem>
           </HelperText>
         </FormHelperText>
         <FormFieldset component={accessTokenInput} field="Access token" />

@@ -3,7 +3,7 @@ import * as React from 'react';
 export const FORM_LABELS = {
   NAME: 'Name',
   SOURCE_TYPE: 'Source type',
-  ORGANIZATION: 'Allowed organization',
+  ORGANIZATION: 'Organization',
   ACCESS_TOKEN: 'Access token',
   YAML_CONTENT: 'Upload a YAML file',
   MODEL_VISIBILITY: 'Model visibility',
@@ -33,13 +33,18 @@ export const VALIDATION_MESSAGES = {
   YAML_CONTENT_REQUIRED: 'YAML content is required',
 } as const;
 
-export const HELP_TEXT = {
+export const DESCRIPTION_TEXT = {
   ACCESS_TOKEN:
-    'Enter your fine-grained Hugging Face access token. Public models can be pulled into catalog without an access token. For private/gated models, a token is recommended to ensure full metadata is displayed, otherwise only limited metadata may be available. The token must have the following permissions: read repos in your namespace, read public repos that you can access.',
+    'Enter your fine-grained Hugging Face access token. The token must have the following permissions: read repos in your namespace, read public repos that you can access, access webhooks, and create webhooks.',
   ORGANIZATION:
-    'Enter the name of the organization (for example, meta-llama) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
+    'Enter the name of the organization (for example, Google) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
   YAML: 'Upload or paste a YAML string.',
 } as const;
+
+export const HELPER_TEXT = {
+  ACCESS_TOKEN:
+    'Enter your Hugging Face access token.',
+};
 
 export const PLACEHOLDERS = {
   ORGANIZATION: 'Example: meta-llama',
