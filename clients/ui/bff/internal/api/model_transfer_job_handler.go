@@ -8,6 +8,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	kubernetes "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
@@ -36,7 +37,24 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
 		return
 	}
-	transferJobs, err := app.repositories.ModelRegistry.GetAllModelTransferJobs(ctx, client, namespace, modelRegistryID)
+
+	// If jobNamespace is provided, scope the query to that namespace.
+	// Otherwise, check if the user can list jobs cluster-wide before attempting.
+	jobNamespace := r.URL.Query().Get("jobNamespace")
+	if jobNamespace == "" {
+		identity := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+		canList, err := client.CanListJobsClusterWide(ctx, identity)
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to check job list permission: %w", err))
+			return
+		}
+		if !canList {
+			app.forbiddenResponse(w, r, "user does not have permission to list jobs across all namespaces; provide a jobNamespace query parameter to scope the request")
+			return
+		}
+	}
+
+	transferJobs, err := app.repositories.ModelRegistry.GetAllModelTransferJobs(ctx, client, namespace, modelRegistryID, jobNamespace)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

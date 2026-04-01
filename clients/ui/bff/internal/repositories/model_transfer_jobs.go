@@ -64,14 +64,20 @@ func isK8sJobFailed(job *batchv1.Job) bool {
 	return false
 }
 
-func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
+func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string, jobNamespace ...string) (*models.ModelTransferJobList, error) {
 	if modelRegistryID == "" {
 		return &models.ModelTransferJobList{Items: []models.ModelTransferJob{}, Size: 0, PageSize: 0}, nil
 	}
 
 	logger := helper.GetContextLogger(ctx)
 
-	jobList, err := client.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
+	var jobList *batchv1.JobList
+	var err error
+	if len(jobNamespace) > 0 && jobNamespace[0] != "" {
+		jobList, err = client.GetAllModelTransferJobsInNamespace(ctx, namespace, modelRegistryID, jobNamespace[0])
+	} else {
+		jobList, err = client.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
 	}

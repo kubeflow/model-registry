@@ -49,7 +49,9 @@ type KubernetesClientInterface interface {
 	DeleteSecret(ctx context.Context, namespace string, secretName string) error
 
 	// Model transfer jobs
+	CanListJobsClusterWide(ctx context.Context, identity *RequestIdentity) (bool, error)
 	GetAllModelTransferJobs(ctx context.Context, namespace string, modelRegistryID string) (*batchv1.JobList, error)
+	GetAllModelTransferJobsInNamespace(ctx context.Context, namespace string, modelRegistryID string, jobNamespace string) (*batchv1.JobList, error)
 	CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) (*batchv1.Job, error)
 	GetTransferJobPods(ctx context.Context, namespace string, jobNames []string) (*corev1.PodList, error)
 	GetEventsForPods(ctx context.Context, namespace string, podNames []string) (*corev1.EventList, error)

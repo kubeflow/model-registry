@@ -12,6 +12,11 @@ import (
 // requiring upstream to enumerate them.
 type HandlerID string
 
+const (
+	// HandlerIDModelTransferJobList identifies the handler for listing model transfer jobs.
+	HandlerIDModelTransferJobList HandlerID = "modelTransferJobs:list"
+)
+
 // HandlerFactory builds a router handler that has access to the App instance.
 // Implementations can opt to call buildDefault() to reuse the default upstream handler.
 type HandlerFactory func(app *App, buildDefault func() httprouter.Handle) httprouter.Handle
