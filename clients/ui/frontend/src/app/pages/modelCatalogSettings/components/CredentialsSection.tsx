@@ -122,7 +122,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         <FormFieldset component={accessTokenInput} field="Access token" />
       </FormGroup>
       {validationError && (
-        <Alert isInline variant="danger" title="Validation failed" className="pf-v5-u-mt-md">
+        <Alert isInline variant="danger" title="Validation failed" className="pf-v6-u-mt-md">
           {validationError.message}
         </Alert>
       )}
@@ -130,7 +130,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         <Alert
           isInline
           variant="success"
-          className="pf-v5-u-mt-md"
+          className="pf-v6-u-mt-md"
           title="Validation successful"
           actionClose={<AlertActionCloseButton onClose={onClearValidationSuccess} />}
         >
@@ -138,7 +138,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         </Alert>
       )}
 
-      <ActionList className="pf-v5-u-mt-md">
+      <ActionList className="pf-v6-u-mt-md">
         <Button
           isDisabled={!isOrganizationValid || isValidating}
           variant="link"
