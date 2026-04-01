@@ -158,7 +158,7 @@ describe('ModelRegistryTableRowStatus', () => {
     ).toBeVisible();
   });
 
-  it('renders "Available" status', () => {
+  it('renders "Ready" status', () => {
     render(
       <ModelRegistryTableRowStatus
         conditions={[
@@ -167,7 +167,7 @@ describe('ModelRegistryTableRowStatus', () => {
         ]}
       />,
     );
-    expect(screen.getByText('Available')).toBeVisible();
+    expect(screen.getByText('Ready')).toBeVisible();
   });
   it('renders "Progressing" status', async () => {
     const user = userEvent.setup();
@@ -221,7 +221,7 @@ describe('ModelRegistryTableRowStatus', () => {
     expect(degradingText).toBeInTheDocument();
   });
 
-  it('renders "Progressing" status when popover message contains "ContainerCreating"', async () => {
+  it('renders "Starting" status when popover message contains "ContainerCreating"', async () => {
     render(
       <ModelRegistryTableRowStatus
         conditions={[
@@ -235,17 +235,17 @@ describe('ModelRegistryTableRowStatus', () => {
       />,
     );
 
-    expect(screen.getByText('Progressing')).toBeVisible();
+    expect(screen.getByText('Starting')).toBeVisible();
   });
 
-  it('renders "Progressing" status when conditions are empty', () => {
+  it('renders "Starting" status when conditions are empty', () => {
     render(<ModelRegistryTableRowStatus conditions={[]} />);
-    expect(screen.getByText('Progressing')).toBeVisible();
+    expect(screen.getByText('Starting')).toBeVisible();
   });
 
-  it('renders "Progressing" status when conditions are undefined', () => {
+  it('renders "Starting" status when conditions are undefined', () => {
     render(<ModelRegistryTableRowStatus conditions={undefined} />);
-    expect(screen.getByText('Progressing')).toBeVisible();
+    expect(screen.getByText('Starting')).toBeVisible();
   });
 
   it('renders "Unavailable" with multiple messages in popover', async () => {
@@ -284,6 +284,77 @@ describe('ModelRegistryTableRowStatus', () => {
     expect(screen.getByText('Some unavailable message 1')).toBeVisible();
     expect(screen.getByText('Some unavailable message 2')).toBeVisible();
     expect(screen.getByText('Some unavailable message 3')).toBeVisible();
+  });
+
+  it('renders "Stopping" status when deletionTimestamp is set', () => {
+    render(
+      <ModelRegistryTableRowStatus
+        conditions={[{ status: 'True', type: 'Available' }]}
+        deletionTimestamp="2024-03-22T10:00:00Z"
+      />,
+    );
+    expect(screen.getByText('Stopping')).toBeVisible();
+  });
+
+  it('renders "Stopping" status even when conditions indicate Ready', () => {
+    render(
+      <ModelRegistryTableRowStatus
+        conditions={[
+          { status: 'True', type: 'Available' },
+          { status: 'False', type: 'Degraded' },
+        ]}
+        deletionTimestamp="2024-03-22T10:00:00Z"
+      />,
+    );
+    expect(screen.getByText('Stopping')).toBeVisible();
+    expect(screen.queryByText('Ready')).not.toBeInTheDocument();
+  });
+
+  describe('label variant styling', () => {
+    it('renders "Ready" label with outline variant (non-interactive)', () => {
+      render(
+        <ModelRegistryTableRowStatus
+          conditions={[
+            { status: 'False', type: 'Degraded' },
+            { status: 'True', type: 'Available' },
+          ]}
+        />,
+      );
+      const labelEl = screen.getByTestId('model-registry-label');
+      expect(labelEl.className).toMatch(/outline/);
+      expect(labelEl.className).not.toMatch(/filled/);
+    });
+
+    it('renders "Starting" label with outline variant (non-interactive)', () => {
+      render(<ModelRegistryTableRowStatus conditions={[]} />);
+      const labelEl = screen.getByTestId('model-registry-label');
+      expect(labelEl.className).toMatch(/outline/);
+    });
+
+    it('renders "Stopping" label with outline variant (non-interactive)', () => {
+      render(
+        <ModelRegistryTableRowStatus
+          conditions={[{ status: 'True', type: 'Available' }]}
+          deletionTimestamp="2024-03-22T10:00:00Z"
+        />,
+      );
+      const labelEl = screen.getByTestId('model-registry-label');
+      expect(labelEl.className).toMatch(/outline/);
+    });
+
+    it('renders "Unavailable" label with filled variant (interactive with popover)', () => {
+      render(
+        <ModelRegistryTableRowStatus
+          conditions={[
+            { status: 'False', type: 'Available', message: 'Service is unavailable' },
+            { status: 'False', type: 'IstioAvailable', message: 'Istio is unavailable' },
+          ]}
+        />,
+      );
+      const labelEl = screen.getByTestId('model-registry-label');
+      expect(labelEl.className).toMatch(/filled/);
+      expect(labelEl.className).not.toMatch(/outline/);
+    });
   });
 
   it('renders "Unavailable" with an unknown status', async () => {

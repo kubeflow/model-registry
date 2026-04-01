@@ -35,11 +35,11 @@ export const getStatusLabel = (
     case ModelTransferJobStatus.RUNNING:
       return { label: 'Running', color: 'blue', icon: <InProgressIcon /> };
     case ModelTransferJobStatus.PENDING:
-      return { label: 'Pending', color: 'grey', icon: <PendingIcon /> };
+      return { label: 'Pending', color: 'purple', icon: <PendingIcon /> };
     case ModelTransferJobStatus.FAILED:
       return { label: 'Failed', color: 'red', icon: <ExclamationCircleIcon /> };
     case ModelTransferJobStatus.CANCELLED:
-      return { label: 'Cancelled', color: 'grey', icon: <BanIcon /> };
+      return { label: 'Canceled', color: 'grey', icon: <BanIcon /> };
     default:
       return { label: status, color: 'grey', icon: null };
   }
@@ -141,6 +141,7 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
                   color={statusInfo.color}
                   icon={statusInfo.icon}
                   data-testid="job-status"
+                  variant="filled"
                   isClickable
                   onClick={() => setIsStatusModalOpen(true)}
                 >
