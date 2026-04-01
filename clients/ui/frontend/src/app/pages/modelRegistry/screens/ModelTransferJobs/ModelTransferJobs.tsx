@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumb, BreadcrumbItem, Stack, StackItem } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link, useParams } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelTransferJob } from '~/app/types';
@@ -112,25 +112,20 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
       headerContent={
         <ModelRegistrySelectorNavigator
           getRedirectPath={(modelRegistryName) => modelTransferJobsUrl(modelRegistryName)}
-        />
+        >
+          {needsNamespaceInput && (
+            <JobNamespaceInput value={jobNamespace ?? ''} onChange={setJobNamespace} />
+          )}
+        </ModelRegistrySelectorNavigator>
       }
     >
-      <Stack hasGutter>
-        {needsNamespaceInput && (
-          <StackItem>
-            <JobNamespaceInput value={jobNamespace ?? ''} onChange={setJobNamespace} />
-          </StackItem>
-        )}
-        {(!isForbidden || jobNamespace) && (
-          <StackItem>
-            <ModelTransferJobsListView
-              jobs={jobs.items}
-              onRequestDelete={onRequestDelete}
-              onRequestRetry={onRequestRetry}
-            />
-          </StackItem>
-        )}
-      </Stack>
+      {(!isForbidden || jobNamespace) && (
+        <ModelTransferJobsListView
+          jobs={jobs.items}
+          onRequestDelete={onRequestDelete}
+          onRequestRetry={onRequestRetry}
+        />
+      )}
       {jobToDelete && (
         <DeleteModal
           title="Delete model transfer job?"

@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  FormGroup,
-  HelperText,
-  HelperTextItem,
-  TextInput,
-} from '@patternfly/react-core';
+import { Button, Popover, TextInput } from '@patternfly/react-core';
+import { InfoCircleIcon } from '@patternfly/react-icons';
 
 type JobNamespaceInputProps = {
   value: string;
@@ -48,7 +44,7 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
   );
 
   return (
-    <FormGroup label="Transfer job namespace" fieldId="job-namespace-input">
+    <>
       <TextInput
         id="job-namespace-input"
         data-testid="job-namespace-input"
@@ -56,14 +52,22 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder="Enter namespace"
+        aria-label="Transfer job namespace"
+        style={{ maxWidth: '200px' }}
       />
-      <HelperText>
-        <HelperTextItem variant="indeterminate">
-          You do not have permission to list transfer jobs across all namespaces. Enter a namespace
-          to view transfer jobs in that namespace.
-        </HelperTextItem>
-      </HelperText>
-    </FormGroup>
+      <Popover
+        aria-label="Transfer job namespace info"
+        bodyContent="You do not have permission to list transfer jobs across all namespaces. Enter a namespace to view transfer jobs in that namespace."
+      >
+        <Button
+          variant="plain"
+          aria-label="More info about transfer job namespace"
+          data-testid="job-namespace-info"
+        >
+          <InfoCircleIcon />
+        </Button>
+      </Popover>
+    </>
   );
 };
 

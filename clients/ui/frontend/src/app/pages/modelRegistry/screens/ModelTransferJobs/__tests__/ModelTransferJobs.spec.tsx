@@ -118,11 +118,9 @@ describe('ModelTransferJobs', () => {
 
     // Page should still render (not show error state)
     expect(screen.getByTestId('breadcrumb-transfer-jobs')).toBeInTheDocument();
-    // Namespace input should be visible
+    // Namespace input and info button should be visible
     expect(screen.getByTestId('job-namespace-input')).toBeInTheDocument();
-    expect(
-      screen.getByText(/you do not have permission to list transfer jobs/i),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('job-namespace-info')).toBeInTheDocument();
   });
 
   it('passes jobNamespace to useModelTransferJobs after user enters one', () => {

@@ -12,12 +12,10 @@ describe('JobNamespaceInput', () => {
     jest.useRealTimers();
   });
 
-  it('renders with the correct label and helper text', () => {
+  it('renders with the input and info popover button', () => {
     render(<JobNamespaceInput value="" onChange={jest.fn()} />);
-    expect(screen.getByText('Transfer job namespace')).toBeInTheDocument();
-    expect(
-      screen.getByText(/you do not have permission to list transfer jobs/i),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('job-namespace-input')).toBeInTheDocument();
+    expect(screen.getByTestId('job-namespace-info')).toBeInTheDocument();
   });
 
   it('does not call onChange immediately on typing', () => {
