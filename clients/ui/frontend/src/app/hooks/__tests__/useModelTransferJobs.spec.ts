@@ -139,6 +139,56 @@ describe('useModelTransferJobs', () => {
     expect(lastCallOptions.refreshRate).toBe(POLL_INTERVAL);
   });
 
+  it('passes jobNamespace to listModelTransferJobs when provided', async () => {
+    const emptyJobsList: ModelTransferJobList = {
+      items: [],
+      size: 0,
+      pageSize: 10,
+      nextPageToken: '',
+    };
+
+    const listModelTransferJobsMock =
+      mockModelRegistryAPIs.listModelTransferJobs as jest.MockedFunction<
+        ModelRegistryAPIs['listModelTransferJobs']
+      >;
+    listModelTransferJobsMock.mockResolvedValue(emptyJobsList);
+
+    const { getCapturedCallback } = setupFetchStateCapture();
+
+    testHook(useModelTransferJobs)('test-namespace');
+
+    const capturedCallback = getCapturedCallback();
+    expect(capturedCallback).toBeDefined();
+    await capturedCallback?.({});
+
+    expect(listModelTransferJobsMock).toHaveBeenCalledWith({}, 'test-namespace');
+  });
+
+  it('does not pass jobNamespace to listModelTransferJobs when not provided', async () => {
+    const emptyJobsList: ModelTransferJobList = {
+      items: [],
+      size: 0,
+      pageSize: 10,
+      nextPageToken: '',
+    };
+
+    const listModelTransferJobsMock =
+      mockModelRegistryAPIs.listModelTransferJobs as jest.MockedFunction<
+        ModelRegistryAPIs['listModelTransferJobs']
+      >;
+    listModelTransferJobsMock.mockResolvedValue(emptyJobsList);
+
+    const { getCapturedCallback } = setupFetchStateCapture();
+
+    testHook(useModelTransferJobs)();
+
+    const capturedCallback = getCapturedCallback();
+    expect(capturedCallback).toBeDefined();
+    await capturedCallback?.({});
+
+    expect(listModelTransferJobsMock).toHaveBeenCalledWith({}, undefined);
+  });
+
   it('does not set refreshRate when all jobs are in terminal states', async () => {
     // Arrange a response with only COMPLETED and FAILED jobs
     const terminalJobsList: ModelTransferJobList = {
