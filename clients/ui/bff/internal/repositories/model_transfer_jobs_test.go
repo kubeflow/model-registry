@@ -30,7 +30,7 @@ type fakeKubernetesClient struct {
 func mustGetSingleJob(t *testing.T, repo *ModelRegistryRepository, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) models.ModelTransferJob {
 	t.Helper()
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, namespace, modelRegistryID)
+	list, err := repo.GetAllModelTransferJobs(context.Background(), client, namespace, modelRegistryID, "")
 	if err != nil {
 		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
 	}
