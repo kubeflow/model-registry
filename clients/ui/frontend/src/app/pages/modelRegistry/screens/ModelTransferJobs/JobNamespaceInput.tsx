@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Popover, TextInput } from '@patternfly/react-core';
+import { Bullseye, Button, FlexItem, Popover, TextInput } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 
 type JobNamespaceInputProps = {
@@ -45,28 +45,35 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
 
   return (
     <>
-      <TextInput
-        id="job-namespace-input"
-        data-testid="job-namespace-input"
-        value={textInputValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder="Enter namespace"
-        aria-label="Transfer job namespace"
-        style={{ maxWidth: '200px' }}
-      />
-      <Popover
-        aria-label="Transfer job namespace info"
-        bodyContent="You do not have permission to list transfer jobs across all namespaces. Enter a namespace to view transfer jobs in that namespace."
-      >
-        <Button
-          variant="plain"
-          aria-label="More info about transfer job namespace"
-          data-testid="job-namespace-info"
+      <FlexItem>
+        <Bullseye>Transfer job namespace</Bullseye>
+      </FlexItem>
+      <FlexItem>
+        <TextInput
+          id="job-namespace-input"
+          data-testid="job-namespace-input"
+          value={textInputValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Enter namespace"
+          aria-label="Transfer job namespace"
+          style={{ width: '200px' }}
+        />
+      </FlexItem>
+      <FlexItem>
+        <Popover
+          aria-label="Transfer job namespace info"
+          bodyContent="You do not have permission to list transfer jobs across all namespaces. Enter a namespace to view transfer jobs in that namespace."
         >
-          <InfoCircleIcon />
-        </Button>
-      </Popover>
+          <Button
+            variant="plain"
+            aria-label="More info about transfer job namespace"
+            data-testid="job-namespace-info"
+          >
+            <InfoCircleIcon />
+          </Button>
+        </Popover>
+      </FlexItem>
     </>
   );
 };
