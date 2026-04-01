@@ -4,11 +4,7 @@ import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { FetchState } from 'mod-arch-core';
 import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
-import {
-  ModelTransferJobList,
-  ModelTransferJobStatus,
-  ModelRegistryAPIs,
-} from '~/app/types';
+import { ModelTransferJobList, ModelTransferJobStatus, ModelRegistryAPIs } from '~/app/types';
 import useModelTransferJobs from '~/app/hooks/useModelTransferJobs';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 import ModelTransferJobs from '~/app/pages/modelRegistry/screens/ModelTransferJobs/ModelTransferJobs';
