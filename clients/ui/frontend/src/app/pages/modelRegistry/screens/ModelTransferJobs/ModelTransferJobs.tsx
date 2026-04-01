@@ -29,9 +29,6 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
   // handleRestFailures is updated to preserve the HTTP status code from BFF error responses.
   // Currently handleRestFailures discards the error code and only keeps the message string.
   const isForbidden = jobsLoadError?.message.toLowerCase().includes('forbidden') ?? false;
-  // Distinguish initial "no cluster-wide permission" (no namespace set) from
-  // "no permission in this specific namespace" (namespace is set).
-  const isInitialForbidden = isForbidden && !jobNamespace;
   const isNamespaceForbidden = isForbidden && !!jobNamespace;
   const needsNamespaceInput = isForbidden || !!jobNamespace;
   const { api, apiAvailable } = useModelRegistryAPI();
@@ -111,7 +108,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
       title="Model transfer jobs"
       description="Monitor the status of model transfer jobs. Model transfer jobs are created when you choose to store model artifacts at registration time. When a job is complete, the registered model version appears in the specified model registry."
       loadError={isForbidden ? undefined : jobsLoadError}
-      loaded={isInitialForbidden || jobsLoaded}
+      loaded={isForbidden || jobsLoaded}
       provideChildrenPadding
       headerContent={
         <ModelRegistrySelectorNavigator
