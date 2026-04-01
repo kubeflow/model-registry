@@ -45,7 +45,7 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
 
   return (
     <>
-      <FlexItem>
+      <FlexItem spacer={{ default: 'spacerLg' }}>
         <Bullseye>Transfer job namespace</Bullseye>
       </FlexItem>
       <FlexItem>
