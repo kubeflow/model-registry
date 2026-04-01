@@ -11,6 +11,7 @@ import (
 	kubernetes "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
@@ -56,6 +57,11 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 
 	transferJobs, err := app.repositories.ModelRegistry.GetAllModelTransferJobs(ctx, client, namespace, modelRegistryID, jobNamespace)
 	if err != nil {
+		var statusErr *apierrors.StatusError
+		if errors.As(err, &statusErr) && apierrors.IsForbidden(statusErr) {
+			app.forbiddenResponse(w, r, fmt.Sprintf("you do not have permission to list jobs in namespace %q", jobNamespace))
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
