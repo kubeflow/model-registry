@@ -226,6 +226,14 @@ func (f *fakeKubernetesClient) PatchConfigMapOwnerReference(ctx context.Context,
 	return nil
 }
 
+func (f *fakeKubernetesClient) CanListJobsClusterWide(ctx context.Context, identity *k8s.RequestIdentity) (bool, error) {
+	return true, nil
+}
+
+func (f *fakeKubernetesClient) GetAllModelTransferJobsInNamespace(ctx context.Context, namespace string, modelRegistryID string, jobNamespace string) (*batchv1.JobList, error) {
+	return f.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
+}
+
 func TestGetAllModelTransferJobs_PodWaitingFailuresOverrideStatusToFailed(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
