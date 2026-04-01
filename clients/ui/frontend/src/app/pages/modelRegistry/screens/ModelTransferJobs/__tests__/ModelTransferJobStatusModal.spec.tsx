@@ -54,6 +54,25 @@ describe('ModelTransferJobStatusModal', () => {
     });
   });
 
+  it('renders the status label in the modal title with outline variant', () => {
+    const job = mockModelTransferJob({
+      status: ModelTransferJobStatus.COMPLETED,
+      namespace: 'kubeflow',
+    });
+
+    mockUseFetchState.mockReturnValue([[], true, undefined, jest.fn()]);
+
+    render(<ModelTransferJobStatusModal job={job} isOpen onClose={jest.fn()} />);
+
+    const label = screen.getByText('Complete');
+    expect(label).toBeVisible();
+
+    const labelWrapper = label.closest('span.pf-v6-c-label');
+    expect(labelWrapper).not.toBeNull();
+    expect(labelWrapper!.className).toMatch(/outline/);
+    expect(labelWrapper!.className).not.toMatch(/filled/);
+  });
+
   it('shows unknown failure reason and danger alert when events fail to load', () => {
     // Arrange job without an explicit errorMessage so the fallback text is used.
     const job = mockModelTransferJob({
