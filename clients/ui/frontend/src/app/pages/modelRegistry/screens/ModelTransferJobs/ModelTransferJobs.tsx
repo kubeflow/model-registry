@@ -29,6 +29,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
   // handleRestFailures is updated to preserve the HTTP status code from BFF error responses.
   // Currently handleRestFailures discards the error code and only keeps the message string.
   const isForbidden = jobsLoadError?.message.toLowerCase().includes('forbidden') ?? false;
+  const isInitialForbidden = isForbidden && !jobNamespace;
   const isNamespaceForbidden = isForbidden && !!jobNamespace;
   const needsNamespaceInput = isForbidden || !!jobNamespace;
   const { api, apiAvailable } = useModelRegistryAPI();
@@ -120,11 +121,20 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
         </ModelRegistrySelectorNavigator>
       }
     >
+      {isInitialForbidden && (
+        <Alert
+          variant="info"
+          isInline
+          title="You do not have permission to list transfer jobs across all namespaces. Enter a namespace above to view transfer jobs in that namespace."
+          data-testid="initial-forbidden-alert"
+        />
+      )}
       {isNamespaceForbidden && (
         <Alert
           variant="warning"
           isInline
           title={`You do not have permission to list jobs in namespace "${jobNamespace}". Try a different namespace.`}
+          data-testid="namespace-forbidden-alert"
         />
       )}
       {!isForbidden && jobsLoaded && (

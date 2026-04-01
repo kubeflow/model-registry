@@ -117,6 +117,8 @@ describe('ModelTransferJobs', () => {
     // Namespace input and info button should be visible
     expect(screen.getByTestId('job-namespace-input')).toBeInTheDocument();
     expect(screen.getByTestId('job-namespace-info')).toBeInTheDocument();
+    // Info alert should tell user to enter a namespace
+    expect(screen.getByTestId('initial-forbidden-alert')).toBeInTheDocument();
   });
 
   it('passes jobNamespace to useModelTransferJobs after user enters one', () => {
@@ -175,6 +177,39 @@ describe('ModelTransferJobs', () => {
 
     // Without a 403 error and no namespace state, input should not be shown
     expect(screen.queryByTestId('job-namespace-input')).not.toBeInTheDocument();
+  });
+
+  it('shows warning alert when user enters a namespace they lack permission for', () => {
+    const forbiddenError = new Error('Access forbidden');
+
+    // First render: initial 403 (no namespace set)
+    mockUseModelTransferJobs.mockReturnValue([
+      emptyJobList,
+      false,
+      forbiddenError,
+      jest.fn(),
+    ] as FetchState<ModelTransferJobList>);
+
+    renderPage();
+
+    // Enter a namespace
+    const input = screen.getByTestId('job-namespace-input');
+    fireEvent.change(input, { target: { value: 'restricted-ns' } });
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    // The hook is now called with the namespace, but still returns forbidden
+    expect(mockUseModelTransferJobs).toHaveBeenCalledWith('restricted-ns');
+
+    // The namespace-scoped forbidden warning should be shown
+    expect(screen.getByTestId('namespace-forbidden-alert')).toBeInTheDocument();
+    expect(
+      screen.getByText(/you do not have permission to list jobs in namespace/i),
+    ).toBeInTheDocument();
+    // The initial info alert should NOT be shown (namespace is set)
+    expect(screen.queryByTestId('initial-forbidden-alert')).not.toBeInTheDocument();
   });
 
   it('shows normal error state for non-403 errors', () => {

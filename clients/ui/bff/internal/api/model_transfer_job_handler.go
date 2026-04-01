@@ -43,7 +43,11 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 	// Otherwise, check if the user can list jobs cluster-wide before attempting.
 	jobNamespace := r.URL.Query().Get("jobNamespace")
 	if jobNamespace == "" {
-		identity := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+		identity, ok := ctx.Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+		if !ok {
+			app.serverErrorResponse(w, r, fmt.Errorf("request identity not found in context"))
+			return
+		}
 		canList, err := client.CanListJobsClusterWide(ctx, identity)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to check job list permission: %w", err))
