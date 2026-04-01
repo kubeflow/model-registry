@@ -29,7 +29,7 @@ describe('JobNamespaceInput', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('calls onChange after 2-second debounce', () => {
+  it('calls onChange after 1-second debounce', () => {
     const onChange = jest.fn();
     render(<JobNamespaceInput value="" onChange={onChange} />);
 
@@ -38,7 +38,7 @@ describe('JobNamespaceInput', () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(1000);
     });
 
     expect(onChange).toHaveBeenCalledWith('my-namespace');
@@ -65,20 +65,20 @@ describe('JobNamespaceInput', () => {
     fireEvent.change(input, { target: { value: 'first' } });
 
     act(() => {
-      jest.advanceTimersByTime(1500);
+      jest.advanceTimersByTime(750);
     });
 
     fireEvent.change(input, { target: { value: 'second' } });
 
     act(() => {
-      jest.advanceTimersByTime(1500);
+      jest.advanceTimersByTime(750);
     });
 
     // First debounce should have been cancelled
     expect(onChange).not.toHaveBeenCalled();
 
     act(() => {
-      jest.advanceTimersByTime(500);
+      jest.advanceTimersByTime(250);
     });
 
     expect(onChange).toHaveBeenCalledWith('second');

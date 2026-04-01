@@ -7,7 +7,7 @@ type JobNamespaceInputProps = {
   onChange: (namespace: string) => void;
 };
 
-const DEBOUNCE_MS = 2000;
+const DEBOUNCE_MS = 1000;
 
 const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }) => {
   const [textInputValue, setTextInputValue] = React.useState(value);
@@ -22,6 +22,15 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
       debounceTimerRef.current = setTimeout(() => {
         onChange(newValue);
       }, DEBOUNCE_MS);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && textInputValue) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      onChange(textInputValue);
     }
   };
 
@@ -45,7 +54,8 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
 
   return (
     <>
-      <FlexItem spacer={{ default: 'spacerLg' }}>
+      <FlexItem spacer={{ default: 'spacerLg' }} />
+      <FlexItem>
         <Bullseye>Transfer job namespace</Bullseye>
       </FlexItem>
       <FlexItem>
@@ -55,6 +65,7 @@ const JobNamespaceInput: React.FC<JobNamespaceInputProps> = ({ value, onChange }
           value={textInputValue}
           onChange={handleChange}
           onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           placeholder="Enter namespace"
           aria-label="Transfer job namespace"
           style={{ width: '200px' }}

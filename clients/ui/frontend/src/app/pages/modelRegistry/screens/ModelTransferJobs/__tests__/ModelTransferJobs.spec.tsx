@@ -139,7 +139,7 @@ describe('ModelTransferJobs', () => {
     fireEvent.change(input, { target: { value: 'my-namespace' } });
 
     act(() => {
-      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(1000);
     });
 
     // After debounce, the hook should be called with the namespace
