@@ -77,7 +77,10 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 
 	// If no specific namespace is provided, check if the user can list jobs cluster-wide.
 	if jobNamespace == "" {
-		identity, _ := ctx.Value(constants.RequestIdentityKey).(*k8s.RequestIdentity)
+		identity, ok := ctx.Value(constants.RequestIdentityKey).(*k8s.RequestIdentity)
+		if !ok || identity == nil {
+			return nil, fmt.Errorf("request identity not found in context")
+		}
 		canList, err := client.CanListJobsClusterWide(ctx, identity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check job list permission: %w", err)

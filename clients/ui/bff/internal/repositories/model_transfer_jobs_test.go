@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
@@ -27,10 +28,16 @@ type fakeKubernetesClient struct {
 	eventsByNamespace map[string]*corev1.EventList
 }
 
+// testContext returns a context with a RequestIdentity set, as required by GetAllModelTransferJobs.
+func testContext() context.Context {
+	identity := &k8s.RequestIdentity{UserID: "test-user", Groups: []string{"system:authenticated"}}
+	return context.WithValue(context.Background(), constants.RequestIdentityKey, identity)
+}
+
 func mustGetSingleJob(t *testing.T, repo *ModelRegistryRepository, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) models.ModelTransferJob {
 	t.Helper()
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, namespace, modelRegistryID, "")
+	list, err := repo.GetAllModelTransferJobs(testContext(), client, namespace, modelRegistryID, "")
 	if err != nil {
 		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
 	}
