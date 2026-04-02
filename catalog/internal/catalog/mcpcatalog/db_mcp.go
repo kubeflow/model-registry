@@ -290,10 +290,14 @@ func (d *dbMCPCatalogImpl) GetMCPServerTool(ctx context.Context, serverID string
 		return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 	}
 
-	// Find tool by name
+	// Find tool by name. DB stores tools with a qualified prefix (serverName@version:toolName)
+	// for uniqueness, but the API exposes only the unqualified tool name.
 	for _, tool := range tools {
 		attrs := tool.GetAttributes()
-		if attrs != nil && attrs.Name != nil && *attrs.Name == toolName {
+		if attrs == nil || attrs.Name == nil {
+			continue
+		}
+		if converter.UnqualifyToolName(*attrs.Name) == toolName {
 			apiTool := converter.ConvertDbMCPToolToOpenapi(tool)
 			return apiTool, nil
 		}
