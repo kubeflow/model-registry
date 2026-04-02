@@ -19,7 +19,11 @@ import {
   AlertActionLink,
 } from '@patternfly/react-core';
 import { CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
-import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
+import {
+  PAGE_TITLES,
+  ERROR_MESSAGES,
+  EMPTY_STATE_TEXT,
+} from '~/app/pages/modelCatalogSettings/constants';
 import {
   UseSourcePreviewResult,
   PreviewTab,
@@ -58,7 +62,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
       return (
         <EmptyState
           icon={TimesCircleIcon}
-          titleText="Failed to preview the results"
+          titleText={ERROR_MESSAGES.PREVIEW_FAILED}
           variant={EmptyStateVariant.sm}
         >
           <EmptyStateBody>{previewError.message}</EmptyStateBody>
@@ -80,8 +84,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
     return (
       <EmptyState titleText={PAGE_TITLES.PREVIEW_MODELS} variant={EmptyStateVariant.sm}>
         <EmptyStateBody>
-          To view the models from this source that will appear in the model catalog with your
-          current configuration, complete all required fields, then click <strong>Preview</strong>.
+          To view the models from this source that will appear in the model catalog, complete all
+          required fields, then click <strong>Preview</strong>.
         </EmptyStateBody>
         <EmptyStateFooter>
           <EmptyStateActions>
@@ -175,12 +179,16 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
           ) : (
             <EmptyState
               variant={EmptyStateVariant.sm}
-              titleText={`No models ${activeTab === PreviewTab.INCLUDED ? 'included' : 'excluded'}`}
+              titleText={
+                activeTab === PreviewTab.INCLUDED
+                  ? EMPTY_STATE_TEXT.NO_MODELS_INCLUDED
+                  : EMPTY_STATE_TEXT.NO_MODELS_EXCLUDED
+              }
             >
               <EmptyStateBody>
                 {activeTab === PreviewTab.INCLUDED
-                  ? 'No models from this source are visible in the model catalog. To include models, edit the model visibility settings of this source.'
-                  : 'No models from this source are excluded by this filter'}
+                  ? EMPTY_STATE_TEXT.NO_MODELS_INCLUDED_BODY
+                  : EMPTY_STATE_TEXT.NO_MODELS_EXCLUDED_BODY}
               </EmptyStateBody>
             </EmptyState>
           )}

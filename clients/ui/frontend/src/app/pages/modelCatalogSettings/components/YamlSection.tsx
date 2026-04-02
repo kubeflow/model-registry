@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Alert,
   Button,
   Flex,
   FlexItem,
@@ -19,6 +20,7 @@ import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
   DESCRIPTION_TEXT,
+  ERROR_MESSAGES,
   EXPECTED_YAML_FORMAT_LABEL,
 } from '~/app/pages/modelCatalogSettings/constants';
 
@@ -35,6 +37,7 @@ const YamlSection: React.FC<YamlSectionProps> = ({
 }) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
+  const [fileUploadError, setFileUploadError] = React.useState<string | undefined>(undefined);
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
 
   const handleFileChange = (
@@ -42,11 +45,15 @@ const YamlSection: React.FC<YamlSectionProps> = ({
     file: File,
   ) => {
     setFilename(file.name);
+    setFileUploadError(undefined);
     const reader = new FileReader();
     reader.onload = () => {
       const text = typeof reader.result === 'string' ? reader.result : '';
       setData('yamlContent', text);
       setIsYamlTouched(true);
+    };
+    reader.onerror = () => {
+      setFileUploadError(ERROR_MESSAGES.FILE_UPLOAD_FAILED_BODY);
     };
     reader.readAsText(file);
   };
@@ -59,6 +66,7 @@ const YamlSection: React.FC<YamlSectionProps> = ({
     setFilename('');
     setData('yamlContent', '');
     setIsYamlTouched(true);
+    setFileUploadError(undefined);
   };
 
   const yamlInput = (
@@ -83,8 +91,38 @@ const YamlSection: React.FC<YamlSectionProps> = ({
     </div>
   );
 
+  const yamlDescriptionTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{DESCRIPTION_TEXT.YAML}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
+
+  const yamlHelperTxtNode =
+    isYamlTouched && !isYamlContentValid ? (
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant="error" data-testid="yaml-content-error">
+            {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    ) : undefined;
+
   return (
     <FormSection data-testid="yaml-section">
+      {fileUploadError && (
+        <Alert
+          variant="danger"
+          isInline
+          title={ERROR_MESSAGES.FILE_UPLOAD_FAILED}
+          className="pf-v6-u-mb-md"
+          data-testid="yaml-file-upload-error"
+        >
+          {fileUploadError}
+        </Alert>
+      )}
       <FormGroup
         label={
           <Flex
@@ -111,21 +149,9 @@ const YamlSection: React.FC<YamlSectionProps> = ({
         isRequired
         fieldId="yaml-content"
       >
+        {yamlDescriptionTxtNode}
         <FormFieldset component={yamlInput} field="YAML" />
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem>{DESCRIPTION_TEXT.YAML}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-        {isYamlTouched && !isYamlContentValid && (
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant="error" data-testid="yaml-content-error">
-                {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        )}
+        {yamlHelperTxtNode}
       </FormGroup>
     </FormSection>
   );

@@ -116,7 +116,7 @@ describe('PreviewPanel', () => {
     );
     render(<PreviewPanel preview={preview} />);
 
-    expect(screen.getByText('Failed to preview the results')).toBeInTheDocument();
+    expect(screen.getByText('Preview failed')).toBeInTheDocument();
     expect(screen.getByText('Failed to fetch preview')).toBeInTheDocument();
     expect(screen.getByTestId('preview-button-panel-retry')).toBeInTheDocument();
   });
