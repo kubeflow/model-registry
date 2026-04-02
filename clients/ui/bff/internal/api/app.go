@@ -257,7 +257,7 @@ func (app *App) Routes() http.Handler {
 	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateModelArtifactHandler))))
 
 	// Model Transfer Jobs
-	apiRouter.GET(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetAllModelTransferJobsHandler)))
+	apiRouter.GET(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.handlerWithOverride(HandlerIDModelTransferJobList, func() httprouter.Handle { return app.GetAllModelTransferJobsHandler }))))
 	apiRouter.GET(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetModelTransferJobHandler)))
 	apiRouter.GET(ModelTransferJobEventsPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetModelTransferJobEventsHandler)))
 	apiRouter.POST(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.CreateModelTransferJobHandler)))

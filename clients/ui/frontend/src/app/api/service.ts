@@ -237,15 +237,20 @@ export const patchModelArtifact =
 
 export const getListModelTransferJobs =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions): Promise<ModelTransferJobList> =>
-    handleRestFailures(restGET(hostPath, `/model_transfer_jobs`, queryParams, opts)).then(
-      (response) => {
-        if (isModArchResponse<ModelTransferJobList>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+  (opts: APIOptions, jobNamespace?: string): Promise<ModelTransferJobList> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `/model_transfer_jobs`,
+        jobNamespace ? { ...queryParams, jobNamespace } : queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<ModelTransferJobList>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
 
 export const getModelTransferJobByName =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>

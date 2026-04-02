@@ -45,6 +45,37 @@ func newInternalKubernetesClient(logger *slog.Logger) (KubernetesClientInterface
 	}, nil
 }
 
+// CanListJobsClusterWide checks whether the user can list batch/v1 Jobs across all namespaces.
+func (kc *InternalKubernetesClient) CanListJobsClusterWide(ctx context.Context, identity *RequestIdentity) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	sar := &authv1.SubjectAccessReview{
+		Spec: authv1.SubjectAccessReviewSpec{
+			User:   identity.UserID,
+			Groups: identity.Groups,
+			ResourceAttributes: &authv1.ResourceAttributes{
+				Verb:     "list",
+				Group:    "batch",
+				Resource: "jobs",
+			},
+		},
+	}
+
+	resp, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+	if err != nil {
+		kc.Logger.Error("SAR failed for cluster-wide job list", "user", identity.UserID, "error", err)
+		return false, err
+	}
+
+	if !resp.Status.Allowed {
+		kc.Logger.Info("user cannot list jobs cluster-wide", "user", identity.UserID)
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (kc *InternalKubernetesClient) CanListServicesInNamespace(ctx context.Context, identity *RequestIdentity, namespace string) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
