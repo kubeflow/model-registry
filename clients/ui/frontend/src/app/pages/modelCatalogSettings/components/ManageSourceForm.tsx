@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   Form,
-  FormGroup,
   Checkbox,
   Stack,
   StackItem,
@@ -11,11 +10,16 @@ import {
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import { catalogSettingsUrl } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import { isFormValid } from '~/app/pages/modelCatalogSettings/utils/validation';
 import { useManageSourceData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { useSourcePreview } from '~/app/pages/modelCatalogSettings/useSourcePreview';
-import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
+import {
+  FORM_LABELS,
+  DESCRIPTION_TEXT,
+  ERROR_MESSAGES,
+} from '~/app/pages/modelCatalogSettings/constants';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import {
   catalogSourceConfigToFormData,
@@ -82,7 +86,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
       refreshCatalogSourceConfigs();
       navigate(catalogSettingsUrl());
     } catch (error) {
-      setSubmitError(error instanceof Error ? error : new Error(`Failed to save source`));
+      setSubmitError(error instanceof Error ? error : new Error(ERROR_MESSAGES.SAVE_FAILED));
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +148,10 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
 
               <StackItem>
                 <FormSection>
-                  <FormGroup fieldId="enable-source">
+                  <ThemeAwareFormGroupWrapper
+                    label={FORM_LABELS.ENABLE_SOURCE}
+                    fieldId="enable-source"
+                  >
                     <Checkbox
                       label={
                         <span className="pf-v6-c-form__label-text">
@@ -154,11 +161,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                       id="enable-source"
                       name="enable-source"
                       data-testid="enable-source-checkbox"
-                      description={DESCRIPTIONS.ENABLE_SOURCE}
+                      description={DESCRIPTION_TEXT.ENABLE_SOURCE}
                       isChecked={formData.enabled}
                       onChange={(_event, checked) => setData('enabled', checked)}
                     />
-                  </FormGroup>
+                  </ThemeAwareFormGroupWrapper>
                 </FormSection>
               </StackItem>
             </Stack>

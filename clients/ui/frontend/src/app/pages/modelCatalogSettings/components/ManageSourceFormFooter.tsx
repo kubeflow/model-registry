@@ -9,6 +9,7 @@ import {
   ActionListGroup,
   Alert,
 } from '@patternfly/react-core';
+import { ERROR_MESSAGES } from '~/app/pages/modelCatalogSettings/constants';
 import PreviewButton from './PreviewButton';
 
 type ManageSourceFormFooterProps = {
@@ -38,7 +39,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
     <Stack hasGutter>
       {submitError && (
         <StackItem>
-          <Alert variant="danger" isInline title="Error saving source">
+          <Alert variant="danger" isInline title={ERROR_MESSAGES.SAVE_FAILED}>
             {submitError.message}
           </Alert>
         </StackItem>

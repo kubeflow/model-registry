@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  FormGroup,
   TextInput,
   FormHelperText,
   HelperText,
@@ -12,7 +11,6 @@ import {
 } from '@patternfly/react-core';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import PasswordInput from '~/app/shared/components/PasswordInput';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
@@ -21,7 +19,10 @@ import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
   DESCRIPTION_TEXT,
+  HELPER_TEXT,
   PLACEHOLDERS,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
 } from '~/app/pages/modelCatalogSettings/constants';
 import { TempDevFeature, useTempDevFeatureAvailable } from '~/app/hooks/useTempDevFeatureAvailable';
 
@@ -111,18 +112,39 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
+  const accessTokenDescriptionTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{DESCRIPTION_TEXT.ACCESS_TOKEN}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
+
+  const accessTokenHelperTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{HELPER_TEXT.ACCESS_TOKEN}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
+
   const accessTokenFormGroup = (
     <>
-      <FormGroup label={FORM_LABELS.ACCESS_TOKEN} fieldId="access-token">
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem>{DESCRIPTION_TEXT.ACCESS_TOKEN}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-        <FormFieldset component={accessTokenInput} field="Access token" />
-      </FormGroup>
+      <ThemeAwareFormGroupWrapper
+        label={FORM_LABELS.ACCESS_TOKEN}
+        fieldId="access-token"
+        descriptionTextNode={accessTokenDescriptionTxtNode}
+        helperTextNode={accessTokenHelperTxtNode}
+      >
+        {accessTokenInput}
+      </ThemeAwareFormGroupWrapper>
       {validationError && (
-        <Alert isInline variant="danger" title="Validation failed" className="pf-v6-u-mt-md">
+        <Alert
+          isInline
+          variant="danger"
+          title={ERROR_MESSAGES.VALIDATION_FAILED}
+          className="pf-v6-u-mt-md"
+        >
           {validationError.message}
         </Alert>
       )}
@@ -131,10 +153,10 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
           isInline
           variant="success"
           className="pf-v6-u-mt-md"
-          title="Validation successful"
+          title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}
           actionClose={<AlertActionCloseButton onClose={onClearValidationSuccess} />}
         >
-          The organization and accessToken are valid for connection.
+          {SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL_BODY}
         </Alert>
       )}
 
