@@ -230,7 +230,6 @@ func (f *fakeKubernetesClient) CanListJobsClusterWide(ctx context.Context, ident
 	return true, nil
 }
 
-
 func TestGetAllModelTransferJobs_PodWaitingFailuresOverrideStatusToFailed(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
