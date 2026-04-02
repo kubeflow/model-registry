@@ -362,17 +362,9 @@ func (kc *SharedClientLogic) UpdateCatalogSourceConfig(
 	return nil
 }
 
-func (kc *SharedClientLogic) GetAllModelTransferJobs(
-	ctx context.Context,
-	namespace string,
-	modelRegistryID string,
-) (*batchv1.JobList, error) {
-	return kc.GetAllModelTransferJobsInNamespace(ctx, namespace, modelRegistryID, "")
-}
-
-// GetAllModelTransferJobsInNamespace lists model transfer jobs. If jobNamespace is non-empty,
+// GetAllModelTransferJobs lists model transfer jobs. If jobNamespace is non-empty,
 // jobs are listed only in that namespace. Otherwise jobs are listed across all namespaces.
-func (kc *SharedClientLogic) GetAllModelTransferJobsInNamespace(
+func (kc *SharedClientLogic) GetAllModelTransferJobs(
 	ctx context.Context,
 	namespace string,
 	modelRegistryID string,

@@ -81,7 +81,7 @@ func buildSingleJobFixture(jobName string, jobStatus batchv1.JobStatus, containe
 	}
 }
 
-func (f *fakeKubernetesClient) GetAllModelTransferJobs(ctx context.Context, namespace string, modelRegistryID string) (*batchv1.JobList, error) {
+func (f *fakeKubernetesClient) GetAllModelTransferJobs(ctx context.Context, namespace string, modelRegistryID string, jobNamespace string) (*batchv1.JobList, error) {
 	if f.jobs == nil {
 		return &batchv1.JobList{}, nil
 	}
@@ -230,9 +230,6 @@ func (f *fakeKubernetesClient) CanListJobsClusterWide(ctx context.Context, ident
 	return true, nil
 }
 
-func (f *fakeKubernetesClient) GetAllModelTransferJobsInNamespace(ctx context.Context, namespace string, modelRegistryID string, jobNamespace string) (*batchv1.JobList, error) {
-	return f.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
-}
 
 func TestGetAllModelTransferJobs_PodWaitingFailuresOverrideStatusToFailed(t *testing.T) {
 	repo := NewModelRegistryRepository()
