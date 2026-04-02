@@ -38,7 +38,6 @@ export const DESCRIPTION_TEXT = {
     'Enter your fine-grained Hugging Face access token. The token must have the following permissions: read repos in your namespace, read public repos that you can access, access webhooks, and create webhooks.',
   ORGANIZATION:
     'Enter the name of the organization (for example, Google) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
-  YAML: 'Upload or paste a YAML string.',
   ENABLE_SOURCE:
     'Enable users in your organization to view models from this source in the model catalog.',
   FILTER_INFO_GENERIC:
@@ -47,6 +46,7 @@ export const DESCRIPTION_TEXT = {
 
 export const HELPER_TEXT = {
   ACCESS_TOKEN: 'Enter your Hugging Face access token.',
+  YAML: 'Upload or paste a YAML string.',
 } as const;
 
 export const PLACEHOLDERS = {

@@ -19,9 +19,9 @@ import { validateYamlContent } from '~/app/pages/modelCatalogSettings/utils/vali
 import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
-  DESCRIPTION_TEXT,
   ERROR_MESSAGES,
   EXPECTED_YAML_FORMAT_LABEL,
+  HELPER_TEXT,
 } from '~/app/pages/modelCatalogSettings/constants';
 
 type YamlSectionProps = {
@@ -91,14 +91,6 @@ const YamlSection: React.FC<YamlSectionProps> = ({
     </div>
   );
 
-  const yamlDescriptionTxtNode = (
-    <FormHelperText>
-      <HelperText>
-        <HelperTextItem>{DESCRIPTION_TEXT.YAML}</HelperTextItem>
-      </HelperText>
-    </FormHelperText>
-  );
-
   const yamlHelperTxtNode =
     isYamlTouched && !isYamlContentValid ? (
       <FormHelperText>
@@ -108,7 +100,13 @@ const YamlSection: React.FC<YamlSectionProps> = ({
           </HelperTextItem>
         </HelperText>
       </FormHelperText>
-    ) : undefined;
+    ) : (
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem>{HELPER_TEXT.YAML}</HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    );
 
   return (
     <FormSection data-testid="yaml-section">
@@ -149,7 +147,6 @@ const YamlSection: React.FC<YamlSectionProps> = ({
         isRequired
         fieldId="yaml-content"
       >
-        {yamlDescriptionTxtNode}
         <FormFieldset component={yamlInput} field="YAML" />
         {yamlHelperTxtNode}
       </FormGroup>
