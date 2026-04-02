@@ -169,7 +169,7 @@ describe('ModelRegistryTableRowStatus', () => {
     );
     expect(screen.getByText('Ready')).toBeVisible();
   });
-  it('renders "Progressing" status', async () => {
+  it('renders "Unavailable" status', async () => {
     const user = userEvent.setup();
 
     render(

@@ -2,33 +2,19 @@ import { ModelTransferJobStatus } from '~/app/types';
 import { getStatusLabel } from '~/app/pages/modelRegistry/screens/ModelTransferJobs/ModelTransferJobTableRow';
 
 describe('getStatusLabel', () => {
-  it('returns green "Complete" for COMPLETED status', () => {
-    const result = getStatusLabel(ModelTransferJobStatus.COMPLETED);
-    expect(result.label).toBe('Complete');
-    expect(result.color).toBe('green');
-  });
-
-  it('returns blue "Running" for RUNNING status', () => {
-    const result = getStatusLabel(ModelTransferJobStatus.RUNNING);
-    expect(result.label).toBe('Running');
-    expect(result.color).toBe('blue');
-  });
-
-  it('returns purple "Pending" for PENDING status', () => {
-    const result = getStatusLabel(ModelTransferJobStatus.PENDING);
-    expect(result.label).toBe('Pending');
-    expect(result.color).toBe('purple');
-  });
-
-  it('returns red "Failed" for FAILED status', () => {
-    const result = getStatusLabel(ModelTransferJobStatus.FAILED);
-    expect(result.label).toBe('Failed');
-    expect(result.color).toBe('red');
-  });
-
-  it('returns grey "Canceled" for CANCELLED status', () => {
-    const result = getStatusLabel(ModelTransferJobStatus.CANCELLED);
-    expect(result.label).toBe('Canceled');
-    expect(result.color).toBe('grey');
-  });
+  it.each([
+    [ModelTransferJobStatus.COMPLETED, 'Complete', 'green'],
+    [ModelTransferJobStatus.RUNNING, 'Running', 'blue'],
+    [ModelTransferJobStatus.PENDING, 'Pending', 'purple'],
+    [ModelTransferJobStatus.FAILED, 'Failed', 'red'],
+    [ModelTransferJobStatus.CANCELLED, 'Canceled', 'grey'],
+  ])(
+    'returns correct label, color, and icon for %s status',
+    (status, expectedLabel, expectedColor) => {
+      const result = getStatusLabel(status);
+      expect(result.label).toBe(expectedLabel);
+      expect(result.color).toBe(expectedColor);
+      expect(result.icon).toBeDefined();
+    },
+  );
 });
