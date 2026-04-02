@@ -30,6 +30,7 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
     return (
       <FormFieldset
         className={className}
+        fieldsetStyle={{ insetBlockStart: '0' }}
         component={
           <TextInput
             value={value}
@@ -38,7 +39,11 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
             isDisabled={isDisabled}
             aria-label={ariaLabel}
             data-testid={dataTestId}
-            style={style}
+            style={{
+              ...style,
+              paddingBlockStart: 'var(--pf-t--global--spacer--control--vertical--default)',
+              paddingBlockEnd: 'var(--pf-t--global--spacer--control--vertical--default)',
+            }}
             onClick={onClick}
             placeholder={placeholder}
           />

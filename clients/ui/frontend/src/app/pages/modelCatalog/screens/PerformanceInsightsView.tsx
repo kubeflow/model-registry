@@ -7,14 +7,19 @@ import {
   Flex,
   FlexItem,
   Alert,
+  Button,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
 import { useParams } from 'react-router-dom';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
-import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import {
+  CatalogModel,
+  CatalogModelDetailsParams,
+  PerformanceArtifactsParams,
+} from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
+import { usePaginatedCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import {
   ModelCatalogNumberFilterKey,
   ModelCatalogStringFilterKey,
@@ -30,6 +35,8 @@ import {
   getDefaultFiltersFromNamedQuery,
 } from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
 import TensorTypeComparisonCard from './TensorTypeComparisonCard';
+
+const HARDWARE_CONFIG_PAGE_SIZE = 20;
 
 type PerformanceInsightsViewProps = {
   model: CatalogModel;
@@ -80,23 +87,29 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
   const latencyProperty = latencyFieldName
     ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
+  const [tableSort, setTableSort] = React.useState<
+    Pick<PerformanceArtifactsParams, 'orderBy' | 'sortOrder'>
+  >({});
 
-  // Fetch performance artifacts from server with filtering/sorting/pagination
-  const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
-    useCatalogPerformanceArtifacts(
-      decodedParams.sourceId || '',
-      encodeURIComponent(`${decodedParams.modelName}`),
-      {
-        targetRPS,
-        latencyProperty,
-        recommendations: true,
-        // TODO this is a temporary workaround to avoid capping performance artifacts with a default page size of 20.
-        //      we need to implement proper cursor-based pagination in the performance artifacts table.
-        pageSize: '99999',
-      },
-      filterData,
-      filterOptions,
-    );
+  // Fetch performance artifacts from server with filtering and cursor-based pagination
+  const {
+    performanceArtifacts,
+    performanceArtifactsLoaded,
+    performanceArtifactsLoadError: performanceArtifactsError,
+  } = usePaginatedCatalogPerformanceArtifacts(
+    decodedParams.sourceId || '',
+    encodeURIComponent(`${decodedParams.modelName}`),
+    {
+      targetRPS,
+      latencyProperty,
+      recommendations: true,
+      pageSize: String(HARDWARE_CONFIG_PAGE_SIZE),
+      orderBy: tableSort.orderBy,
+      sortOrder: tableSort.sortOrder,
+    },
+    filterData,
+    filterOptions,
+  );
 
   // After defaults are applied on the details page, clear the "changed on details page" flag
   // and record the last viewed model name for the landing page alert content.
@@ -147,10 +160,36 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
               </FlexItem>
               <FlexItem>
                 <HardwareConfigurationTable
-                  performanceArtifacts={performanceArtifactsList.items}
-                  isLoading={!performanceArtifactsLoaded}
+                  performanceArtifacts={performanceArtifacts.items}
+                  isLoading={!performanceArtifactsLoaded && performanceArtifacts.items.length === 0}
+                  onSortChange={setTableSort}
                 />
               </FlexItem>
+              {performanceArtifacts.loadMoreError && (
+                <FlexItem>
+                  <Alert
+                    variant="danger"
+                    isInline
+                    title="Error loading more hardware configurations"
+                  >
+                    {performanceArtifacts.loadMoreError.message}
+                  </Alert>
+                </FlexItem>
+              )}
+              {performanceArtifacts.hasMore && (
+                <FlexItem>
+                  <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+                    <Button
+                      data-testid="hardware-config-load-more-button"
+                      variant="secondary"
+                      onClick={performanceArtifacts.loadMore}
+                      isLoading={performanceArtifacts.isLoadingMore}
+                    >
+                      Load more
+                    </Button>
+                  </Flex>
+                </FlexItem>
+              )}
             </Flex>
           </CardBody>
         </Card>

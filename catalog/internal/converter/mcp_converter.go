@@ -280,6 +280,16 @@ func ConvertOpenapiMCPToolToDb(openapiTool *openapi.MCPTool) models.MCPServerToo
 	return dbTool
 }
 
+// UnqualifyToolName strips the "serverName@version:" prefix from a qualified
+// tool name, returning just the tool name portion. If the name contains no
+// colon, it is returned unchanged.
+func UnqualifyToolName(name string) string {
+	if idx := strings.LastIndex(name, ":"); idx != -1 {
+		return name[idx+1:]
+	}
+	return name
+}
+
 // ConvertDbMCPToolToOpenapi converts a database MCPServerTool to OpenAPI MCPTool.
 func ConvertDbMCPToolToOpenapi(dbTool models.MCPServerTool) *openapi.MCPTool {
 	attr := dbTool.GetAttributes()
@@ -298,12 +308,7 @@ func ConvertDbMCPToolToOpenapi(dbTool models.MCPServerTool) *openapi.MCPTool {
 		accessType = "read_only" // default fallback to prevent API contract violation
 	}
 
-	// Strip internal qualified prefix (serverName@version:) from tool name before returning to API.
-	// The DB stores tools as "server@version:toolName" for uniqueness, but the API should return just "toolName".
-	toolName := *attr.Name
-	if idx := strings.LastIndex(toolName, ":"); idx != -1 {
-		toolName = toolName[idx+1:]
-	}
+	toolName := UnqualifyToolName(*attr.Name)
 
 	// Create OpenAPI tool with required fields
 	openapiTool := openapi.NewMCPTool(toolName, accessType)

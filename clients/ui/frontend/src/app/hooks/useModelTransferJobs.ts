@@ -3,7 +3,7 @@ import { useFetchState, FetchState, FetchStateCallbackPromise, POLL_INTERVAL } f
 import { ModelTransferJobList, ModelTransferJobStatus } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 
-const useModelTransferJobs = (): FetchState<ModelTransferJobList> => {
+const useModelTransferJobs = (jobNamespace?: string): FetchState<ModelTransferJobList> => {
   const { api, apiAvailable } = useModelRegistryAPI();
   const [hasActiveJobs, setHasActiveJobs] = React.useState(false);
 
@@ -12,7 +12,7 @@ const useModelTransferJobs = (): FetchState<ModelTransferJobList> => {
       if (!apiAvailable) {
         return Promise.reject(new Error('API not yet available'));
       }
-      return api.listModelTransferJobs(opts).then((result) => {
+      return api.listModelTransferJobs(opts, jobNamespace).then((result) => {
         const active = result.items.some(
           (job) =>
             job.status === ModelTransferJobStatus.RUNNING ||
@@ -22,7 +22,7 @@ const useModelTransferJobs = (): FetchState<ModelTransferJobList> => {
         return result;
       });
     },
-    [api, apiAvailable],
+    [api, apiAvailable, jobNamespace],
   );
 
   return useFetchState(

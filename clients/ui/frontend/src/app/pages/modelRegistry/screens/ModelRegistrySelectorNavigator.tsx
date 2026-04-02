@@ -6,10 +6,12 @@ import ModelRegistrySelector from './ModelRegistrySelector';
 
 type ModelRegistrySelectorNavigatorProps = {
   getRedirectPath: (namespace: string) => string;
+  children?: React.ReactNode;
 } & Omit<React.ComponentProps<typeof ModelRegistrySelector>, 'onSelection' | 'modelRegistry'>;
 
 const ModelRegistrySelectorNavigator: React.FC<ModelRegistrySelectorNavigatorProps> = ({
   getRedirectPath,
+  children,
   ...modelRegistrySelectorProps
 }) => {
   const navigate = useNavigate();
@@ -29,7 +31,9 @@ const ModelRegistrySelectorNavigator: React.FC<ModelRegistrySelectorNavigatorPro
         }
       }}
       modelRegistry={currentModelRegistry ?? ''}
-    />
+    >
+      {children}
+    </ModelRegistrySelector>
   );
 };
 

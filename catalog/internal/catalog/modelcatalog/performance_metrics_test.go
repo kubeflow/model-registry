@@ -2,6 +2,8 @@ package modelcatalog
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -1178,6 +1180,130 @@ func TestMetadataJSONEdgeCases(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBuildModelDirCache_CaseInsensitive(t *testing.T) {
+	// Create a temp directory structure with metadata.json files using mixed-case IDs
+	tmpDir := t.TempDir()
+
+	tests := []struct {
+		name      string
+		metaID    string // ID written to metadata.json
+		lookupKey string // key used to look up in cache (simulates DisplayNameFromStoredName output)
+		wantFound bool
+	}{
+		{
+			name:      "exact case match",
+			metaID:    "sarvam-30b-FP8-Dynamic",
+			lookupKey: "sarvam-30b-fp8-dynamic",
+			wantFound: true,
+		},
+		{
+			name:      "all uppercase metadata ID",
+			metaID:    "MODEL-ABC-FP16",
+			lookupKey: "model-abc-fp16",
+			wantFound: true,
+		},
+		{
+			name:      "already lowercase",
+			metaID:    "already-lowercase",
+			lookupKey: "already-lowercase",
+			wantFound: true,
+		},
+		{
+			name:      "mixed case with org prefix",
+			metaID:    "RedHatAI/Granite-3B-Code",
+			lookupKey: "redhatai/granite-3b-code",
+			wantFound: true,
+		},
+		{
+			name:      "no match returns not found",
+			metaID:    "some-model",
+			lookupKey: "different-model",
+			wantFound: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a subdirectory with a metadata.json for this test case
+			modelDir := filepath.Join(tmpDir, tt.name)
+			if err := os.MkdirAll(modelDir, 0o755); err != nil {
+				t.Fatalf("failed to create model dir: %v", err)
+			}
+			metaContent := `{"id": "` + tt.metaID + `"}`
+			if err := os.WriteFile(filepath.Join(modelDir, "metadata.json"), []byte(metaContent), 0o644); err != nil {
+				t.Fatalf("failed to write metadata.json: %v", err)
+			}
+
+			// Build cache with only this directory
+			loader := &PerformanceMetricsLoader{
+				path:          []string{modelDir},
+				modelDirCache: make(map[string]string),
+			}
+			if err := loader.buildModelDirCache(); err != nil {
+				t.Fatalf("buildModelDirCache() error = %v", err)
+			}
+
+			// Lookup using the lowercased key (same as Load does)
+			_, found := loader.modelDirCache[strings.ToLower(tt.lookupKey)]
+			if found != tt.wantFound {
+				t.Errorf("cache lookup for %q: got found=%v, want found=%v (cache keys: %v)",
+					tt.lookupKey, found, tt.wantFound, cacheKeys(loader.modelDirCache))
+			}
+		})
+	}
+}
+
+func TestBuildModelDirCache_CollisionWarning(t *testing.T) {
+	// Two directories with metadata IDs that differ only by case should result
+	// in the second overwriting the first (last-write-wins). The collision
+	// warning is logged but we verify the cache ends up with a single entry.
+	tmpDir := t.TempDir()
+
+	dir1 := filepath.Join(tmpDir, "dir1")
+	dir2 := filepath.Join(tmpDir, "dir2")
+	for _, d := range []string{dir1, dir2} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatalf("failed to create dir: %v", err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(dir1, "metadata.json"), []byte(`{"id": "Model-FP8"}`), 0o644); err != nil {
+		t.Fatalf("failed to write metadata.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir2, "metadata.json"), []byte(`{"id": "model-fp8"}`), 0o644); err != nil {
+		t.Fatalf("failed to write metadata.json: %v", err)
+	}
+
+	loader := &PerformanceMetricsLoader{
+		path:          []string{tmpDir},
+		modelDirCache: make(map[string]string),
+	}
+	if err := loader.buildModelDirCache(); err != nil {
+		t.Fatalf("buildModelDirCache() error = %v", err)
+	}
+
+	// Both IDs normalize to "model-fp8", so the cache should have exactly one entry
+	if len(loader.modelDirCache) != 1 {
+		t.Errorf("expected 1 cache entry after collision, got %d: %v", len(loader.modelDirCache), cacheKeys(loader.modelDirCache))
+	}
+	// filepath.Walk visits in lexicographic order, so dir2 (last-write) wins
+	cachedPath, found := loader.modelDirCache["model-fp8"]
+	if !found {
+		t.Fatalf("expected cache key %q, got keys: %v", "model-fp8", cacheKeys(loader.modelDirCache))
+	}
+	if cachedPath != dir2 {
+		t.Errorf("expected collision winner to be %s (last walked), got %s", dir2, cachedPath)
+	}
+}
+
+// cacheKeys returns all keys from a map for diagnostic output.
+func cacheKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func generateLongString(length int) string {

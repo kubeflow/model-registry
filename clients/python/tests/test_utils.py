@@ -166,6 +166,42 @@ def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
     assert not Path(temp_auth_file_info["path"]).exists()
 
 
+def test_save_to_oci_registry_preserves_dir_structure(mocker, tmp_path):
+    """Verify that subdirectories are passed as top-level entries, not flattened leaf files.
+
+    Regression test for https://github.com/kubeflow/model-registry/issues/2437
+    """
+    model_files_path = tmp_path / "my-model"
+    model_files_path.mkdir()
+    # Create nested structure: subdir with files + a top-level file
+    (model_files_path / "onnx").mkdir()
+    (model_files_path / "onnx" / "model.onnx").touch()
+    (model_files_path / "onnx" / "weights").mkdir()
+    (model_files_path / "onnx" / "weights" / "quantized.bin").touch()
+    (model_files_path / "tokenizer").mkdir()
+    (model_files_path / "tokenizer" / "vocab.txt").touch()
+    (model_files_path / "README.md").touch()
+    dest_dir = tmp_path / "dest"
+
+    mocker.patch("olot.backend.skopeo.skopeo_pull")
+    mocker.patch("olot.backend.skopeo.skopeo_push")
+    mock_layers = mocker.patch("olot.basics.oci_layers_on_top")
+
+    save_to_oci_registry(
+        base_image="busybox",
+        oci_ref="quay.io/example/example:latest",
+        model_files_path=model_files_path,
+        dest_dir=dest_dir,
+        backend="skopeo",
+    )
+
+    # oci_layers_on_top should receive top-level entries (directories + files),
+    # NOT recursively flattened individual files.
+    called_files = mock_layers.call_args.args[1]
+    called_names = sorted(p.name for p in called_files)
+    assert called_names == ["README.md", "onnx", "tokenizer"]
+
+
 @pytest.mark.e2e(type="oci")
 def test_save_to_oci_registry_auth_params(
     get_temp_dir_with_models,

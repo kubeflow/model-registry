@@ -18,14 +18,14 @@ import {
 } from './HardwareConfigurationTableColumns';
 
 /** Controlled sort props for the Table component */
-export interface ControlledTableSortProps {
+export type ControlledTableSortProps = {
   sortIndex: number;
   sortDirection: 'asc' | 'desc';
   onSortIndexChange: (index: number) => void;
   onSortDirectionChange: (direction: 'asc' | 'desc') => void;
-}
+};
 
-interface UseHardwareConfigColumnsResult {
+type UseHardwareConfigColumnsResult = {
   /** Final columns to render in the table (sticky + visible managed columns) */
   columns: HardwareConfigColumn[];
   /** Result from useManageColumns hook, to be passed directly to ManageColumnsModal */
@@ -34,8 +34,8 @@ interface UseHardwareConfigColumnsResult {
    * Lifted sort state.
    * Simplified by reusing the interface we'll use for the Table assertion.
    */
-  sortState: ControlledTableSortProps;
-}
+  sortState: ControlledTableSortProps & { sortColumnField: string | null };
+};
 
 /**
  * Check if a column field is a latency column (TTFT, E2E, ITL - not TPS)
@@ -145,8 +145,9 @@ export const useHardwareConfigColumns = (
     };
 
     return {
-      sortIndex: sortIndex >= 0 ? sortIndex : 0,
+      sortIndex,
       sortDirection,
+      sortColumnField,
       onSortIndexChange,
       onSortDirectionChange: setSortDirection,
     };
