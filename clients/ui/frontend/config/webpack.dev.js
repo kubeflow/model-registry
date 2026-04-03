@@ -26,36 +26,56 @@ const DEPLOYMENT_MODE = process.env._DEPLOYMENT_MODE;
 const AUTH_METHOD = process.env._AUTH_METHOD;
 const BASE_PATH = DEPLOYMENT_MODE === 'kubeflow' ? '/model-registry/' : PUBLIC_PATH;
 
-// Function to generate headers based on deployment mode
+// Get the kubeconfig token at startup as a fallback for standalone dev mode.
+const getKubeconfigToken = () => {
+  try {
+    const token = execSync(
+      "kubectl config view --raw --minify --flatten -o jsonpath='{.users[].user.token}'",
+    )
+      .toString()
+      .trim();
+    const username = execSync("kubectl auth whoami -o jsonpath='{.status.userInfo.username}'")
+      .toString()
+      .trim();
+    // eslint-disable-next-line no-console
+    console.info('Logged in as user:', username);
+    return token;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to get Kubernetes token:', error.message);
+    return '';
+  }
+};
+
+const fallbackToken = AUTH_METHOD === 'user_token' ? getKubeconfigToken() : '';
+
+// Build static proxy headers for auth methods that don't need dynamic forwarding.
 const getProxyHeaders = () => {
   if (AUTH_METHOD === 'internal') {
     return {
       'kubeflow-userid': 'user@example.com',
     };
   }
-  if (AUTH_METHOD === 'user_token') {
-    try {
-      const token = execSync(
-        "kubectl config view --raw --minify --flatten -o jsonpath='{.users[].user.token}'",
-      )
-        .toString()
-        .trim();
-      const username = execSync("kubectl auth whoami -o jsonpath='{.status.userInfo.username}'")
-        .toString()
-        .trim();
-      // eslint-disable-next-line no-console
-      console.info('Logged in as user:', username);
-      return {
-        Authorization: `Bearer ${token}`,
-        'x-forwarded-access-token': token,
-      };
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to get Kubernetes token:', error.message);
-      return {};
-    }
-  }
+  // For user_token, auth headers are set dynamically in onProxyReq below.
   return {};
+};
+
+// When using user_token auth, dynamically forward the authorization header from the
+// incoming request if present (e.g. from a host backend proxy with dev impersonation).
+// Fall back to the kubeconfig token captured at startup for standalone dev mode.
+const onProxyReq = (proxyReq, req) => {
+  if (AUTH_METHOD !== 'user_token') {
+    return;
+  }
+  const incomingAuth = req.headers.authorization;
+  if (incomingAuth) {
+    proxyReq.setHeader('Authorization', incomingAuth);
+    const token = incomingAuth.replace(/^Bearer\s+/i, '');
+    proxyReq.setHeader('x-forwarded-access-token', token);
+  } else if (fallbackToken) {
+    proxyReq.setHeader('Authorization', `Bearer ${fallbackToken}`);
+    proxyReq.setHeader('x-forwarded-access-token', fallbackToken);
+  }
 };
 
 module.exports = smp.wrap(
@@ -94,6 +114,7 @@ module.exports = smp.wrap(
             },
             changeOrigin: true,
             headers: getProxyHeaders(),
+            onProxyReq,
           },
         ],
         devMiddleware: {
