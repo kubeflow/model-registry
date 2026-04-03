@@ -302,7 +302,9 @@ class RegisterAndStoreFields {
   }
 
   /** Sets model type (required on register page). Uses Predictive by default. */
-  selectModelType(optionName: 'Predictive Model' | 'Generative AI model (Example, LLM)' = 'Predictive Model') {
+  selectModelType(
+    optionName: 'Predictive Model' | 'Generative AI model (Example, LLM)' = 'Predictive Model',
+  ) {
     cy.get('#register-model-type-toggle').click();
     cy.findByRole('option', { name: optionName }).click();
   }
