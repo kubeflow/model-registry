@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   DescriptionList,
   Divider,
+  Content,
   ContentVariants,
   Title,
   Bullseye,
@@ -33,6 +34,8 @@ import ModelDetailsCard from '~/app/pages/modelRegistry/screens/ModelVersions/Mo
 import ModelVersionRegisteredFromLink from '~/app/pages/modelRegistry/screens/components/ModelVersionRegisteredFromLink';
 import useModelTransferJobForArtifact from '~/app/hooks/useModelTransferJobForArtifact';
 import { modelSourcePropertiesToTransferJobParams } from '~/concepts/modelRegistry/utils';
+import { formatModelTypeDisplay } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getModelTypeRawStringFromCustomProperties } from '~/app/pages/modelRegistry/screens/RegisterModel/registerModelTypeUtils';
 import StorageLocationSection from './StorageLocationSection';
 
 type ModelVersionDetailsViewProps = {
@@ -63,6 +66,10 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   const isTransferJobSource = !!transferJobParams;
   const [transferJob, transferJobLoaded, transferJobError, refreshTransferJob] =
     useModelTransferJobForArtifact(transferJobParams);
+
+  const versionPageModelTypeRaw =
+    getModelTypeRawStringFromCustomProperties(registeredModel?.customProperties) ??
+    getModelTypeRawStringFromCustomProperties(mv.customProperties);
 
   if (!modelArtifactsLoaded) {
     return (
@@ -105,6 +112,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             refresh={refresh}
             isArchiveModel={isArchiveVersion}
             isExpandable
+            modelTypeFallbackCustomProperties={mv.customProperties}
           />
         </StackItem>
       )}
@@ -117,6 +125,11 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             <Sidebar hasBorder hasGutter isPanelRight>
               <SidebarContent>
                 <DescriptionList>
+                  <DashboardDescriptionListGroup title="Model type">
+                    <Content component="p" data-testid="model-version-model-type">
+                      {formatModelTypeDisplay(versionPageModelTypeRaw)}
+                    </Content>
+                  </DashboardDescriptionListGroup>
                   <EditableLabelsDescriptionListGroup
                     labels={getLabels(mv.customProperties)}
                     isArchive={isArchiveVersion}

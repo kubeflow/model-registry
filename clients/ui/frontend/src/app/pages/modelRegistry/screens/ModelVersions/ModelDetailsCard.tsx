@@ -20,18 +20,22 @@ import {
   DashboardDescriptionListGroup,
   EditableLabelsDescriptionListGroup,
 } from 'mod-arch-shared';
-import { RegisteredModel } from '~/app/types';
+import { ModelRegistryCustomProperties, RegisteredModel } from '~/app/types';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import ModelPropertiesExpandableSection from '~/app/pages/modelRegistry/screens/components/ModelPropertiesExpandableSection';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
+import { formatModelTypeDisplay } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getModelTypeRawStringFromCustomProperties } from '~/app/pages/modelRegistry/screens/RegisterModel/registerModelTypeUtils';
 
 type ModelDetailsCardProps = {
   registeredModel: RegisteredModel;
   refresh: () => void;
   isArchiveModel?: boolean;
   isExpandable?: boolean;
+  /** If `model_type` is absent on the registered model, read from these (e.g. version custom properties). */
+  modelTypeFallbackCustomProperties?: ModelRegistryCustomProperties;
 };
 
 const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
@@ -39,6 +43,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
   refresh,
   isArchiveModel,
   isExpandable,
+  modelTypeFallbackCustomProperties,
 }) => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -112,6 +117,10 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
     />
   );
 
+  const modelTypeRaw =
+    getModelTypeRawStringFromCustomProperties(rm.customProperties) ??
+    getModelTypeRawStringFromCustomProperties(modelTypeFallbackCustomProperties);
+
   const infoSection = (
     <>
       <DashboardDescriptionListGroup
@@ -145,6 +154,11 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         title="Created"
       >
         <ModelTimestamp timeSinceEpoch={rm.createTimeSinceEpoch} />
+      </DashboardDescriptionListGroup>
+      <DashboardDescriptionListGroup title="Model type">
+        <Content component="p" data-testid="registered-model-model-type">
+          {formatModelTypeDisplay(modelTypeRaw)}
+        </Content>
       </DashboardDescriptionListGroup>
     </>
   );

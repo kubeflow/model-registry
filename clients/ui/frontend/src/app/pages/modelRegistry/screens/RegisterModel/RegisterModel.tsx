@@ -160,6 +160,7 @@ const RegisterModel: React.FC = () => {
                 setData={setData}
                 hasModelNameError={hasModelNameError}
                 isModelNameDuplicate={isModelNameDuplicate}
+                isModelTypeRequired
               />
               <RegistrationCommonFormSections
                 formData={formData}

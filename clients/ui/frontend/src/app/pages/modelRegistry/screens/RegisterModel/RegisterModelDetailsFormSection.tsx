@@ -11,6 +11,7 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { MR_CHARACTER_LIMIT } from './const';
+import RegisterModelTypeField from './RegisterModelTypeField';
 import { RegisterModelFormData } from './useRegisterModelData';
 
 type RegisterModelDetailsFormSectionProp<D extends RegisterModelFormData> = {
@@ -18,12 +19,15 @@ type RegisterModelDetailsFormSectionProp<D extends RegisterModelFormData> = {
   setData: UpdateObjectAtPropAndValue<D>;
   hasModelNameError: boolean;
   isModelNameDuplicate?: boolean;
+  /** When true (MR register-from-registry), model type is required; submit stays disabled until set. */
+  isModelTypeRequired?: boolean;
 };
 const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   formData,
   setData,
   hasModelNameError,
   isModelNameDuplicate,
+  isModelTypeRequired = false,
 }: RegisterModelDetailsFormSectionProp<D>): React.ReactNode => {
   const modelNameInput = (
     <TextInput
@@ -75,6 +79,11 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
           </HelperText>
         </FormHelperText>
       </FormGroup>
+      <RegisterModelTypeField
+        modelCustomProperties={formData.modelCustomProperties}
+        onModelCustomPropertiesChange={(next) => setData('modelCustomProperties', next)}
+        isRequired={isModelTypeRequired}
+      />
     </FormSection>
   );
 };
