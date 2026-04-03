@@ -1,5 +1,6 @@
 import {
   RegisteredModelList,
+  ModelRegistryMetadataType,
   ModelTransferJobSourceType,
   ModelTransferJobDestinationType,
   ModelTransferJobUploadIntent,
@@ -9,12 +10,124 @@ import {
   isModelNameExisting,
   isNameValid,
   buildModelTransferJobPayload,
+  isRegisterModelSubmitDisabled,
+  isRegisterCatalogModelSubmitDisabled,
 } from '~/app/pages/modelRegistry/screens/RegisterModel/utils';
 import { MR_CHARACTER_LIMIT } from '~/app/pages/modelRegistry/screens/RegisterModel/const';
-import { ModelLocationType } from '~/app/pages/modelRegistry/screens/RegisterModel/useRegisterModelData';
+import {
+  ModelLocationType,
+  RegisterModelFormData,
+} from '~/app/pages/modelRegistry/screens/RegisterModel/useRegisterModelData';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
+import { CatalogModelCustomPropertyKey, ModelType } from '~/concepts/modelCatalog/const';
+
+/** Shared fields for registration utils tests (transfer job + submit-disabled). */
+const registrationFormTestBase = {
+  versionName: 'v1.0.0',
+  versionDescription: 'Test version',
+  sourceModelFormat: 'onnx',
+  sourceModelFormatVersion: '1.0',
+  modelLocationType: ModelLocationType.ObjectStorage,
+  modelLocationEndpoint: 'https://s3.amazonaws.com',
+  modelLocationBucket: 'test-bucket',
+  modelLocationRegion: 'us-east-1',
+  modelLocationPath: 'models/test',
+  modelLocationURI: '',
+  modelLocationS3AccessKeyId: '',
+  modelLocationS3SecretAccessKey: '',
+  registrationMode: RegistrationMode.RegisterAndStore,
+  namespace: 'test-namespace',
+  destinationOciRegistry: 'quay.io',
+  destinationOciUsername: '',
+  destinationOciPassword: '',
+  destinationOciUri: 'quay.io/org/model:v1',
+  jobName: 'test-job',
+  jobResourceName: 'test-job-resource',
+  versionCustomProperties: {},
+  additionalArtifactProperties: {},
+};
 
 describe('RegisterModel utils', () => {
+  const emptyRegisteredModelList = {
+    items: [],
+    size: 0,
+    pageSize: 20,
+    nextPageToken: '',
+  } as RegisteredModelList;
+
+  /** Register + URI path: only model type should gate MR submit when required. */
+  const mrRegisterForm = (
+    modelCustomProperties: RegisterModelFormData['modelCustomProperties'],
+  ): RegisterModelFormData => ({
+    ...registrationFormTestBase,
+    modelName: 'unique-new-model',
+    modelDescription: '',
+    registrationMode: RegistrationMode.Register,
+    modelLocationType: ModelLocationType.URI,
+    modelLocationURI: 'https://example.com/model.onnx',
+    modelLocationEndpoint: '',
+    modelLocationBucket: '',
+    modelLocationRegion: '',
+    modelLocationPath: '',
+    namespace: '',
+    destinationOciRegistry: '',
+    destinationOciUsername: '',
+    destinationOciPassword: '',
+    destinationOciUri: '',
+    jobName: '',
+    jobResourceName: '',
+    modelCustomProperties,
+    versionCustomProperties: {},
+  });
+
+  describe('isRegisterModelSubmitDisabled (model type)', () => {
+    it('disables submit until model type is selected when required', () => {
+      expect(isRegisterModelSubmitDisabled(mrRegisterForm({}), emptyRegisteredModelList)).toBe(
+        true,
+      );
+    });
+
+    it('allows submit once model type is set', () => {
+      expect(
+        isRegisterModelSubmitDisabled(
+          mrRegisterForm({
+            [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
+              metadataType: ModelRegistryMetadataType.STRING,
+              // eslint-disable-next-line camelcase
+              string_value: ModelType.GENERATIVE,
+            },
+          }),
+          emptyRegisteredModelList,
+        ),
+      ).toBe(false);
+    });
+
+    it('does not require model type when requireModelType is false (catalog)', () => {
+      expect(
+        isRegisterModelSubmitDisabled(
+          mrRegisterForm({}),
+          emptyRegisteredModelList,
+          undefined,
+          undefined,
+          {
+            requireModelType: false,
+          },
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('isRegisterCatalogModelSubmitDisabled', () => {
+    it('allows submit without model type when registry is selected', () => {
+      expect(
+        isRegisterCatalogModelSubmitDisabled(
+          { ...mrRegisterForm({}), modelRegistry: 'test-mr' },
+          emptyRegisteredModelList,
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe('isModelNameExisting', () => {
     const existingModelName = 'model2';
     const newModelName = 'model4';
@@ -41,34 +154,12 @@ describe('RegisterModel utils', () => {
   });
 
   describe('buildModelTransferJobPayload', () => {
-    const baseFormData = {
-      versionName: 'v1.0.0',
-      versionDescription: 'Test version',
-      sourceModelFormat: 'onnx',
-      sourceModelFormatVersion: '1.0',
-      modelLocationType: ModelLocationType.ObjectStorage,
-      modelLocationEndpoint: 'https://s3.amazonaws.com',
-      modelLocationBucket: 'test-bucket',
-      modelLocationRegion: 'us-east-1',
-      modelLocationPath: 'models/test',
-      modelLocationURI: '',
-      modelLocationS3AccessKeyId: '',
-      modelLocationS3SecretAccessKey: '',
-      registrationMode: RegistrationMode.RegisterAndStore,
-      namespace: 'test-namespace',
-      destinationOciRegistry: 'quay.io',
-      destinationOciUsername: '',
-      destinationOciPassword: '',
-      destinationOciUri: 'quay.io/org/model:v1',
-
-      jobName: 'test-job',
-      jobResourceName: 'test-job-resource',
-      versionCustomProperties: {},
-      additionalArtifactProperties: {},
-    };
-
     it('should build payload with S3 source for ObjectStorage location type', () => {
-      const formData = { ...baseFormData, modelName: 'Test Model', modelDescription: '' };
+      const formData = {
+        ...registrationFormTestBase,
+        modelName: 'Test Model',
+        modelDescription: '',
+      };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
@@ -85,7 +176,7 @@ describe('RegisterModel utils', () => {
 
     it('should build payload with URI source for URI location type', () => {
       const formData = {
-        ...baseFormData,
+        ...registrationFormTestBase,
         modelName: 'Test Model',
         modelDescription: '',
         modelLocationType: ModelLocationType.URI,
@@ -102,7 +193,11 @@ describe('RegisterModel utils', () => {
     });
 
     it('should build OCI destination correctly', () => {
-      const formData = { ...baseFormData, modelName: 'Test Model', modelDescription: '' };
+      const formData = {
+        ...registrationFormTestBase,
+        modelName: 'Test Model',
+        modelDescription: '',
+      };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
@@ -117,7 +212,11 @@ describe('RegisterModel utils', () => {
     });
 
     it('should set CREATE_MODEL intent and include model name', () => {
-      const formData = { ...baseFormData, modelName: 'My New Model', modelDescription: '' };
+      const formData = {
+        ...registrationFormTestBase,
+        modelName: 'My New Model',
+        modelDescription: '',
+      };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
@@ -129,7 +228,7 @@ describe('RegisterModel utils', () => {
     });
 
     it('should set CREATE_VERSION intent with registeredModelId', () => {
-      const formData = { ...baseFormData, registeredModelId: 'existing-model-123' };
+      const formData = { ...registrationFormTestBase, registeredModelId: 'existing-model-123' };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
@@ -144,7 +243,11 @@ describe('RegisterModel utils', () => {
     });
 
     it('should include namespace, author, and job resource name', () => {
-      const formData = { ...baseFormData, modelName: 'Test Model', modelDescription: '' };
+      const formData = {
+        ...registrationFormTestBase,
+        modelName: 'Test Model',
+        modelDescription: '',
+      };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
@@ -157,7 +260,11 @@ describe('RegisterModel utils', () => {
     });
 
     it('should set PENDING status and omit server-generated fields', () => {
-      const formData = { ...baseFormData, modelName: 'Test Model', modelDescription: '' };
+      const formData = {
+        ...registrationFormTestBase,
+        modelName: 'Test Model',
+        modelDescription: '',
+      };
       const payload = buildModelTransferJobPayload(
         formData,
         'test-author',
