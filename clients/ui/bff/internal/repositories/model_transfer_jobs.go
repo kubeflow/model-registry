@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -971,8 +972,7 @@ func buildSourceSecret(generateNamePrefix string, payload models.ModelTransferJo
 }
 
 func buildDestinationSecret(generateNamePrefix string, payload models.ModelTransferJob, jobID string) (*corev1.Secret, error) {
-	// NOTE: Due to async-upload bug, auth is NOT base64 encoded here
-	auth := fmt.Sprintf("%s:%s", payload.Destination.Username, payload.Destination.Password)
+	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", payload.Destination.Username, payload.Destination.Password)))
 
 	registry := payload.Destination.Registry
 	if registry == "" {
