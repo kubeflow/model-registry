@@ -2,30 +2,33 @@ import * as React from 'react';
 import { List, ListItem } from '@patternfly/react-core';
 import { kebabTableColumn, SortableData } from 'mod-arch-shared';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
+import {
+  TABLE_COLUMN_LABELS,
+  TABLE_COLUMN_POPOVERS,
+} from '~/app/pages/modelCatalogSettings/constants';
 
 export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = [
   {
     field: 'name',
-    label: 'Source name',
+    label: TABLE_COLUMN_LABELS.SOURCE_NAME,
     sortable: (a, b) => a.name.localeCompare(b.name),
     width: 15,
   },
   {
     field: 'allowedOrganization',
-    label: 'Organization',
+    label: TABLE_COLUMN_LABELS.ORGANIZATION,
     sortable: (a, b) =>
       ('allowedOrganization' in a ? (a.allowedOrganization ?? '') : '').localeCompare(
         'allowedOrganization' in b ? (b.allowedOrganization ?? '') : '',
       ),
     info: {
-      popover:
-        'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, meta-llama). Only models within this organization are included in the catalog.',
+      popover: TABLE_COLUMN_POPOVERS.ORGANIZATION,
     },
     width: 15,
   },
   {
     field: 'filters',
-    label: 'Model visibility',
+    label: TABLE_COLUMN_LABELS.MODEL_VISIBILITY,
     sortable: (a: CatalogSourceConfig, b: CatalogSourceConfig): number => {
       const aFiltered = (a.includedModels?.length ?? 0) + (a.excludedModels?.length ?? 0);
       const bFiltered = (b.includedModels?.length ?? 0) + (b.excludedModels?.length ?? 0);
@@ -54,23 +57,22 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
   },
   {
     field: 'type',
-    label: 'Source type',
+    label: TABLE_COLUMN_LABELS.SOURCE_TYPE,
     sortable: (a, b) => a.type.localeCompare(b.type),
     width: 15,
   },
   {
     field: 'enabled',
-    label: 'Enable',
+    label: TABLE_COLUMN_LABELS.ENABLE,
     sortable: (a, b) => Number(a.enabled ?? true) - Number(b.enabled ?? true),
     info: {
-      popover:
-        'Enable a source to make its models available to users in your organization from the model catalog.',
+      popover: TABLE_COLUMN_POPOVERS.ENABLE,
     },
     width: 10,
   },
   {
     field: 'status',
-    label: 'Validation status',
+    label: TABLE_COLUMN_LABELS.VALIDATION_STATUS,
     sortable: false,
     width: 10,
   },
