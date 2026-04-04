@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/platform/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/db/utils"
 	"gorm.io/gorm"
 )
 

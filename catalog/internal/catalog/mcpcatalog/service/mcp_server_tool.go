@@ -6,10 +6,10 @@ import (
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
+	service "github.com/kubeflow/model-registry/internal/platform/db/repository"
+	"github.com/kubeflow/model-registry/internal/platform/db/utils"
 	"gorm.io/gorm"
 )
 

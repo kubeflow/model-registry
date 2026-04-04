@@ -3,9 +3,9 @@ package models
 import (
 	"sync"
 
-	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	dbfilter "github.com/kubeflow/model-registry/internal/platform/db/filter"
+	models "github.com/kubeflow/model-registry/internal/platform/db/entity"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
 )
 
 type CatalogArtifactListOptions struct {

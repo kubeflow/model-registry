@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/platform/db/filter"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 )
 
 // MCPServerListOptions holds the options for listing MCP servers.

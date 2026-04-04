@@ -40,22 +40,22 @@ func TestCrossDatabaseILIKE(t *testing.T) {
 			queryBuilder := NewQueryBuilderForRestEntity(RestEntityExperiment, nil)
 
 			// Generate condition string
-			conditionResult := queryBuilder.buildConditionString(filterExpr)
+			conditionResult := queryBuilder.BuildConditionString(filterExpr)
 
 			t.Logf("Query: %s", tt.filterQuery)
-			t.Logf("Generated condition: %s", conditionResult.condition)
-			t.Logf("Generated args: %v", conditionResult.args)
+			t.Logf("Generated condition: %s", conditionResult.Condition)
+			t.Logf("Generated args: %v", conditionResult.Args)
 
 			// Verify UPPER() usage based on operator type
 			if strings.Contains(tt.filterQuery, "ILIKE") {
 				// For ILIKE conditions, verify UPPER() is used
-				if !strings.Contains(conditionResult.condition, "UPPER(") {
-					t.Errorf("Expected ILIKE to use UPPER() function, but got: %s", conditionResult.condition)
+				if !strings.Contains(conditionResult.Condition, "UPPER(") {
+					t.Errorf("Expected ILIKE to use UPPER() function, but got: %s", conditionResult.Condition)
 				}
 			} else if strings.Contains(tt.filterQuery, "LIKE") {
 				// For regular LIKE, verify UPPER() is NOT used
-				if strings.Contains(conditionResult.condition, "UPPER(") {
-					t.Errorf("Expected regular LIKE to not use UPPER() function, but got: %s", conditionResult.condition)
+				if strings.Contains(conditionResult.Condition, "UPPER(") {
+					t.Errorf("Expected regular LIKE to not use UPPER() function, but got: %s", conditionResult.Condition)
 				}
 			}
 		})

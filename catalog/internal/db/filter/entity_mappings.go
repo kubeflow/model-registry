@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/filter"
+	"github.com/kubeflow/model-registry/internal/platform/db/filter"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package

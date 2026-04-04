@@ -4,11 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/model-registry/internal/platform/datastore"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/db/scopes"
+	"github.com/kubeflow/model-registry/internal/platform/db/utils"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -97,7 +98,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where(utils.GetTableName(r.db, &schema.Artifact{})+".type_id = ?", typeID)
 	}
 
-	query, err := applyFilterQuery(query, &listOptions, nil)
+	query, err := applyFilterQuery(query, &listOptions, filter.DefaultEntityMappingFuncs())
 	if err != nil {
 		return nil, err
 	}
