@@ -25,12 +25,14 @@ labels:
     description: A broad collection of third-party, community, and admin-configured models.
 namedQueries:
   default-performance-filters:
-    "artifacts.use_case.string_value":
-      operator: "="
-      value: chatbot
-    "artifacts.requests_per_second.double_value":
-      operator: "<="
-      value: 1
-    "artifacts.ttft_p90.double_value":
-      operator: "<="
-      value: max
+    assetType: models
+    filters:
+      "artifacts.use_case.string_value":
+        operator: "="
+        value: chatbot
+      "artifacts.requests_per_second.double_value":
+        operator: "<="
+        value: 1
+      "artifacts.ttft_p90.double_value":
+        operator: "<="
+        value: max

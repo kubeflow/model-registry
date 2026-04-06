@@ -222,9 +222,12 @@ func (l *ModelLoader) updateSources(path string, config *basecatalog.SourceConfi
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
 
-	// Use MergeWithNamedQueries if named queries exist, otherwise use regular Merge
+	// Use MergeWithNamedQueries for named queries scoped to models; skip others.
 	if config.NamedQueries != nil {
-		return l.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+		filtered := basecatalog.FilterNamedQueriesByAssetType(config.NamedQueries, basecatalog.AssetTypeModels)
+		if len(filtered) > 0 {
+			return l.Sources.MergeWithNamedQueries(path, sources, filtered)
+		}
 	}
 	return l.Sources.Merge(path, sources)
 }
