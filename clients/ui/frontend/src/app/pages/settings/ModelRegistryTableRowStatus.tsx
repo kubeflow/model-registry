@@ -45,12 +45,14 @@ export const ModelRegistryTableRowStatus: React.FC<ModelRegistryTableRowStatusPr
   let statusLabel: string = ModelRegistryStatusLabel.Starting;
   let icon = <InProgressIcon />;
   let status: React.ComponentProps<typeof Label>['status'];
+  let color: React.ComponentProps<typeof Label>['color'] = 'blue';
   let popoverMessages: string[] = [];
   let popoverTitle = '';
 
   if (deletionTimestamp) {
     statusLabel = ModelRegistryStatusLabel.Stopping;
     icon = <InProgressIcon className="kubeflow-u-spin" />;
+    color = 'grey';
   } else if (Object.values(conditionsMap).length) {
     const {
       [ModelRegistryStatus.Available]: availableCondition,
@@ -76,11 +78,13 @@ export const ModelRegistryTableRowStatus: React.FC<ModelRegistryTableRowStatusPr
       statusLabel = ModelRegistryStatusLabel.Unavailable;
       icon = <ExclamationTriangleIcon />;
       status = 'warning';
+      color = undefined;
     }
     // Degrading
     else if (degradedCondition?.status === ConditionStatus.True) {
       statusLabel = ModelRegistryStatusLabel.Degrading;
       icon = <InProgressIcon className="kubeflow-u-spin" />;
+      color = 'grey';
       popoverTitle = 'Service is degrading';
     }
     // Ready
@@ -88,12 +92,12 @@ export const ModelRegistryTableRowStatus: React.FC<ModelRegistryTableRowStatusPr
       statusLabel = ModelRegistryStatusLabel.Ready;
       icon = <CheckCircleIcon />;
       status = 'success';
+      color = undefined;
     }
     // Starting
     else if (progressCondition?.status === ConditionStatus.True) {
       statusLabel = ModelRegistryStatusLabel.Starting;
       icon = <InProgressIcon className="kubeflow-u-spin" />;
-      status = 'info';
     }
   }
   // Handle popover logic for Unavailable status
@@ -136,6 +140,7 @@ export const ModelRegistryTableRowStatus: React.FC<ModelRegistryTableRowStatusPr
         : {})}
       data-testid="model-registry-label"
       icon={icon}
+      color={color}
       status={status}
       variant={isClickable ? 'filled' : 'outline'}
       isCompact

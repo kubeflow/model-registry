@@ -26,18 +26,19 @@ export const getStatusLabel = (
   status: ModelTransferJobStatus,
 ): {
   label: string;
-  color: React.ComponentProps<typeof Label>['color'];
+  color?: React.ComponentProps<typeof Label>['color'];
+  status?: React.ComponentProps<typeof Label>['status'];
   icon: React.ReactNode;
 } => {
   switch (status) {
     case ModelTransferJobStatus.COMPLETED:
-      return { label: 'Complete', color: 'green', icon: <CheckCircleIcon /> };
+      return { label: 'Complete', status: 'success', icon: <CheckCircleIcon /> };
     case ModelTransferJobStatus.RUNNING:
       return { label: 'Running', color: 'blue', icon: <InProgressIcon /> };
     case ModelTransferJobStatus.PENDING:
       return { label: 'Pending', color: 'purple', icon: <PendingIcon /> };
     case ModelTransferJobStatus.FAILED:
-      return { label: 'Failed', color: 'red', icon: <ExclamationCircleIcon /> };
+      return { label: 'Failed', status: 'danger', icon: <ExclamationCircleIcon /> };
     case ModelTransferJobStatus.CANCELLED:
       return { label: 'Canceled', color: 'grey', icon: <BanIcon /> };
     default:
@@ -139,6 +140,7 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
               <FlexItem>
                 <Label
                   color={statusInfo.color}
+                  status={statusInfo.status}
                   icon={statusInfo.icon}
                   data-testid="job-status"
                   variant="filled"

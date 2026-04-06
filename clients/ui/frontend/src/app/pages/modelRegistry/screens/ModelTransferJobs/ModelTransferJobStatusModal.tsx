@@ -88,7 +88,12 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
     <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
       <FlexItem>{getModalTitle(job.uploadIntent)}</FlexItem>
       <FlexItem>
-        <Label color={statusInfo.color} icon={statusInfo.icon} variant="outline">
+        <Label
+          color={statusInfo.color}
+          status={statusInfo.status}
+          icon={statusInfo.icon}
+          variant="outline"
+        >
           {statusInfo.label}
         </Label>
       </FlexItem>
