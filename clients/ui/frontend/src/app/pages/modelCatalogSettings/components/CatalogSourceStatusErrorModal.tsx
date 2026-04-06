@@ -26,7 +26,7 @@ const CatalogSourceStatusErrorModal: React.FC<CatalogSourceStatusErrorModalProps
     <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
       <FlexItem>Source status</FlexItem>
       <FlexItem>
-        <Label color="red" variant="outline" icon={<ExclamationCircleIcon />}>
+        <Label status="danger" variant="outline" icon={<ExclamationCircleIcon />}>
           Failed
         </Label>
       </FlexItem>

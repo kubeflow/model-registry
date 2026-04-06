@@ -3,17 +3,18 @@ import { getStatusLabel } from '~/app/pages/modelRegistry/screens/ModelTransferJ
 
 describe('getStatusLabel', () => {
   it.each([
-    [ModelTransferJobStatus.COMPLETED, 'Complete', 'green'],
-    [ModelTransferJobStatus.RUNNING, 'Running', 'blue'],
-    [ModelTransferJobStatus.PENDING, 'Pending', 'purple'],
-    [ModelTransferJobStatus.FAILED, 'Failed', 'red'],
-    [ModelTransferJobStatus.CANCELLED, 'Canceled', 'grey'],
+    [ModelTransferJobStatus.COMPLETED, 'Complete', undefined, 'success'],
+    [ModelTransferJobStatus.RUNNING, 'Running', 'blue', undefined],
+    [ModelTransferJobStatus.PENDING, 'Pending', 'purple', undefined],
+    [ModelTransferJobStatus.FAILED, 'Failed', undefined, 'danger'],
+    [ModelTransferJobStatus.CANCELLED, 'Canceled', 'grey', undefined],
   ])(
-    'returns correct label, color, and icon for %s status',
-    (status, expectedLabel, expectedColor) => {
+    'returns correct label, color/status, and icon for %s',
+    (status, expectedLabel, expectedColor, expectedStatus) => {
       const result = getStatusLabel(status);
       expect(result.label).toBe(expectedLabel);
       expect(result.color).toBe(expectedColor);
+      expect(result.status).toBe(expectedStatus);
       expect(result.icon).toBeDefined();
     },
   );
