@@ -1,5 +1,6 @@
 import json
 import os
+import tarfile
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -83,16 +84,24 @@ def test_s3_uri_builder_with_complete_env():
 
 
 @pytest.mark.e2e(type="oci")
-def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir):
+def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_deeply_nested_models, get_temp_dir):
+    """Verify OCI layers preserve directory structure with one layer per file.
+
+    Uses a real skopeo backend and local OCI registry. After save_to_oci_registry
+    runs, inspects the local OCI layout to confirm:
+    - Each model file is in its own layer (one layer per file)
+    - Subdirectory paths are preserved in tar arcnames (not flattened)
+    """
     base_image = "quay.io/mmortari/hello-world-wait:latest"
-    dest_dir, _ = get_temp_dir_with_models
+    model_dir, model_files = get_temp_dir_with_deeply_nested_models
     oci_ref = "localhost:5001/foo/bar:latest"
+    oci_dest = get_temp_dir
 
     save_to_oci_registry(
         base_image=base_image,
         oci_ref=oci_ref,
-        model_files_path=dest_dir,
-        dest_dir=get_temp_dir,
+        model_files_path=model_dir,
+        dest_dir=oci_dest,
         custom_oci_backend=utils._get_skopeo_backend(
             push_args=[
                 "--dest-tls-verify=false",
@@ -101,6 +110,58 @@ def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir
             ],
         ),
     )
+
+    # Inspect the OCI layout to verify layer structure.
+    # Walk from index.json to an image manifest with layers, handling both
+    # single-arch images (index -> manifest) and multi-arch images
+    # (index -> image index -> manifest).
+    oci_path = Path(oci_dest)
+    blobs = oci_path / "blobs" / "sha256"
+    index = json.loads((oci_path / "index.json").read_text())
+    digest = index["manifests"][0]["digest"].replace("sha256:", "")
+    manifest = json.loads((blobs / digest).read_text())
+    if "layers" not in manifest:
+        # Multi-arch: manifest is an image index, follow to first platform
+        digest = manifest["manifests"][0]["digest"].replace("sha256:", "")
+        manifest = json.loads((blobs / digest).read_text())
+
+    # Identify model layers added by olot (they have olot annotations).
+    # Base image layers don't have these annotations.
+    model_layers = [
+        layer for layer in manifest["layers"]
+        if "olot.layer.content.inlayerpath" in layer.get("annotations", {})
+    ]
+
+    # Each model file should be in its own layer (one layer per file)
+    assert len(model_layers) == len(model_files), (
+        f"Expected {len(model_files)} model layers (one per file), got {len(model_layers)}"
+    )
+
+    # Verify directory structure is preserved by checking the in-layer paths
+    in_layer_paths = sorted(
+        layer["annotations"]["olot.layer.content.inlayerpath"]
+        for layer in model_layers
+    )
+    expected_paths = sorted(
+        "/models/" + os.path.relpath(f, model_dir) for f in model_files
+    )
+    assert in_layer_paths == expected_paths, (
+        f"Directory structure not preserved.\n"
+        f"Expected: {expected_paths}\n"
+        f"Found:    {in_layer_paths}"
+    )
+
+    # Also verify the actual tar contents match the annotations
+    for layer in model_layers:
+        digest = layer["digest"].replace("sha256:", "")
+        blob_path = blobs / digest
+        with tarfile.open(blob_path, "r:") as tar:
+            file_entries = [m.name for m in tar.getmembers() if m.isfile()]
+            assert len(file_entries) == 1, (
+                f"Expected one file per layer tar, got {file_entries}"
+            )
+            expected_tar_path = layer["annotations"]["olot.layer.content.inlayerpath"].lstrip("/")
+            assert file_entries[0] == expected_tar_path
 
 
 def test_save_to_oci_registry_with_custom_backend(
@@ -167,9 +228,12 @@ def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
 
 
 def test_save_to_oci_registry_preserves_dir_structure(mocker, tmp_path):
-    """Verify that subdirectories are passed as top-level entries, not flattened leaf files.
+    """Verify one layer per file with correct directory structure via root_dir.
 
     Regression test for https://github.com/kubeflow/model-registry/issues/2437
+    With root_dir support we expect:
+    - One layer per individual file (not one layer per top-level subdir)
+    - Original directory structure preserved (paths relative to root_dir)
     """
     model_files_path = tmp_path / "my-model"
     model_files_path.mkdir()
@@ -195,11 +259,21 @@ def test_save_to_oci_registry_preserves_dir_structure(mocker, tmp_path):
         backend="skopeo",
     )
 
-    # oci_layers_on_top should receive top-level entries (directories + files),
-    # NOT recursively flattened individual files.
+    # oci_layers_on_top should receive individual files (one layer per file),
+    # NOT top-level directories (which would bundle multiple files per layer).
     called_files = mock_layers.call_args.args[1]
-    called_names = sorted(p.name for p in called_files)
-    assert called_names == ["README.md", "onnx", "tokenizer"]
+    called_rel_paths = sorted(
+        str(Path(f).relative_to(model_files_path)) for f in called_files
+    )
+    assert called_rel_paths == [
+        "README.md",
+        "onnx/model.onnx",
+        "onnx/weights/quantized.bin",
+        "tokenizer/vocab.txt",
+    ]
+
+    # root_dir must be passed so olot preserves the directory structure in layers
+    assert mock_layers.call_args.kwargs["root_dir"] == model_files_path
 
 
 @pytest.mark.e2e(type="oci")
