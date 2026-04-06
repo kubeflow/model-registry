@@ -35,14 +35,16 @@ class TestMCPServerNamedQueries:
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
+        kind_cluster: bool,
         named_query: str,
         expected_security_indicators: dict[str, bool],
     ):
         """TC-API-011: Test executing a named query filters servers by security indicators."""
         response = api_client.get_mcp_servers(named_query=named_query)
         items = response.get("items", [])
-        assert len(items) == 1, f"Expected 1 server matching '{named_query}', got {len(items)}"
-        assert items[0]["name"] == "calculator"
+        if kind_cluster:
+            assert len(items) == 1, f"Expected 1 server matching '{named_query}', got {len(items)}"
+            assert items[0]["name"] == "calculator"
 
         security_indicators = items[0].get("securityIndicators", {})
         for prop_name, expected_value in expected_security_indicators.items():

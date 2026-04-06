@@ -23,13 +23,15 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that all expected MCP servers are loaded with required fields."""
         response = api_client.get_mcp_servers()
         items = response.get("items", [])
         actual_names = {server["name"] for server in items}
-        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_names == expected_names
+        if kind_cluster:
+            expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
+            assert actual_names == expected_names
 
         for server in items:
             missing = MCP_SERVER_REQUIRED_FIELDS - server.keys()
@@ -40,12 +42,16 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that MCP server providers match expected values."""
         response = api_client.get_mcp_servers()
-        actual_providers = {s["name"]: s["provider"] for s in response["items"]}
-        expected_providers = {s["name"]: s["provider"] for s in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_providers == expected_providers
+        actual_providers = {server["name"]: server["provider"] for server in response["items"]}
+        expected_providers = {server["name"]: server["provider"] for server in test_mcp_catalog_data["mcp_servers"]}
+        if kind_cluster:
+            assert actual_providers == expected_providers
+        else:
+            assert set(expected_providers.items()).issubset(set(actual_providers.items()))
 
     def test_mcp_server_get_by_id(
         self,
@@ -67,13 +73,16 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test pagination by iterating all servers with pageSize=1."""
         expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         collected_names: set[str] = set()
         next_token = None
 
-        for _ in range(len(expected_names) + 1):
+        # Use a safe upper bound: on non-KinD environments there may be more servers
+        max_pages = len(expected_names) + 1 if kind_cluster else 100
+        for _ in range(max_pages):
             response = api_client.get_mcp_servers(page_size=1, next_page_token=next_token)
             items = response.get("items", [])
             assert len(items) == 1, f"Expected exactly 1 item per page, got {len(items)}"
@@ -86,7 +95,10 @@ class TestMCPServerBasics:
             if not next_token:
                 break
 
-        assert collected_names == expected_names
+        if kind_cluster:
+            assert collected_names == expected_names
+        else:
+            assert expected_names.issubset(collected_names)
 
     def test_filter_by_name(
         self,
