@@ -167,7 +167,10 @@ func (ml *MCPLoader) updateSources(path string, config *basecatalog.SourceConfig
 	}
 
 	if config.NamedQueries != nil {
-		return ml.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+		filtered := basecatalog.FilterNamedQueriesByAssetType(config.NamedQueries, basecatalog.AssetTypeMCPServers)
+		if len(filtered) > 0 {
+			return ml.Sources.MergeWithNamedQueries(path, sources, filtered)
+		}
 	}
 	return ml.Sources.Merge(path, sources)
 }

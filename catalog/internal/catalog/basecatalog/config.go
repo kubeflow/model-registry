@@ -57,8 +57,9 @@ type SourceConfig struct {
 	// Labels contains label definitions for the catalogs
 	Labels []map[string]any `yaml:"labels,omitempty" json:"labels,omitempty"`
 
-	// NamedQueries contains predefined query filters
-	NamedQueries map[string]map[string]FieldFilter `yaml:"namedQueries,omitempty" json:"namedQueries,omitempty"`
+	// NamedQueries contains predefined query filters, optionally scoped by asset type.
+	// See NamedQuery for the supported YAML formats.
+	NamedQueries map[string]NamedQuery `yaml:"namedQueries,omitempty" json:"namedQueries,omitempty"`
 
 	// DEPRECATED: Use ModelCatalogs instead
 	// This field is maintained for backwards compatibility

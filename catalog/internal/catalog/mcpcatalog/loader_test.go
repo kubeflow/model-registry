@@ -833,17 +833,19 @@ func TestMCPLoader_NamedQueriesFromConfig(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// A sources file that includes named queries
+	// A sources file that includes named queries scoped to mcp_servers
 	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
 	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
 namedQueries:
   production_ready:
-    verifiedSource:
-      operator: "="
-      value: true
-    version:
-      operator: ">="
-      value: "2"
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
+      version:
+        operator: ">="
+        value: "2"
 `), 0644)
 	require.NoError(t, err)
 
@@ -864,6 +866,48 @@ namedQueries:
 	assert.Equal(t, "2", pq["version"].Value)
 }
 
+func TestMCPLoader_ModelNamedQueriesExcluded(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	// A sources file with both model-scoped and MCP-scoped named queries
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  model-only-query:
+    assetType: models
+    filters:
+      artifacts.ttft_p90.double_value:
+        operator: "<="
+        value: 100
+  mcp-query:
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
+  default-query:
+    field:
+      operator: "="
+      value: "x"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	queries := loader.Sources.GetNamedQueries()
+	assert.Len(t, queries, 1, "MCP loader should only pick up mcp_servers-scoped named queries")
+	assert.Contains(t, queries, "mcp-query")
+	assert.NotContains(t, queries, "model-only-query")
+	assert.NotContains(t, queries, "default-query") // defaults to models
+}
+
 func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
 	_, services, cleanup := setupMCPLoaderTest(t)
 	defer cleanup()
@@ -874,9 +918,11 @@ func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
 	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
 namedQueries:
   bad_query:
-    name:
-      operator: "INVALID_OP"
-      value: "something"
+    assetType: mcp_servers
+    filters:
+      name:
+        operator: "INVALID_OP"
+        value: "something"
 `), 0644)
 	require.NoError(t, err)
 

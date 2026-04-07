@@ -41,14 +41,17 @@ labels:
 
 namedQueries:
   production_ready:
-    verifiedSource:
-      operator: "="
-      value: true
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
   security_focused:
-    sast:
-      operator: "="
-      value: true
-    readOnlyTools:
-      operator: "="
-      value: true
-
+    assetType: mcp_servers
+    filters:
+      sast:
+        operator: "="
+        value: true
+      readOnlyTools:
+        operator: "="
+        value: true
