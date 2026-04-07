@@ -282,6 +282,52 @@ def get_temp_dir_with_nested_models():
 
 
 @pytest.fixture
+def get_temp_dir_with_deeply_nested_models():
+    """Model directory with multiple levels of nesting to verify structure preservation.
+
+    Creates:
+        my-model/
+        ├── README.md
+        ├── onnx/
+        │   ├── model.onnx
+        │   └── weights/
+        │       └── quantized.bin
+        └── tokenizer/
+            ├── config.json
+            └── vocab.txt
+    """
+    temp_dir = tempfile.mkdtemp()
+    model_dir = os.path.join(temp_dir, "my-model")
+    os.makedirs(model_dir)
+
+    dirs = [
+        os.path.join(model_dir, "onnx"),
+        os.path.join(model_dir, "onnx", "weights"),
+        os.path.join(model_dir, "tokenizer"),
+    ]
+    for d in dirs:
+        os.makedirs(d)
+
+    file_entries = [
+        ("README.md", b"# My Model"),
+        ("onnx/model.onnx", b"fake-onnx-data"),
+        ("onnx/weights/quantized.bin", b"fake-weights-data"),
+        ("tokenizer/config.json", b'{"key": "value"}'),
+        ("tokenizer/vocab.txt", b"hello\nworld"),
+    ]
+    file_paths = []
+    for rel_path, content in file_entries:
+        full_path = os.path.join(model_dir, rel_path)
+        with open(full_path, "wb") as f:
+            f.write(content)
+        file_paths.append(full_path)
+
+    yield model_dir, file_paths
+
+    shutil.rmtree(temp_dir)
+
+
+@pytest.fixture
 def get_large_model_dir():
     """Creates a directory containing a large model file (300-500MB) for testing file size extremes."""
     temp_dir = tempfile.mkdtemp()
