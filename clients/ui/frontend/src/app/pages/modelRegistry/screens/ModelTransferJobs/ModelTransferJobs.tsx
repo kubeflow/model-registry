@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
+import { Alert, Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link, useParams } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelTransferJob } from '~/app/types';
@@ -13,6 +13,7 @@ import ModelRegistrySelectorNavigator from '~/app/pages/modelRegistry/screens/Mo
 import DeleteModal from '~/app/shared/components/DeleteModal';
 import ModelTransferJobsListView from './ModelTransferJobsListView';
 import RetryJobModal from './RetryJobModal';
+import JobNamespaceInput from './JobNamespaceInput';
 
 type ModelTransferJobsProps = Omit<
   React.ComponentProps<typeof ApplicationsPage>,
@@ -21,7 +22,16 @@ type ModelTransferJobsProps = Omit<
 
 const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) => {
   const { modelRegistry } = useParams<{ modelRegistry: string }>();
-  const [jobs, jobsLoaded, jobsLoadError, refetchJobs] = useModelTransferJobs();
+  const [jobNamespace, setJobNamespace] = React.useState<string | undefined>();
+  const [jobs, jobsLoaded, jobsLoadError, refetchJobs] = useModelTransferJobs(jobNamespace);
+
+  // TODO: Replace this string matching with proper error code detection once mod-arch-core's
+  // handleRestFailures is updated to preserve the HTTP status code from BFF error responses.
+  // Currently handleRestFailures discards the error code and only keeps the message string.
+  const isForbidden = jobsLoadError?.message.toLowerCase().includes('forbidden') ?? false;
+  const isInitialForbidden = isForbidden && !jobNamespace;
+  const isNamespaceForbidden = isForbidden && !!jobNamespace;
+  const needsNamespaceInput = isForbidden || !!jobNamespace;
   const { api, apiAvailable } = useModelRegistryAPI();
   const [jobToDelete, setJobToDelete] = React.useState<ModelTransferJob | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -98,20 +108,42 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
       }
       title="Model transfer jobs"
       description="Monitor the status of model transfer jobs. Model transfer jobs are created when you choose to store model artifacts at registration time. When a job is complete, the registered model version appears in the specified model registry."
-      loadError={jobsLoadError}
-      loaded={jobsLoaded}
+      loadError={isForbidden ? undefined : jobsLoadError}
+      loaded={isForbidden || jobsLoaded}
       provideChildrenPadding
       headerContent={
         <ModelRegistrySelectorNavigator
           getRedirectPath={(modelRegistryName) => modelTransferJobsUrl(modelRegistryName)}
-        />
+        >
+          {needsNamespaceInput && (
+            <JobNamespaceInput value={jobNamespace ?? ''} onChange={setJobNamespace} />
+          )}
+        </ModelRegistrySelectorNavigator>
       }
     >
-      <ModelTransferJobsListView
-        jobs={jobs.items}
-        onRequestDelete={onRequestDelete}
-        onRequestRetry={onRequestRetry}
-      />
+      {isInitialForbidden && (
+        <Alert
+          variant="info"
+          isInline
+          title="You do not have permission to list transfer jobs across all namespaces. Enter a namespace above to view transfer jobs in that namespace."
+          data-testid="initial-forbidden-alert"
+        />
+      )}
+      {isNamespaceForbidden && (
+        <Alert
+          variant="warning"
+          isInline
+          title={`You do not have permission to list jobs in namespace "${jobNamespace}". Try a different namespace.`}
+          data-testid="namespace-forbidden-alert"
+        />
+      )}
+      {!isForbidden && jobsLoaded && (
+        <ModelTransferJobsListView
+          jobs={jobs.items}
+          onRequestDelete={onRequestDelete}
+          onRequestRetry={onRequestRetry}
+        />
+      )}
       {jobToDelete && (
         <DeleteModal
           title="Delete model transfer job?"

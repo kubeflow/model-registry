@@ -128,7 +128,7 @@ type PerformanceMetricsLoader struct {
 	metricsArtifactRepo   dbmodels.CatalogMetricsArtifactRepository
 	modelTypeID           int32
 	metricsArtifactTypeID int32
-	// Cache of model ID -> directory path mapping to avoid repeated directory scans
+	// Cache of lowercase model ID -> directory path for case-insensitive lookups
 	modelDirCache map[string]string
 }
 
@@ -179,7 +179,7 @@ func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelR
 	return loader, nil
 }
 
-// buildModelDirCache scans directories once and builds a cache of model ID -> directory path
+// buildModelDirCache scans directories once and builds a cache of lowercase model ID -> directory path
 func (pml *PerformanceMetricsLoader) buildModelDirCache() error {
 	modelCount := 0
 	for _, rootPath := range pml.path {
@@ -213,9 +213,14 @@ func (pml *PerformanceMetricsLoader) buildModelDirCache() error {
 				return nil // Continue with other directories
 			}
 
-			// Add to cache
-			pml.modelDirCache[metadata.ID] = dirPath
-			modelCount++
+			// Add to cache (lowercase key for case-insensitive matching)
+			cacheKey := strings.ToLower(metadata.ID)
+			if existing, ok := pml.modelDirCache[cacheKey]; ok {
+				glog.Warningf("Case-insensitive cache collision: %q (dir: %s) overwrites existing entry (dir: %s)", metadata.ID, dirPath, existing)
+			} else {
+				modelCount++
+			}
+			pml.modelDirCache[cacheKey] = dirPath
 			glog.V(3).Infof("Cached model directory: %s -> %s", metadata.ID, dirPath)
 
 			return nil
@@ -243,8 +248,8 @@ func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProvi
 
 	// Namespaced name is source_id:model_name
 	namespacedName := *attrs.Name
-	// Resolve directory from cache: cache is keyed by metadata.ID (display name)
-	displayName := DisplayNameFromStoredName(namespacedName)
+	// Resolve directory from cache: cache is keyed by lowercase metadata.ID (display name)
+	displayName := strings.ToLower(DisplayNameFromStoredName(namespacedName))
 	dirPath, found := pml.modelDirCache[displayName]
 	if !found {
 		glog.V(2).Infof("No performance metrics directory found for model %s", namespacedName)

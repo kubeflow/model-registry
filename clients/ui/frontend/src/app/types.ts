@@ -218,7 +218,10 @@ export type PatchModelArtifact = (
   modelartifactId: string,
 ) => Promise<ModelArtifact>;
 
-export type GetListModelTransferJobs = (opts: APIOptions) => Promise<ModelTransferJobList>;
+export type GetListModelTransferJobs = (
+  opts: APIOptions,
+  jobNamespace?: string,
+) => Promise<ModelTransferJobList>;
 
 export type CreateModelTransferJob = (
   opts: APIOptions,

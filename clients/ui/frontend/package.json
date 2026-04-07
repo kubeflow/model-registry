@@ -100,7 +100,7 @@
     "@patternfly/react-templates": "^6.4.0",
     "classnames": "^2.2.6",
     "dompurify": "^3.3.2",
-    "lodash-es": "^4.17.23",
+    "lodash-es": "^4.18.1",
     "mod-arch-core": "~1.12.0",
     "mod-arch-kubeflow": "~1.12.0",
     "mod-arch-shared": "~1.12.0",
@@ -147,7 +147,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "npm-run-all": "^4.1.5",
-    "serve": "^14.2.5",
+    "serve": "^14.2.6",
     "ts-jest": "^29.4.0"
   }
 }

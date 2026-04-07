@@ -37,6 +37,7 @@ type ModelRegistrySelectorProps = {
   primary?: boolean;
   isFullWidth?: boolean;
   hasError?: boolean;
+  children?: React.ReactNode;
 };
 
 const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
@@ -45,6 +46,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   primary,
   isFullWidth,
   hasError,
+  children,
 }) => {
   const { modelRegistries, updatePreferredModelRegistry } = React.useContext(
     ModelRegistrySelectorContext,
@@ -185,6 +187,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
           </Popover>
         </FlexItem>
       )}
+      {children}
       <FlexItem align={{ default: 'alignRight' }}>
         <AdminHelpAction
           buttonLabel="Need another registry?"
