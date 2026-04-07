@@ -620,7 +620,7 @@ describe('Model version details', () => {
 
         modelVersionDetails
           .findStorageLocationUri()
-          .should('contain.text', 'quay.io/my-org/my-model:v1.0.0');
+          .should('contain.text', 'oci://quay.io/my-org/my-model:v1.0.0');
       });
 
       it('should show expandable source details with origin location', () => {
