@@ -8,9 +8,13 @@ To run these tests:
 3. Run: pytest --e2e tests/mcp_servers/test_filtering.py
 """
 
+import os
+
 import pytest
 
 from model_catalog import CatalogAPIClient, CatalogAPIError, CatalogNotFoundError
+
+_KIND_CLUSTER = os.getenv("KIND_CLUSTER", "True").lower() in ("true", "1", "yes")
 
 
 class TestMCPServerFiltering:
@@ -36,6 +40,7 @@ class TestMCPServerFiltering:
                 1,
                 {"calculator"},
                 id="boolean_flags",
+                marks=pytest.mark.skipif(not _KIND_CLUSTER, reason="Non-KinD environments have additional MCP sources"),
             ),
             pytest.param(
                 "license='MIT' AND (provider='Math Community' OR provider='Weather Community')",

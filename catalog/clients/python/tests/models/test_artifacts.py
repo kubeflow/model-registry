@@ -447,6 +447,7 @@ class TestArtifactsSorting:
         self,
         api_client: CatalogAPIClient,
         model_with_artifacts: tuple[str, str],
+        suppress_ssl_warnings: None,
         order_by: str,
         sort_order: str,
     ) -> None:
@@ -475,6 +476,7 @@ class TestArtifactsSorting:
         self,
         api_client: CatalogAPIClient,
         model_with_artifacts: tuple[str, str],
+        suppress_ssl_warnings: None,
         order_by: str,
         sort_order: str,
     ) -> None:
@@ -496,6 +498,7 @@ class TestArtifactsSorting:
         self,
         api_client: CatalogAPIClient,
         model_with_artifacts: tuple[str, str],
+        suppress_ssl_warnings: None
     ) -> None:
         """Test that sorting by a non-existing property falls back to ID ASC."""
         source_id, model_name = model_with_artifacts

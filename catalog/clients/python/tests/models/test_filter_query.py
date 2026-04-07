@@ -31,6 +31,8 @@ class TestFilterQuery:
         pattern matching, equality on JSON array property (tasks),
         and AND logic combining all conditions.
         """
+        if not kind_cluster:
+            pytest.skip(reason="Specific configuration is not applied on a live cluster")
         sizes = ("7B", "13B")
         filter_query = "size IN ('7B','13B') AND name ILIKE '%test%' AND tasks = 'text-generation'"
 
