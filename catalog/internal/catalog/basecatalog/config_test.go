@@ -1,10 +1,12 @@
 package basecatalog
 
 import (
+	"encoding/json"
 	"testing"
 
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSourceConfig_GetModelCatalogs(t *testing.T) {
@@ -206,4 +208,91 @@ func TestSourceConfig_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNamedQuery_UnmarshalJSON(t *testing.T) {
+	t.Run("legacy flat format", func(t *testing.T) {
+		data := []byte(`{"fieldA":{"operator":"=","value":"x"},"fieldB":{"operator":"<=","value":42}}`)
+		var nq NamedQuery
+		require.NoError(t, json.Unmarshal(data, &nq))
+		assert.Equal(t, "", nq.AssetType)
+		assert.Equal(t, "=", nq.Filters["fieldA"].Operator)
+		assert.Equal(t, "x", nq.Filters["fieldA"].Value)
+		assert.Equal(t, "<=", nq.Filters["fieldB"].Operator)
+		assert.Equal(t, float64(42), nq.Filters["fieldB"].Value)
+	})
+
+	t.Run("new format with assetType and filters", func(t *testing.T) {
+		data := []byte(`{"assetType":"mcp_servers","filters":{"verified":{"operator":"=","value":true}}}`)
+		var nq NamedQuery
+		require.NoError(t, json.Unmarshal(data, &nq))
+		assert.Equal(t, AssetTypeMCPServers, nq.AssetType)
+		assert.Equal(t, "=", nq.Filters["verified"].Operator)
+		assert.Equal(t, true, nq.Filters["verified"].Value)
+	})
+
+	t.Run("new format without assetType", func(t *testing.T) {
+		data := []byte(`{"filters":{"field":{"operator":">","value":0}}}`)
+		var nq NamedQuery
+		require.NoError(t, json.Unmarshal(data, &nq))
+		assert.Equal(t, "", nq.AssetType)
+		assert.Equal(t, ">", nq.Filters["field"].Operator)
+	})
+
+	t.Run("legacy format with field named 'filters' is interpreted as new format", func(t *testing.T) {
+		// Note: a legacy-format query with a field literally named "filters" triggers the
+		// new-format detection path because we use the presence of a "filters" key as the
+		// heuristic. In practice, "filters" is not a valid model metadata field name, so
+		// this edge case should never occur in real configurations.
+		data := []byte(`{"filters":{"operator":"=","value":"x"}}`)
+		var nq NamedQuery
+		// The "filters" key triggers new-format parsing, but its value {"operator":"=","value":"x"}
+		// cannot be decoded as map[string]FieldFilter, so unmarshaling fails.
+		err := json.Unmarshal(data, &nq)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid filters")
+	})
+}
+
+func TestFilterNamedQueriesByAssetType(t *testing.T) {
+	queries := map[string]NamedQuery{
+		"models-query": {
+			AssetType: AssetTypeModels,
+			Filters:   map[string]FieldFilter{"f": {Operator: "=", Value: "v"}},
+		},
+		"mcp-query": {
+			AssetType: AssetTypeMCPServers,
+			Filters:   map[string]FieldFilter{"f": {Operator: "=", Value: "v"}},
+		},
+		"default-query": {
+			// No AssetType — should default to AssetTypeModels
+			Filters: map[string]FieldFilter{"f": {Operator: "=", Value: "v"}},
+		},
+	}
+
+	t.Run("filter for models includes default", func(t *testing.T) {
+		result := FilterNamedQueriesByAssetType(queries, AssetTypeModels)
+		assert.Len(t, result, 2)
+		assert.Contains(t, result, "models-query")
+		assert.Contains(t, result, "default-query")
+		assert.NotContains(t, result, "mcp-query")
+	})
+
+	t.Run("filter for mcp_servers excludes default", func(t *testing.T) {
+		result := FilterNamedQueriesByAssetType(queries, AssetTypeMCPServers)
+		assert.Len(t, result, 1)
+		assert.Contains(t, result, "mcp-query")
+		assert.NotContains(t, result, "models-query")
+		assert.NotContains(t, result, "default-query")
+	})
+
+	t.Run("empty input returns empty map", func(t *testing.T) {
+		result := FilterNamedQueriesByAssetType(map[string]NamedQuery{}, AssetTypeModels)
+		assert.Empty(t, result)
+	})
+
+	t.Run("filters are the same map reference", func(t *testing.T) {
+		result := FilterNamedQueriesByAssetType(queries, AssetTypeModels)
+		assert.Equal(t, queries["models-query"].Filters, result["models-query"])
+	})
 }

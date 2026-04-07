@@ -56,17 +56,26 @@ var supportedOperators = map[string]bool{
 }
 
 // ValidateNamedQueries validates the structure and content of named queries
-func ValidateNamedQueries(namedQueries map[string]map[string]FieldFilter) error {
-	for queryName, fieldFilters := range namedQueries {
+func ValidateNamedQueries(namedQueries map[string]NamedQuery) error {
+	validAssetTypes := map[string]bool{
+		AssetTypeModels:     true,
+		AssetTypeMCPServers: true,
+	}
+
+	for queryName, nq := range namedQueries {
 		if queryName == "" {
 			return fmt.Errorf("named query name cannot be empty")
 		}
 
-		if len(fieldFilters) == 0 {
+		if nq.AssetType != "" && !validAssetTypes[nq.AssetType] {
+			return fmt.Errorf("named query '%s' has invalid assetType '%s' (valid values: %s, %s)", queryName, nq.AssetType, AssetTypeModels, AssetTypeMCPServers)
+		}
+
+		if len(nq.Filters) == 0 {
 			return fmt.Errorf("named query '%s' must contain at least one field filter", queryName)
 		}
 
-		for fieldName, filter := range fieldFilters {
+		for fieldName, filter := range nq.Filters {
 			if fieldName == "" {
 				return fmt.Errorf("field name cannot be empty in named query '%s'", queryName)
 			}

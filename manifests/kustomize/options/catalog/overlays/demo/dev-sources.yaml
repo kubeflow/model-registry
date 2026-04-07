@@ -46,27 +46,33 @@ namedQueries:
   # read_only_servers: servers whose tools only perform read operations.
   # Useful for environments where write-capable tools require additional approval.
   read_only_servers:
-    readOnlyTools:
-      operator: "="
-      value: true
+    assetType: mcp_servers
+    filters:
+      readOnlyTools:
+        operator: "="
+        value: true
 
   # fully_audited: servers that have a verified source, a secure endpoint,
   # and have passed static analysis security testing (SAST). These are the
   # highest-trust servers in the catalog.
   fully_audited:
-    verifiedSource:
-      operator: "="
-      value: true
-    secureEndpoint:
-      operator: "="
-      value: true
-    sast:
-      operator: "="
-      value: true
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
+      secureEndpoint:
+        operator: "="
+        value: true
+      sast:
+        operator: "="
+        value: true
 
   # remote_servers: servers hosted externally and accessed via a network
   # endpoint rather than deployed locally.
   remote_servers:
-    deploymentMode:
-      operator: "="
-      value: "remote"
+    assetType: mcp_servers
+    filters:
+      deploymentMode:
+        operator: "="
+        value: "remote"
