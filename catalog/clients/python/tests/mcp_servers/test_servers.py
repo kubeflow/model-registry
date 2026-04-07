@@ -29,10 +29,11 @@ class TestMCPServerBasics:
         response = api_client.get_mcp_servers()
         items = response.get("items", [])
         actual_names = {server["name"] for server in items}
+        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         if kind_cluster:
-            expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
             assert actual_names == expected_names
-
+        else:
+            assert set(expected_names).issubset(set(actual_names))
         for server in items:
             missing = MCP_SERVER_REQUIRED_FIELDS - server.keys()
             assert not missing, f"Server '{server.get('name')}' missing fields: {missing}"
