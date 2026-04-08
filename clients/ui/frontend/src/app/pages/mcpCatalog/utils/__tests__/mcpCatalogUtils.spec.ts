@@ -2,8 +2,20 @@ import {
   getMcpServerPrimaryEndpoint,
   getSecurityIndicatorLabels,
   hasMcpFiltersApplied,
+  isMcpRemoteDeploymentMode,
 } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+
+describe('isMcpRemoteDeploymentMode', () => {
+  it('returns true when mode is remote', () => {
+    expect(isMcpRemoteDeploymentMode('remote')).toBe(true);
+  });
+
+  it('returns false when mode is local or undefined', () => {
+    expect(isMcpRemoteDeploymentMode('local')).toBe(false);
+    expect(isMcpRemoteDeploymentMode(undefined)).toBe(false);
+  });
+});
 
 describe('getMcpServerPrimaryEndpoint', () => {
   it('returns undefined when endpoints missing or null', () => {

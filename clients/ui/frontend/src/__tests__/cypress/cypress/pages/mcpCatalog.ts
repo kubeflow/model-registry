@@ -122,6 +122,10 @@ class McpServerDetails {
     return cy.findByTestId('mcp-server-deployment-mode');
   }
 
+  findRemoteTitleLabel() {
+    return cy.findByTestId('mcp-server-details-remote-label');
+  }
+
   findEndpointCopy() {
     return cy.findByTestId('mcp-server-endpoint-copy');
   }

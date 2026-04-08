@@ -68,6 +68,23 @@ describe('MCP Server Details Page', () => {
 
       mcpServerDetails.findDescription().should('contain.text', kubernetesServer.description);
     });
+
+    it('should not show Remote title label for local deployment', () => {
+      mcpServerDetails.visit(kubernetesServer.id);
+      mcpServerDetails.findRemoteTitleLabel().should('not.exist');
+    });
+
+    it('should show Remote title label when deploymentMode is remote', () => {
+      const remoteServer = mockMcpServer({
+        id: 'remote-header-test',
+        name: 'GitHub',
+        deploymentMode: 'remote',
+      });
+      initServerDetailIntercept(remoteServer);
+      mcpServerDetails.visit(remoteServer.id);
+      mcpServerDetails.findRemoteTitleLabel().should('be.visible');
+      mcpServerDetails.findRemoteTitleLabel().should('contain.text', 'Remote');
+    });
   });
 
   describe('README card', () => {

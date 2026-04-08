@@ -1,9 +1,17 @@
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 import { BACKEND_TO_FRONTEND_FILTER_KEY, MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/const';
-import type { McpEndpoints, McpSecurityIndicator } from '~/app/mcpServerCatalogTypes';
+import type {
+  McpDeploymentMode,
+  McpEndpoints,
+  McpSecurityIndicator,
+} from '~/app/mcpServerCatalogTypes';
 
-/** Prefer HTTP URL, then SSE URL; undefined if missing or whitespace-only. */
-export function getMcpServerPrimaryEndpoint(endpoints?: McpEndpoints | null): string | undefined {
+export const isMcpRemoteDeploymentMode = (mode?: McpDeploymentMode): boolean =>
+  mode === 'remote';
+
+export const getMcpServerPrimaryEndpoint = (
+  endpoints?: McpEndpoints | null,
+): string | undefined => {
   if (!endpoints) {
     return undefined;
   }
@@ -16,7 +24,7 @@ export function getMcpServerPrimaryEndpoint(endpoints?: McpEndpoints | null): st
     return sse;
   }
   return undefined;
-}
+};
 
 const SECURITY_INDICATOR_LABELS: Record<keyof McpSecurityIndicator, string> = {
   verifiedSource: 'Verified source',
