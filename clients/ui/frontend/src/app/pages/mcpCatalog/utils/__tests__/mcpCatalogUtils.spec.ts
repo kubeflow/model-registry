@@ -17,9 +17,7 @@ describe('getMcpServerPrimaryEndpoint', () => {
   });
 
   it('prefers http over sse', () => {
-    expect(
-      getMcpServerPrimaryEndpoint({ http: 'https://a', sse: 'https://b' }),
-    ).toBe('https://a');
+    expect(getMcpServerPrimaryEndpoint({ http: 'https://a', sse: 'https://b' })).toBe('https://a');
   });
 
   it('falls back to sse when http empty', () => {
