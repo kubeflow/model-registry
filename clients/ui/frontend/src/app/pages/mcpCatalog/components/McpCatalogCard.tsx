@@ -14,7 +14,10 @@ import { TruncatedText } from 'mod-arch-shared';
 import { ApplicationsIcon } from '@patternfly/react-icons';
 import { Link, type LinkProps } from 'react-router-dom';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
-import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
+import {
+  getSecurityIndicatorLabels,
+  isMcpRemoteDeploymentMode,
+} from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import {
   McpCardIconType,
   McpCardIconByLabel,
@@ -36,9 +39,6 @@ const SecurityTag: React.FC<{ label: string }> = ({ label }) => (
 );
 
 const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) => {
-  const deploymentType =
-    server.deploymentMode === 'local' ? McpCardIconType.LOCAL_TO_CLUSTER : McpCardIconType.REMOTE;
-  const deploymentConfig = getMcpCardIconConfig(deploymentType);
   const securityLabels = getSecurityIndicatorLabels(server.securityIndicators);
   const serverId = server.id;
 
@@ -59,10 +59,10 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
               <ApplicationsIcon />
             </span>
           </FlexItem>
-          {server.deploymentMode === 'remote' && (
+          {isMcpRemoteDeploymentMode(server.deploymentMode) && (
             <FlexItem>
               <Label data-testid={`mcp-catalog-card-deployment-${serverId}`}>
-                {deploymentConfig.label}
+                {getMcpCardIconConfig(McpCardIconType.REMOTE).label}
               </Label>
             </FlexItem>
           )}
