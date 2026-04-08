@@ -1,8 +1,32 @@
 import {
+  getMcpServerPrimaryEndpoint,
   getSecurityIndicatorLabels,
   hasMcpFiltersApplied,
 } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+
+describe('getMcpServerPrimaryEndpoint', () => {
+  it('returns undefined when endpoints missing or null', () => {
+    expect(getMcpServerPrimaryEndpoint(undefined)).toBeUndefined();
+    expect(getMcpServerPrimaryEndpoint(null)).toBeUndefined();
+    expect(getMcpServerPrimaryEndpoint({})).toBeUndefined();
+  });
+
+  it('returns trimmed http when set', () => {
+    expect(getMcpServerPrimaryEndpoint({ http: '  host:8080  ' })).toBe('host:8080');
+  });
+
+  it('prefers http over sse', () => {
+    expect(
+      getMcpServerPrimaryEndpoint({ http: 'https://a', sse: 'https://b' }),
+    ).toBe('https://a');
+  });
+
+  it('falls back to sse when http empty', () => {
+    expect(getMcpServerPrimaryEndpoint({ http: '', sse: 'https://sse' })).toBe('https://sse');
+    expect(getMcpServerPrimaryEndpoint({ http: '   ', sse: 'https://sse' })).toBe('https://sse');
+  });
+});
 
 describe('getSecurityIndicatorLabels', () => {
   it('returns empty array when securityIndicators is undefined or null', () => {

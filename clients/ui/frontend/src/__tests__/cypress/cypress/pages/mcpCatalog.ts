@@ -122,6 +122,10 @@ class McpServerDetails {
     return cy.findByTestId('mcp-server-deployment-mode');
   }
 
+  findEndpointCopy() {
+    return cy.findByTestId('mcp-server-endpoint-copy');
+  }
+
   findTransportType() {
     return cy.findByTestId('mcp-server-transport-type');
   }

@@ -93,6 +93,25 @@ describe('MCP Server Details Page', () => {
       initServerDetailIntercept(kubernetesServer);
     });
 
+    it('should not display endpoint when API omits endpoints', () => {
+      mcpServerDetails.visit(kubernetesServer.id);
+      cy.findByTestId('mcp-server-endpoint-copy').should('not.exist');
+    });
+
+    it('should display endpoint with copy when endpoints are present', () => {
+      const host = 'splunk-mcp-server.demo-namespace.svc.cluster.local:8080';
+      const serverWithEndpoint = mockMcpServer({
+        id: 'endpoint-test-server',
+        name: 'Splunk MCP',
+        deploymentMode: 'remote',
+        endpoints: { http: host },
+      });
+      initServerDetailIntercept(serverWithEndpoint);
+      mcpServerDetails.visit(serverWithEndpoint.id);
+      mcpServerDetails.findEndpointCopy().should('be.visible');
+      mcpServerDetails.findEndpointCopy().find('input').should('have.value', host);
+    });
+
     it('should display labels, license, version, and deployment mode', () => {
       mcpServerDetails.visit(kubernetesServer.id);
 

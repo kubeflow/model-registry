@@ -1,6 +1,22 @@
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 import { BACKEND_TO_FRONTEND_FILTER_KEY, MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/const';
-import type { McpSecurityIndicator } from '~/app/mcpServerCatalogTypes';
+import type { McpEndpoints, McpSecurityIndicator } from '~/app/mcpServerCatalogTypes';
+
+/** Prefer HTTP URL, then SSE URL; undefined if missing or whitespace-only. */
+export function getMcpServerPrimaryEndpoint(endpoints?: McpEndpoints | null): string | undefined {
+  if (!endpoints) {
+    return undefined;
+  }
+  const http = endpoints.http?.trim();
+  if (http) {
+    return http;
+  }
+  const sse = endpoints.sse?.trim();
+  if (sse) {
+    return sse;
+  }
+  return undefined;
+}
 
 const SECURITY_INDICATOR_LABELS: Record<keyof McpSecurityIndicator, string> = {
   verifiedSource: 'Verified source',
