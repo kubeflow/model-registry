@@ -2545,6 +2545,9 @@ func GetMcpServerMocks() []models.McpServer {
 			SecureEndpoint: &trueVal,
 			ReadOnlyTools:  &trueVal,
 		},
+		Endpoints: &models.McpEndpoints{
+			HTTP: stringToPointer("https://api.mcpservers.org/grafana-mcp/v1"),
+		},
 	}
 
 	gitMcp := models.McpServer{

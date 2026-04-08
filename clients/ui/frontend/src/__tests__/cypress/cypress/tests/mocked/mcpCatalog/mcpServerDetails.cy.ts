@@ -68,6 +68,23 @@ describe('MCP Server Details Page', () => {
 
       mcpServerDetails.findDescription().should('contain.text', kubernetesServer.description);
     });
+
+    it('should not show Remote title label for local deployment', () => {
+      mcpServerDetails.visit(kubernetesServer.id);
+      mcpServerDetails.findRemoteTitleLabel().should('not.exist');
+    });
+
+    it('should show Remote title label when deploymentMode is remote', () => {
+      const remoteServer = mockMcpServer({
+        id: 'remote-header-test',
+        name: 'GitHub',
+        deploymentMode: 'remote',
+      });
+      initServerDetailIntercept(remoteServer);
+      mcpServerDetails.visit(remoteServer.id);
+      mcpServerDetails.findRemoteTitleLabel().should('be.visible');
+      mcpServerDetails.findRemoteTitleLabel().should('contain.text', 'Remote');
+    });
   });
 
   describe('README card', () => {
@@ -91,6 +108,25 @@ describe('MCP Server Details Page', () => {
   describe('Server details sidebar', () => {
     beforeEach(() => {
       initServerDetailIntercept(kubernetesServer);
+    });
+
+    it('should not display endpoint when API omits endpoints', () => {
+      mcpServerDetails.visit(kubernetesServer.id);
+      cy.findByTestId('mcp-server-endpoint-copy').should('not.exist');
+    });
+
+    it('should display endpoint with copy when endpoints are present', () => {
+      const host = 'splunk-mcp-server.demo-namespace.svc.cluster.local:8080';
+      const serverWithEndpoint = mockMcpServer({
+        id: 'endpoint-test-server',
+        name: 'Splunk MCP',
+        deploymentMode: 'remote',
+        endpoints: { http: host },
+      });
+      initServerDetailIntercept(serverWithEndpoint);
+      mcpServerDetails.visit(serverWithEndpoint.id);
+      mcpServerDetails.findEndpointCopy().should('be.visible');
+      mcpServerDetails.findEndpointCopy().find('input').should('have.value', host);
     });
 
     it('should display labels, license, version, and deployment mode', () => {
