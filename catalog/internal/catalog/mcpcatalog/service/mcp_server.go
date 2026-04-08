@@ -8,12 +8,12 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/pagination"
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/model-registry/internal/platform/db/dbutil"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/db/scopes"
+	service "github.com/kubeflow/model-registry/internal/platform/db/repository"
+	"github.com/kubeflow/model-registry/internal/platform/db/utils"
 	"gorm.io/gorm"
 )
 

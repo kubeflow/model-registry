@@ -9,14 +9,15 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/platform/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	platformproxy "github.com/kubeflow/model-registry/internal/platform/proxy"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/middleware"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
-	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/internal/platform/tls"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/spf13/cobra"
 )
@@ -74,12 +75,12 @@ type ConditionalModelRegistryHealthChecker struct {
 	holder *ModelRegistryServiceHolder
 }
 
-func (c *ConditionalModelRegistryHealthChecker) Check() proxy.HealthCheck {
+func (c *ConditionalModelRegistryHealthChecker) Check() platformproxy.HealthCheck {
 	service := c.holder.Get()
 	if service == nil {
-		return proxy.HealthCheck{
+		return platformproxy.HealthCheck{
 			Name:    proxy.HealthCheckModelRegistry,
-			Status:  proxy.StatusFail,
+			Status:  platformproxy.StatusFail,
 			Message: "model registry service not yet initialized",
 			Details: map[string]any{
 				"service_ready": false,
@@ -99,25 +100,25 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 	serviceHolder := &ModelRegistryServiceHolder{}
 
-	router := proxy.NewDynamicRouter()
+	router := platformproxy.NewDynamicRouter()
 
 	router.SetRouter(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
-	readyChecks := []proxy.HealthChecker{}
-	generalChecks := []proxy.HealthChecker{
+	readyChecks := []platformproxy.HealthChecker{}
+	generalChecks := []platformproxy.HealthChecker{
 		&ConditionalModelRegistryHealthChecker{holder: serviceHolder},
 	}
 
 	if proxyCfg.DatastoreType == "embedmd" {
-		dbHealthChecker := proxy.NewDatabaseHealthChecker()
+		dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 		readyChecks = append(readyChecks, dbHealthChecker)
 		generalChecks = append(generalChecks, dbHealthChecker)
 	}
 
-	generalReadinessHandler := proxy.GeneralReadinessHandler(generalChecks...)
-	readinessHandler := proxy.GeneralReadinessHandler(readyChecks...)
+	generalReadinessHandler := platformproxy.GeneralReadinessHandler(generalChecks...)
+	readinessHandler := platformproxy.GeneralReadinessHandler(readyChecks...)
 
 	// route health endpoints appropriately
 	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

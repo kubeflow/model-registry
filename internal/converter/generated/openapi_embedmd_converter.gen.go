@@ -7,15 +7,16 @@ import (
 	"fmt"
 	converter "github.com/kubeflow/model-registry/internal/converter"
 	models "github.com/kubeflow/model-registry/internal/db/models"
+	entity "github.com/kubeflow/model-registry/internal/platform/db/entity"
 	openapi "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type OpenAPIToEmbedMDConverterImpl struct{}
 
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertDataSet(source *converter.OpenAPIModelWrapper[openapi.DataSet]) (*models.BaseEntity[models.DataSetAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.DataSetAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertDataSet(source *converter.OpenAPIModelWrapper[openapi.DataSet]) (*entity.BaseEntity[models.DataSetAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.DataSetAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.DataSetAttributes]
+		var entityBaseEntity entity.BaseEntity[models.DataSetAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -25,40 +26,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDataSet(source *converter.OpenAPI
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapDataSetTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsDataSetAttributes, err := converter.MapDataSetAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsDataSetAttributes
-		pModelsPropertiesList, err := converter.MapDataSetPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsDataSetAttributes
+		pEntityPropertiesList, err := converter.MapDataSetPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertDocArtifact(source *converter.OpenAPIModelWrapper[openapi.DocArtifact]) (*models.BaseEntity[models.DocArtifactAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.DocArtifactAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertDocArtifact(source *converter.OpenAPIModelWrapper[openapi.DocArtifact]) (*entity.BaseEntity[models.DocArtifactAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.DocArtifactAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.DocArtifactAttributes]
+		var entityBaseEntity entity.BaseEntity[models.DocArtifactAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -68,40 +69,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDocArtifact(source *converter.Ope
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapDocArtifactTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsDocArtifactAttributes, err := converter.MapDocArtifactAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsDocArtifactAttributes
-		pModelsPropertiesList, err := converter.MapDocArtifactPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsDocArtifactAttributes
+		pEntityPropertiesList, err := converter.MapDocArtifactPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperiment(source *converter.OpenAPIModelWrapper[openapi.Experiment]) (*models.BaseEntity[models.ExperimentAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ExperimentAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperiment(source *converter.OpenAPIModelWrapper[openapi.Experiment]) (*entity.BaseEntity[models.ExperimentAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ExperimentAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ExperimentAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ExperimentAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -111,40 +112,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperiment(source *converter.Open
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapExperimentTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsExperimentAttributes, err := converter.MapExperimentAttributesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsExperimentAttributes
-		pModelsPropertiesList, err := converter.MapExperimentPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsExperimentAttributes
+		pEntityPropertiesList, err := converter.MapExperimentPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperimentRun(source *converter.OpenAPIModelWrapper[openapi.ExperimentRun]) (*models.BaseEntity[models.ExperimentRunAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ExperimentRunAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperimentRun(source *converter.OpenAPIModelWrapper[openapi.ExperimentRun]) (*entity.BaseEntity[models.ExperimentRunAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ExperimentRunAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ExperimentRunAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ExperimentRunAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -154,40 +155,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperimentRun(source *converter.O
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapExperimentRunTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsExperimentRunAttributes, err := converter.MapExperimentRunAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsExperimentRunAttributes
-		pModelsPropertiesList, err := converter.MapExperimentRunPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsExperimentRunAttributes
+		pEntityPropertiesList, err := converter.MapExperimentRunPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertInferenceService(source *converter.OpenAPIModelWrapper[openapi.InferenceService]) (*models.BaseEntity[models.InferenceServiceAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.InferenceServiceAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertInferenceService(source *converter.OpenAPIModelWrapper[openapi.InferenceService]) (*entity.BaseEntity[models.InferenceServiceAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.InferenceServiceAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.InferenceServiceAttributes]
+		var entityBaseEntity entity.BaseEntity[models.InferenceServiceAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -197,40 +198,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertInferenceService(source *converte
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapInferenceServiceTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsInferenceServiceAttributes, err := converter.MapInferenceServiceAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsInferenceServiceAttributes
-		pModelsPropertiesList, err := converter.MapInferenceServicePropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsInferenceServiceAttributes
+		pEntityPropertiesList, err := converter.MapInferenceServicePropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertMetric(source *converter.OpenAPIModelWrapper[openapi.Metric]) (*models.BaseEntity[models.MetricAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.MetricAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertMetric(source *converter.OpenAPIModelWrapper[openapi.Metric]) (*entity.BaseEntity[models.MetricAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.MetricAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.MetricAttributes]
+		var entityBaseEntity entity.BaseEntity[models.MetricAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -240,40 +241,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertMetric(source *converter.OpenAPIM
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapMetricTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsMetricAttributes, err := converter.MapMetricAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsMetricAttributes
-		pModelsPropertiesList, err := converter.MapMetricPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsMetricAttributes
+		pEntityPropertiesList, err := converter.MapMetricPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelArtifact(source *converter.OpenAPIModelWrapper[openapi.ModelArtifact]) (*models.BaseEntity[models.ModelArtifactAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ModelArtifactAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelArtifact(source *converter.OpenAPIModelWrapper[openapi.ModelArtifact]) (*entity.BaseEntity[models.ModelArtifactAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ModelArtifactAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ModelArtifactAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ModelArtifactAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -283,40 +284,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelArtifact(source *converter.O
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapModelArtifactTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsModelArtifactAttributes, err := converter.MapModelArtifactAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsModelArtifactAttributes
-		pModelsPropertiesList, err := converter.MapModelArtifactPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsModelArtifactAttributes
+		pEntityPropertiesList, err := converter.MapModelArtifactPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelVersion(source *converter.OpenAPIModelWrapper[openapi.ModelVersion]) (*models.BaseEntity[models.ModelVersionAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ModelVersionAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelVersion(source *converter.OpenAPIModelWrapper[openapi.ModelVersion]) (*entity.BaseEntity[models.ModelVersionAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ModelVersionAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ModelVersionAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ModelVersionAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -326,40 +327,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelVersion(source *converter.Op
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapModelVersionTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsModelVersionAttributes, err := converter.MapModelVersionAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsModelVersionAttributes
-		pModelsPropertiesList, err := converter.MapModelVersionPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsModelVersionAttributes
+		pEntityPropertiesList, err := converter.MapModelVersionPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertParameter(source *converter.OpenAPIModelWrapper[openapi.Parameter]) (*models.BaseEntity[models.ParameterAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ParameterAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertParameter(source *converter.OpenAPIModelWrapper[openapi.Parameter]) (*entity.BaseEntity[models.ParameterAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ParameterAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ParameterAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ParameterAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -369,40 +370,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertParameter(source *converter.OpenA
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapParameterTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsParameterAttributes, err := converter.MapParameterAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsParameterAttributes
-		pModelsPropertiesList, err := converter.MapParameterPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsParameterAttributes
+		pEntityPropertiesList, err := converter.MapParameterPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertRegisteredModel(source *converter.OpenAPIModelWrapper[openapi.RegisteredModel]) (*models.BaseEntity[models.RegisteredModelAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.RegisteredModelAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertRegisteredModel(source *converter.OpenAPIModelWrapper[openapi.RegisteredModel]) (*entity.BaseEntity[models.RegisteredModelAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.RegisteredModelAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.RegisteredModelAttributes]
+		var entityBaseEntity entity.BaseEntity[models.RegisteredModelAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -412,40 +413,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertRegisteredModel(source *converter
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapRegisteredModelTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsRegisteredModelAttributes, err := converter.MapRegisteredModelAttributesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsRegisteredModelAttributes
-		pModelsPropertiesList, err := converter.MapRegisteredModelPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsRegisteredModelAttributes
+		pEntityPropertiesList, err := converter.MapRegisteredModelPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertServeModel(source *converter.OpenAPIModelWrapper[openapi.ServeModel]) (*models.BaseEntity[models.ServeModelAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ServeModelAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertServeModel(source *converter.OpenAPIModelWrapper[openapi.ServeModel]) (*entity.BaseEntity[models.ServeModelAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ServeModelAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ServeModelAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ServeModelAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -455,40 +456,40 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertServeModel(source *converter.Open
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapServeModelTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsServeModelAttributes, err := converter.MapServeModelAttributesEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsServeModelAttributes
-		pModelsPropertiesList, err := converter.MapServeModelPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsServeModelAttributes
+		pEntityPropertiesList, err := converter.MapServeModelPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }
-func (c *OpenAPIToEmbedMDConverterImpl) ConvertServingEnvironment(source *converter.OpenAPIModelWrapper[openapi.ServingEnvironment]) (*models.BaseEntity[models.ServingEnvironmentAttributes], error) {
-	var pModelsBaseEntity *models.BaseEntity[models.ServingEnvironmentAttributes]
+func (c *OpenAPIToEmbedMDConverterImpl) ConvertServingEnvironment(source *converter.OpenAPIModelWrapper[openapi.ServingEnvironment]) (*entity.BaseEntity[models.ServingEnvironmentAttributes], error) {
+	var pEntityBaseEntity *entity.BaseEntity[models.ServingEnvironmentAttributes]
 	if source != nil {
-		var modelsBaseEntity models.BaseEntity[models.ServingEnvironmentAttributes]
+		var entityBaseEntity entity.BaseEntity[models.ServingEnvironmentAttributes]
 		var pString *string
 		if (*source).Model != nil {
 			pString = (*source).Model.Id
@@ -498,33 +499,33 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertServingEnvironment(source *conver
 			if err != nil {
 				return nil, fmt.Errorf("error setting field ID: %w", err)
 			}
-			modelsBaseEntity.ID = &xint32
+			entityBaseEntity.ID = &xint32
 		}
 		pInt32, err := converter.MapServingEnvironmentTypeIDEmbedMD(source)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field TypeID: %w", err)
 		}
-		modelsBaseEntity.TypeID = pInt32
+		entityBaseEntity.TypeID = pInt32
 		pModelsServingEnvironmentAttributes, err := converter.MapServingEnvironmentAttributesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Attributes: %w", err)
 		}
-		modelsBaseEntity.Attributes = pModelsServingEnvironmentAttributes
-		pModelsPropertiesList, err := converter.MapServingEnvironmentPropertiesEmbedMD((*source).Model)
+		entityBaseEntity.Attributes = pModelsServingEnvironmentAttributes
+		pEntityPropertiesList, err := converter.MapServingEnvironmentPropertiesEmbedMD((*source).Model)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field Properties: %w", err)
 		}
-		modelsBaseEntity.Properties = pModelsPropertiesList
+		entityBaseEntity.Properties = pEntityPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
 			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
-		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
+		pEntityPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
 			return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 		}
-		modelsBaseEntity.CustomProperties = pModelsPropertiesList2
-		pModelsBaseEntity = &modelsBaseEntity
+		entityBaseEntity.CustomProperties = pEntityPropertiesList2
+		pEntityBaseEntity = &entityBaseEntity
 	}
-	return pModelsBaseEntity, nil
+	return pEntityBaseEntity, nil
 }

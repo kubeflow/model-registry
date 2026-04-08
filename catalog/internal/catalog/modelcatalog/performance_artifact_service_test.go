@@ -8,8 +8,8 @@ import (
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/platform/apiutils"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

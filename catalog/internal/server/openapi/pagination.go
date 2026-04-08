@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/internal/platform/db/scopes"
 )
 
 // parsePaginationParams validates and parses pageSize and nextPageToken for DB-backed endpoints.

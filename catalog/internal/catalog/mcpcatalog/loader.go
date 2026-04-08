@@ -13,7 +13,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 )
 
 // MCPPartiallyAvailableError indicates that a source loaded some MCP servers successfully

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	platformmw "github.com/kubeflow/model-registry/internal/platform/server/middleware"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +22,7 @@ func TestValidationMiddleware(t *testing.T) {
 	})
 
 	// Wrap it with our middleware
-	handler := ValidationMiddleware(dummyHandler)
+	handler := platformmw.ValidationMiddleware(dummyHandler)
 
 	testCases := []struct {
 		name           string
@@ -113,7 +114,7 @@ func TestValidationMiddleware_RequestBody(t *testing.T) {
 	})
 
 	// Wrap it with our middleware
-	handler := ValidationMiddleware(dummyHandler)
+	handler := platformmw.ValidationMiddleware(dummyHandler)
 
 	testCases := []struct {
 		name           string

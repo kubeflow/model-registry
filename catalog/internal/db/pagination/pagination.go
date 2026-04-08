@@ -3,7 +3,7 @@ package pagination
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/internal/platform/db/scopes"
 	"gorm.io/gorm"
 )
 

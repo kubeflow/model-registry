@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/datastore"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/datastore"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
