@@ -6,8 +6,7 @@ import type {
   McpSecurityIndicator,
 } from '~/app/mcpServerCatalogTypes';
 
-export const isMcpRemoteDeploymentMode = (mode?: McpDeploymentMode): boolean =>
-  mode === 'remote';
+export const isMcpRemoteDeploymentMode = (mode?: McpDeploymentMode): boolean => mode === 'remote';
 
 export const getMcpServerPrimaryEndpoint = (
   endpoints?: McpEndpoints | null,
