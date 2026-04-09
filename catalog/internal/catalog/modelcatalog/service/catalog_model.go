@@ -306,6 +306,10 @@ func (r *CatalogModelRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
 	return sourceIDs, nil
 }
 
+func (r *CatalogModelRepositoryImpl) GetTypeID() int32 {
+	return r.GetConfig().TypeID
+}
+
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
 	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 

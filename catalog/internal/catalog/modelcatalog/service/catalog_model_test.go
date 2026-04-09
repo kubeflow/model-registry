@@ -1949,3 +1949,13 @@ func TestSortingFilteringEdgeCases(t *testing.T) {
 		assert.Equal(t, int32(2), result.Size)
 	})
 }
+
+func TestCatalogModelRepository_GetTypeID(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
+	defer cleanup()
+
+	typeID := getCatalogModelTypeID(t, sharedDB)
+	repo := NewCatalogModelRepository(sharedDB, typeID)
+
+	assert.Equal(t, typeID, repo.GetTypeID())
+}

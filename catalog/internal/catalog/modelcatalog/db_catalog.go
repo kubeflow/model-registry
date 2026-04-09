@@ -190,10 +190,15 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 }
 
 func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
-	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, 0)
+	catalogModelTypeID := d.catalogModelRepository.GetTypeID()
+
+	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, catalogModelTypeID)
 	if err != nil {
 		return nil, err
 	}
+	// Artifact type filtering uses 0 (all types) intentionally: models have multiple
+	// artifact types (kf.CatalogModelArtifact, kf.CatalogMetricsArtifact) so a single
+	// type ID cannot scope them. MCP servers have no artifact types, so no cross-contamination.
 	artifactProperties, err := d.propertyOptionsRepository.List(sharedmodels.ArtifactPropertyOptionType, 0)
 	if err != nil {
 		return nil, err

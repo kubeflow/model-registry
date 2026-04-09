@@ -8,10 +8,14 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
+	mcpcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	mcpservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/testhelpers"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	mr_models "github.com/kubeflow/model-registry/internal/db/models"
@@ -31,10 +35,10 @@ func TestDBCatalog(t *testing.T) {
 	defer cleanup()
 
 	// Get type IDs
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -1409,10 +1413,10 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	defer cleanup()
 
 	// Get type IDs
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -1529,9 +1533,15 @@ func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
 	err := sources.MergeWithNamedQueries("test", map[string]basecatalog.ModelSource{}, namedQueries)
 	require.NoError(t, err)
 
-	// Create catalog with mocked dependencies that provide filter options with ranges
+	// Use a realistic non-zero TypeID to validate that GetFilterOptions
+	// correctly scopes context property queries by type.
+	const mockTypeID int32 = 42
 	mockServices := service.Services{
-		PropertyOptionsRepository: &mockPropertyRepositoryWithRanges{},
+		CatalogModelRepository: &MockCatalogModelRepository{TypeID: mockTypeID},
+		PropertyOptionsRepository: &mockPropertyRepositoryWithRanges{
+			t:              t,
+			expectedTypeID: mockTypeID,
+		},
 	}
 	catalog := NewDBCatalog(mockServices, sources)
 
@@ -1566,21 +1576,20 @@ func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
 	assert.Equal(t, 0.0, rangeQuery["memory_usage"].Value, "Expected 'min' to be replaced with 0.0")
 }
 
-// Mock repository for testing
-type mockPropertyRepository struct{}
-
-func (m *mockPropertyRepository) List(optionType sharedmodels.PropertyOptionType, limit int32) ([]sharedmodels.PropertyOption, error) {
-	return []sharedmodels.PropertyOption{}, nil
+// Mock repository that provides filter options with numeric ranges for testing min/max transformation.
+// expectedTypeID, when non-zero, asserts the typeID passed to List for context properties.
+type mockPropertyRepositoryWithRanges struct {
+	t              *testing.T
+	expectedTypeID int32
 }
 
-func (m *mockPropertyRepository) Refresh(optionType sharedmodels.PropertyOptionType) error {
-	return nil
-}
-
-// Mock repository that provides filter options with numeric ranges for testing min/max transformation
-type mockPropertyRepositoryWithRanges struct{}
-
-func (m *mockPropertyRepositoryWithRanges) List(optionType sharedmodels.PropertyOptionType, limit int32) ([]sharedmodels.PropertyOption, error) {
+func (m *mockPropertyRepositoryWithRanges) List(optionType sharedmodels.PropertyOptionType, typeID int32) ([]sharedmodels.PropertyOption, error) {
+	if m.expectedTypeID != 0 && optionType == sharedmodels.ContextPropertyOptionType {
+		require.Equal(m.t, m.expectedTypeID, typeID, "expected context property query to be scoped by typeID")
+	}
+	if optionType == sharedmodels.ArtifactPropertyOptionType {
+		require.Equal(m.t, int32(0), typeID, "artifact property query should not be scoped by typeID")
+	}
 	// Return property options with numeric ranges that match the fields used in the test
 	minLatency := int64(10)
 	maxLatency := int64(500)
@@ -1933,10 +1942,10 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 	defer cleanup()
 
 	// Get type IDs
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -2077,4 +2086,124 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 		assert.NotEmpty(t, model.Name, "Model %d should have a name", i)
 		// Custom properties may or may not be set depending on performance data availability
 	}
+}
+
+// TestGetFilterOptions_NoMCPServerContamination verifies that the model catalog's
+// GetFilterOptions only returns properties from kf.CatalogModel contexts, not
+// properties from kf.MCPServer contexts. This is a regression test for the bug
+// where typeID=0 was passed to propertyOptionsRepository.List(), causing
+// cross-contamination between resource types.
+func TestGetFilterOptions_NoMCPServerContamination(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	// Get type IDs for both resource types
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	mcpServerTypeID := testhelpers.GetMCPServerTypeIDForDBTest(t, sharedDB)
+	mcpServerToolTypeID := testhelpers.GetMCPServerToolTypeIDForDBTest(t, sharedDB)
+
+	// Create repositories for both resource types
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
+		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
+		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
+	})
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
+	mcpServerRepo := mcpservice.NewMCPServerRepository(sharedDB, mcpServerTypeID)
+	mcpServerToolRepo := mcpservice.NewMCPServerToolRepository(sharedDB, mcpServerToolTypeID)
+	propertyOptionsRepo := service.NewPropertyOptionsRepository(sharedDB)
+
+	// Create a catalog model with model-specific properties
+	catalogModel := &models.CatalogModelImpl{
+		TypeID: apiutils.Of(catalogModelTypeID),
+		Attributes: &models.CatalogModelAttributes{
+			Name:       apiutils.Of("cross-test-source:cross-test-model"),
+			ExternalID: apiutils.Of("cross-test-model-ext"),
+		},
+		Properties: &[]mr_models.Properties{
+			{Name: "source_id", StringValue: apiutils.Of("cross-test-source")},
+			{Name: "license", StringValue: apiutils.Of("Apache-2.0")},
+			{Name: "provider", StringValue: apiutils.Of("TestProvider")},
+			{Name: "maturity", StringValue: apiutils.Of("stable")},
+		},
+	}
+	_, err := catalogModelRepo.Save(catalogModel)
+	require.NoError(t, err)
+
+	// Create an MCP server with MCP-specific properties
+	mcpServer := &mcpcatalogmodels.MCPServerImpl{
+		TypeID: apiutils.Of(mcpServerTypeID),
+		Attributes: &mcpcatalogmodels.MCPServerAttributes{
+			Name:       apiutils.Of("cross-test-mcp-server"),
+			ExternalID: apiutils.Of("cross-test-mcp-ext"),
+		},
+		Properties: &[]mr_models.Properties{
+			{Name: "source_id", StringValue: apiutils.Of("cross-test-mcp-source")},
+			{Name: "version", StringValue: apiutils.Of("1.0.0")},
+			{Name: "base_name", StringValue: apiutils.Of("cross-test-mcp-server")},
+			{Name: "deploymentMode", StringValue: apiutils.Of("remote")},
+		},
+	}
+	_, err = mcpServerRepo.Save(mcpServer)
+	require.NoError(t, err)
+
+	// Refresh the materialized views so property options reflect the new data
+	require.NoError(t, propertyOptionsRepo.Refresh(sharedmodels.ContextPropertyOptionType))
+	require.NoError(t, propertyOptionsRepo.Refresh(sharedmodels.ArtifactPropertyOptionType))
+
+	// Build model catalog services and call GetFilterOptions.
+	// NOTE: catalogModelArtifactRepository and catalogMetricsArtifactRepository are nil
+	// because GetFilterOptions does not access them. If GetFilterOptions is ever extended
+	// to use artifact repositories, this test will panic and must be updated with stubs.
+	svcs := service.NewServices(
+		catalogModelRepo,
+		catalogArtifactRepo,
+		nil, // catalogModelArtifactRepository — unused by GetFilterOptions
+		nil, // catalogMetricsArtifactRepository — unused by GetFilterOptions
+		catalogSourceRepo,
+		propertyOptionsRepo,
+		mcpServerRepo,
+		mcpServerToolRepo,
+	)
+	dbCatalog := NewDBCatalog(svcs, nil)
+
+	filterOptions, err := dbCatalog.GetFilterOptions(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, filterOptions)
+	require.NotNil(t, filterOptions.Filters)
+
+	filters := *filterOptions.Filters
+
+	// Model-specific properties SHOULD be present
+	assert.Contains(t, filters, "license", "model property 'license' should be present")
+	assert.Contains(t, filters, "provider", "model property 'provider' should be present")
+	assert.Contains(t, filters, "maturity", "model property 'maturity' should be present")
+
+	// MCP-specific properties MUST NOT be present
+	assert.NotContains(t, filters, "version", "MCP property 'version' must not appear in model filter_options")
+	assert.NotContains(t, filters, "base_name", "MCP property 'base_name' must not appear in model filter_options")
+	assert.NotContains(t, filters, "deploymentMode", "MCP property 'deploymentMode' must not appear in model filter_options")
+
+	// source_id is shared by both types but excluded by both catalogs' skip lists
+	assert.NotContains(t, filters, "source_id", "source_id should be excluded by the model catalog skip list")
+
+	// Reverse direction: verify MCP catalog's GetFilterOptions doesn't leak model properties
+	dbMCPCatalog := mcpcatalog.NewDBMCPCatalog(svcs, nil, nil)
+	mcpFilterOptions, err := dbMCPCatalog.GetFilterOptions(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, mcpFilterOptions)
+	require.NotNil(t, mcpFilterOptions.Filters)
+
+	mcpFilters := *mcpFilterOptions.Filters
+
+	// Model-specific properties MUST NOT appear in MCP filter_options
+	assert.NotContains(t, mcpFilters, "license", "model property 'license' must not appear in MCP filter_options")
+	assert.NotContains(t, mcpFilters, "provider", "model property 'provider' must not appear in MCP filter_options")
+	assert.NotContains(t, mcpFilters, "maturity", "model property 'maturity' must not appear in MCP filter_options")
+
+	// source_id is shared by both types but excluded by both catalogs' skip lists
+	assert.NotContains(t, mcpFilters, "source_id", "source_id should be excluded by the MCP catalog skip list")
 }
