@@ -699,6 +699,7 @@ type MockCatalogModelRepository struct {
 	mu          sync.RWMutex
 	SavedModels []models.CatalogModel
 	NextID      int32
+	TypeID      int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *MockCatalogModelRepository) GetByID(id int32) (models.CatalogModel, error) {
@@ -772,6 +773,10 @@ func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
 	defer m.mu.RUnlock()
 	// Mock implementation - return empty list by default
 	return []string{}, nil
+}
+
+func (m *MockCatalogModelRepository) GetTypeID() int32 {
+	return m.TypeID
 }
 
 // GetSavedModels returns a copy of the saved models slice in a thread-safe manner.
