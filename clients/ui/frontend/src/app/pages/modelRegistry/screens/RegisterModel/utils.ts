@@ -196,6 +196,7 @@ const isSubmitDisabledForCommonFields = (
   );
 };
 
+/** Submit disabled check for register-model flow. Pass `{ requireModelType: true }` when the UI collects model type. */
 export const isRegisterModelSubmitDisabled = (
   formData: RegisterModelFormData,
   registeredModels: RegisteredModelList,
@@ -203,7 +204,7 @@ export const isRegisterModelSubmitDisabled = (
   isNamespaceAccessLoading?: boolean,
   options?: { requireModelType?: boolean },
 ): boolean => {
-  const requireModelType = options?.requireModelType ?? true;
+  const requireModelType = options?.requireModelType ?? false;
   return (
     !formData.modelName ||
     isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||

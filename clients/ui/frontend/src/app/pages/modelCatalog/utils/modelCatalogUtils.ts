@@ -36,6 +36,10 @@ import {
 } from '~/concepts/modelCatalog/const';
 import { isSourceStatusWithModels } from '~/concepts/modelCatalogSettings/const';
 import { ModelRegistryCustomProperties, ModelRegistryMetadataType } from '~/app/types';
+import {
+  buildCustomPropertiesWithModelType,
+  getModelTypeStoredValueFromCustomProperties,
+} from '~/app/pages/modelRegistry/screens/RegisterModel/registerModelTypeUtils';
 
 /**
  * Prefix used by the backend for artifact-specific filter options.
@@ -782,19 +786,6 @@ export const formatModelTypeDisplay = (modelTypeRaw: string | null): string => {
 export const getCatalogModelTypePropertyForRegistration = (
   customProperties?: ModelRegistryCustomProperties,
 ): ModelRegistryCustomProperties => {
-  const prop = customProperties?.[CatalogModelCustomPropertyKey.MODEL_TYPE];
-  if (!prop || prop.metadataType !== ModelRegistryMetadataType.STRING) {
-    return {};
-  }
-  const normalized = prop.string_value.toLowerCase().trim();
-  if (normalized === ModelType.GENERATIVE || normalized === ModelType.PREDICTIVE) {
-    return {
-      [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
-        metadataType: ModelRegistryMetadataType.STRING,
-        // eslint-disable-next-line camelcase
-        string_value: normalized,
-      },
-    };
-  }
-  return {};
+  const stored = getModelTypeStoredValueFromCustomProperties(customProperties);
+  return buildCustomPropertiesWithModelType(undefined, stored);
 };

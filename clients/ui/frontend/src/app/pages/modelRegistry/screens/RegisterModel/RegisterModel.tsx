@@ -77,6 +77,7 @@ const RegisterModel: React.FC = () => {
       registeredModels,
       namespaceHasAccess,
       isNamespaceAccessLoading,
+      { requireModelType: true },
     );
 
   const handleSubmit = async () => {

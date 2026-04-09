@@ -43,7 +43,7 @@ const RegisterModelTypeField: React.FC<RegisterModelTypeFieldProps> = ({
   const stored = getModelTypeStoredValueFromCustomProperties(modelCustomProperties);
 
   const handleChange = (key: string, isPlaceholder: boolean) => {
-    if (isPlaceholder || key === MODEL_TYPE_PLACEHOLDER_KEY) {
+    if (isPlaceholder) {
       onModelCustomPropertiesChange(
         buildCustomPropertiesWithModelType(modelCustomProperties, undefined),
       );

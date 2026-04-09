@@ -81,13 +81,15 @@ describe('RegisterModel utils', () => {
   });
 
   describe('isRegisterModelSubmitDisabled (model type)', () => {
-    it('disables submit until model type is selected when required', () => {
-      expect(isRegisterModelSubmitDisabled(mrRegisterForm({}), emptyRegisteredModelList)).toBe(
-        true,
-      );
+    it('disables submit until model type is selected when requireModelType is true', () => {
+      expect(
+        isRegisterModelSubmitDisabled(mrRegisterForm({}), emptyRegisteredModelList, undefined, undefined, {
+          requireModelType: true,
+        }),
+      ).toBe(true);
     });
 
-    it('allows submit once model type is set', () => {
+    it('allows submit once model type is set when requireModelType is true', () => {
       expect(
         isRegisterModelSubmitDisabled(
           mrRegisterForm({
@@ -98,22 +100,17 @@ describe('RegisterModel utils', () => {
             },
           }),
           emptyRegisteredModelList,
+          undefined,
+          undefined,
+          { requireModelType: true },
         ),
       ).toBe(false);
     });
 
-    it('does not require model type when requireModelType is false (catalog)', () => {
-      expect(
-        isRegisterModelSubmitDisabled(
-          mrRegisterForm({}),
-          emptyRegisteredModelList,
-          undefined,
-          undefined,
-          {
-            requireModelType: false,
-          },
-        ),
-      ).toBe(false);
+    it('does not require model type by default', () => {
+      expect(isRegisterModelSubmitDisabled(mrRegisterForm({}), emptyRegisteredModelList)).toBe(
+        false,
+      );
     });
   });
 
