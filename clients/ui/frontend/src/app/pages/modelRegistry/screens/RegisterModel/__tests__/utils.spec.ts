@@ -83,9 +83,15 @@ describe('RegisterModel utils', () => {
   describe('isRegisterModelSubmitDisabled (model type)', () => {
     it('disables submit until model type is selected when requireModelType is true', () => {
       expect(
-        isRegisterModelSubmitDisabled(mrRegisterForm({}), emptyRegisteredModelList, undefined, undefined, {
-          requireModelType: true,
-        }),
+        isRegisterModelSubmitDisabled(
+          mrRegisterForm({}),
+          emptyRegisteredModelList,
+          undefined,
+          undefined,
+          {
+            requireModelType: true,
+          },
+        ),
       ).toBe(true);
     });
 

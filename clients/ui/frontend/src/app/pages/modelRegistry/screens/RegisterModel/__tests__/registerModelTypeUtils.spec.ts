@@ -127,22 +127,22 @@ describe('registerModelTypeUtils', () => {
 
     it('merges with base properties and overwrites model_type', () => {
       const base: ModelRegistryCustomProperties = {
-        other_key: stringProp('keep-me'),
+        otherKey: stringProp('keep-me'),
         [MODEL_TYPE_CUSTOM_PROPERTY_KEY]: stringProp(ModelType.GENERATIVE),
       };
       expect(buildCustomPropertiesWithModelType(base, ModelType.PREDICTIVE)).toEqual({
-        other_key: stringProp('keep-me'),
+        otherKey: stringProp('keep-me'),
         [MODEL_TYPE_CUSTOM_PROPERTY_KEY]: stringProp(ModelType.PREDICTIVE),
       });
     });
 
     it('removes model_type when next is undefined and preserves other keys', () => {
       const base: ModelRegistryCustomProperties = {
-        other_key: stringProp('keep-me'),
+        otherKey: stringProp('keep-me'),
         [MODEL_TYPE_CUSTOM_PROPERTY_KEY]: stringProp(ModelType.GENERATIVE),
       };
       expect(buildCustomPropertiesWithModelType(base, undefined)).toEqual({
-        other_key: stringProp('keep-me'),
+        otherKey: stringProp('keep-me'),
       });
     });
 
