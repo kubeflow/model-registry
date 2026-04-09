@@ -100,7 +100,7 @@ test-e2e:
 	CATALOG_URL=$${CATALOG_URL:-http://localhost:$(CATALOG_PORT)} poetry run pytest --e2e -v -rA
 
 .PHONY: test-fuzz
-test-fuzz:
+test-fuzz: deploy
 	CATALOG_URL=$${CATALOG_URL:-http://localhost:$(CATALOG_PORT)} poetry run pytest --fuzz -v
 
 .PHONY: lint
