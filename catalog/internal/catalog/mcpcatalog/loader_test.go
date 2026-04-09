@@ -2,7 +2,6 @@ package mcpcatalog
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,10 +11,9 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	mcpmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	mcpcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/catalog/internal/testhelpers"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,52 +24,16 @@ func TestMain(m *testing.M) {
 	os.Exit(testutils.TestMainPostgresHelper(m))
 }
 
-func getMCPServerTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
-}
-
-func getMCPServerToolTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerToolTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerToolTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
-}
-
 func setupMCPLoaderTest(t *testing.T) (*gorm.DB, service.Services, func()) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 
 	// Get type IDs
-	catalogModelTypeID := modelcatalog.GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := modelcatalog.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := modelcatalog.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := modelcatalog.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
-	mcpServerTypeID := getMCPServerTypeIDForTest(t, sharedDB)
-	mcpServerToolTypeID := getMCPServerToolTypeIDForTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	mcpServerTypeID := testhelpers.GetMCPServerTypeIDForDBTest(t, sharedDB)
+	mcpServerToolTypeID := testhelpers.GetMCPServerToolTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelcatalogservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)

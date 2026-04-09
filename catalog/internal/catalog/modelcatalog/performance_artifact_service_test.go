@@ -23,6 +23,7 @@ type mockPerfArtifactRepo struct {
 // mockPerfModelRepo is a testify mock implementation of CatalogModelRepository for performance tests
 type mockPerfModelRepo struct {
 	mock.Mock
+	TypeID int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *mockPerfModelRepo) GetByName(name string) (models.CatalogModel, error) {
@@ -52,6 +53,10 @@ func (m *mockPerfModelRepo) DeleteByID(id int32) error {
 
 func (m *mockPerfModelRepo) GetDistinctSourceIDs() ([]string, error) {
 	return nil, nil
+}
+
+func (m *mockPerfModelRepo) GetTypeID() int32 {
+	return m.TypeID
 }
 
 func (m *mockPerfArtifactRepo) GetByID(id int32) (sharedmodels.CatalogArtifact, error) {

@@ -66,6 +66,7 @@ type mockMCPServerRepo struct {
 	getErr     error
 	// capturedOptions stores the last MCPServerListOptions passed to List.
 	capturedOptions models.MCPServerListOptions
+	TypeID          int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *mockMCPServerRepo) List(opts models.MCPServerListOptions) (*internalmodels.ListWrapper[models.MCPServer], error) {
@@ -93,7 +94,7 @@ func (m *mockMCPServerRepo) DeleteByID(_ int32) error      { return errors.New("
 func (m *mockMCPServerRepo) GetDistinctSourceIDs() ([]string, error) {
 	return nil, errors.New("not implemented")
 }
-func (m *mockMCPServerRepo) GetTypeID() int32 { return 0 }
+func (m *mockMCPServerRepo) GetTypeID() int32 { return m.TypeID }
 
 // mockMCPServerToolRepo is a configurable MCPServerToolRepository for unit testing.
 type mockMCPServerToolRepo struct {
