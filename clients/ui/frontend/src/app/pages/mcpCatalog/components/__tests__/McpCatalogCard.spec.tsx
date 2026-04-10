@@ -82,10 +82,10 @@ describe('McpCatalogCard', () => {
 
   it('renders server logo when logo is provided', () => {
     render(
-      <McpCatalogCard
-        server={{ ...mockServer, id: '5', logo: 'https://example.com/logo.png' }}
-      />,
-      { wrapper },
+      <McpCatalogCard server={{ ...mockServer, id: '5', logo: 'https://example.com/logo.png' }} />,
+      {
+        wrapper,
+      },
     );
     const logo = screen.getByTestId('mcp-catalog-card-logo-5');
     expect(logo).toBeInTheDocument();
