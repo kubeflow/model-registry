@@ -177,10 +177,11 @@ describe('getProperties', () => {
     });
   });
 
-  it('should return with _lastModified and _registeredFrom props filtered out', () => {
+  it('should return with _lastModified, _registeredFrom, and model_type props filtered out', () => {
     const customProperties: ModelRegistryCustomProperties = {
       property1: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'non-empty' },
       _lastModified: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'non-empty' },
+      model_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'predictive' },
       _registeredFromSomething: {
         metadataType: ModelRegistryMetadataType.STRING,
         string_value: 'non-empty',
