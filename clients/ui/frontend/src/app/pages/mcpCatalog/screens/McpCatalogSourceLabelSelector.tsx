@@ -96,7 +96,7 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
                       data-testid="mcp-catalog-search-input"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
-                      placeholder="Search MCP servers..."
+                      placeholder="Search by name, keyword, or description"
                       value={inputValue}
                       onChange={handleSearchInputChange}
                       onSearch={handleSearchInputSearch}
