@@ -205,7 +205,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                 )}
                 {(server.sourceCode || server.repositoryUrl) && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>Source Code</DescriptionListTerm>
+                    <DescriptionListTerm>Source code</DescriptionListTerm>
                     <DescriptionListDescription>
                       {server.repositoryUrl ? (
                         <ExternalLink
