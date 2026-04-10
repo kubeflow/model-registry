@@ -148,7 +148,7 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 				return openapi.MCPServerList{}, fmt.Errorf("error loading tools for server %d: %w", *dbServer.GetID(), err)
 			}
 
-			apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+			apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools.Items)
 		} else {
 			apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 		}
@@ -206,7 +206,7 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 		if err != nil {
 			return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 		}
-		apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools.Items)
 	} else {
 		apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 	}
@@ -254,7 +254,7 @@ func (d *dbMCPCatalogImpl) ListMCPServerTools(ctx context.Context, serverID stri
 
 	// Convert to OpenAPI models
 	apiTools := make([]openapi.MCPTool, 0) // Initialize as empty slice, not nil
-	for _, dbTool := range tools {
+	for _, dbTool := range tools.Items {
 		apiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		if apiTool != nil {
 			apiTools = append(apiTools, *apiTool)
@@ -265,7 +265,7 @@ func (d *dbMCPCatalogImpl) ListMCPServerTools(ctx context.Context, serverID stri
 		Items:         apiTools,
 		Size:          int32(len(apiTools)),
 		PageSize:      params.PageSize,
-		NextPageToken: "", // TODO: Implement pagination token for tools
+		NextPageToken: tools.NextPageToken,
 	}, nil
 }
 
@@ -292,7 +292,7 @@ func (d *dbMCPCatalogImpl) GetMCPServerTool(ctx context.Context, serverID string
 
 	// Find tool by name. DB stores tools with a qualified prefix (serverName@version:toolName)
 	// for uniqueness, but the API exposes only the unqualified tool name.
-	for _, tool := range tools {
+	for _, tool := range tools.Items {
 		attrs := tool.GetAttributes()
 		if attrs == nil || attrs.Name == nil {
 			continue

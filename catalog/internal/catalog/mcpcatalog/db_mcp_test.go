@@ -98,7 +98,7 @@ func (m *mockMCPServerRepo) GetTypeID() int32 { return m.TypeID }
 
 // mockMCPServerToolRepo is a configurable MCPServerToolRepository for unit testing.
 type mockMCPServerToolRepo struct {
-	listResult  []models.MCPServerTool
+	listResult  *internalmodels.ListWrapper[models.MCPServerTool]
 	listErr     error
 	countResult int32
 	countErr    error
@@ -109,7 +109,7 @@ type mockMCPServerToolRepo struct {
 	capturedListOptions *models.MCPServerToolListOptions
 }
 
-func (m *mockMCPServerToolRepo) List(opts models.MCPServerToolListOptions) ([]models.MCPServerTool, error) {
+func (m *mockMCPServerToolRepo) List(opts models.MCPServerToolListOptions) (*internalmodels.ListWrapper[models.MCPServerTool], error) {
 	m.capturedListOptions = &opts
 	return m.listResult, m.listErr
 }
@@ -186,6 +186,10 @@ func makeTool(name string) models.MCPServerTool {
 	return &models.MCPServerToolImpl{
 		Attributes: &models.MCPServerToolAttributes{Name: serverName(name)},
 	}
+}
+
+func toolList(tools ...models.MCPServerTool) *internalmodels.ListWrapper[models.MCPServerTool] {
+	return &internalmodels.ListWrapper[models.MCPServerTool]{Items: tools}
 }
 
 func TestListMCPServers_NoNamedQuery(t *testing.T) {
@@ -443,7 +447,7 @@ func TestListMCPServers_IncludeToolsUsesAccurateCount(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1"), makeTool("tool-2")},
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -462,7 +466,7 @@ func TestListMCPServers_ToolLimitPassedAsPageSize(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1")},
+		listResult:  toolList(makeTool("tool-1")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -480,7 +484,7 @@ func TestListMCPServers_ZeroToolLimitDoesNotSetPageSize(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1"), makeTool("tool-2")},
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -500,7 +504,7 @@ func TestGetMCPServerTool_StripsQualifiedPrefix(t *testing.T) {
 	}
 	repo := &mockMCPServerRepo{getResult: serverEntity}
 	toolRepo := &mockMCPServerToolRepo{
-		listResult: []models.MCPServerTool{makeTool("dynatrace-mcp@1.6.1:list_problems")},
+		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -517,7 +521,7 @@ func TestGetMCPServerTool_NotFound(t *testing.T) {
 	}
 	repo := &mockMCPServerRepo{getResult: serverEntity}
 	toolRepo := &mockMCPServerToolRepo{
-		listResult: []models.MCPServerTool{makeTool("dynatrace-mcp@1.6.1:list_problems")},
+		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -534,7 +538,7 @@ func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
 	repo := &mockMCPServerRepo{getResult: serverEntity}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 10,
-		listResult:  []models.MCPServerTool{makeTool("tool-1")},
+		listResult:  toolList(makeTool("tool-1")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
