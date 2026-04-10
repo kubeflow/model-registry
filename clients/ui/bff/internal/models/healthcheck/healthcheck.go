@@ -1,4 +1,4 @@
-package models
+package healthcheck
 
 type SystemInfo struct {
 	Version string `json:"version"`
