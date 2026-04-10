@@ -284,27 +284,21 @@ func (d *dbMCPCatalogImpl) GetMCPServerTool(ctx context.Context, serverID string
 		return nil, fmt.Errorf("server not found with ID %s: %w", serverID, api.ErrNotFound)
 	}
 
-	// List all tools for the server and find the one with matching name
+	// Filter by name at the DB level. The DB stores qualified names (serverName@version:toolName)
+	// but the API exposes only the unqualified name, so we match by suffix using LIKE.
 	toolOptions := models.MCPServerToolListOptions{
 		ParentID: id,
+		ToolName: &toolName,
 	}
 	tools, err := d.mcpServerToolRepo.List(toolOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 	}
 
-	// Find tool by name. DB stores tools with a qualified prefix (serverName@version:toolName)
-	// for uniqueness, but the API exposes only the unqualified tool name.
-	for _, tool := range tools.Items {
-		attrs := tool.GetAttributes()
-		if attrs == nil || attrs.Name == nil {
-			continue
-		}
-		if converter.UnqualifyToolName(*attrs.Name) == toolName {
-			apiTool := converter.ConvertDbMCPToolToOpenapi(tool)
-			return apiTool, nil
-		}
+	if len(tools.Items) == 0 {
+		return nil, fmt.Errorf("tool '%s' not found in server %s: %w", toolName, serverID, api.ErrNotFound)
 	}
 
-	return nil, fmt.Errorf("tool '%s' not found in server %s: %w", toolName, serverID, api.ErrNotFound)
+	apiTool := converter.ConvertDbMCPToolToOpenapi(tools.Items[0])
+	return apiTool, nil
 }

@@ -181,6 +181,7 @@ func (c *MCPCatalogServiceAPIController) FindMCPServers(w http.ResponseWriter, r
 		param, err := parseNumericParameter[int32](
 			query.Get("toolLimit"),
 			WithParse[int32](parseInt32),
+			WithMinimum[int32](0),
 			WithMaximum[int32](100),
 		)
 		if err != nil {
@@ -276,6 +277,7 @@ func (c *MCPCatalogServiceAPIController) GetMCPServer(w http.ResponseWriter, r *
 		param, err := parseNumericParameter[int32](
 			query.Get("toolLimit"),
 			WithParse[int32](parseInt32),
+			WithMinimum[int32](0),
 			WithMaximum[int32](100),
 		)
 		if err != nil {

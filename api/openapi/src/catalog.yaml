@@ -2015,6 +2015,7 @@ components:
         type: integer
         format: int32
         default: 10
+        minimum: 0
         maximum: 100
       in: query
       required: false

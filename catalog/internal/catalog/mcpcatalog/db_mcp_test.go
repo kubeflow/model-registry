@@ -557,14 +557,33 @@ func TestGetMCPServerTool_NotFound(t *testing.T) {
 		Attributes: &models.MCPServerAttributes{Name: serverName("dynatrace-mcp")},
 	}
 	repo := &mockMCPServerRepo{getResult: serverEntity}
+	// DB-level filter returns empty when tool name doesn't match.
 	toolRepo := &mockMCPServerToolRepo{
-		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
+		listResult: toolList(),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
 	_, err := cat.GetMCPServerTool(context.Background(), "88", "nonexistent_tool")
 	require.Error(t, err)
 	assert.ErrorIs(t, err, api.ErrNotFound)
+}
+
+func TestGetMCPServerTool_PassesToolNameFilter(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(88),
+		Attributes: &models.MCPServerAttributes{Name: serverName("dynatrace-mcp")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServerTool(context.Background(), "88", "list_problems")
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called")
+	require.NotNil(t, toolRepo.capturedListOptions.ToolName, "ToolName should be set on list options")
+	assert.Equal(t, "list_problems", *toolRepo.capturedListOptions.ToolName)
 }
 
 func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {

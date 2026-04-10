@@ -10,6 +10,7 @@ import (
 type MCPServerToolListOptions struct {
 	dbmodels.Pagination
 	ParentID int32
+	ToolName *string
 }
 
 // GetRestEntityType implements the FilterApplier interface.

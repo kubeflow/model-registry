@@ -63,10 +63,16 @@ func applyMCPServerToolListFilters(query *gorm.DB, listOptions *models.MCPServer
 	associationTable := utils.GetTableName(query.Statement.DB, &schema.Association{})
 	executionTable := utils.GetTableName(query.Statement.DB, &schema.Execution{})
 
-	return query.
+	query = query.
 		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
 			associationTable, associationTable, executionTable)).
 		Where(fmt.Sprintf("%s.context_id = ?", associationTable), listOptions.ParentID)
+
+	if listOptions.ToolName != nil {
+		query = query.Where(fmt.Sprintf("%s.name LIKE ?", executionTable), fmt.Sprintf("%%:%s", *listOptions.ToolName))
+	}
+
+	return query
 }
 
 // Save creates or updates an MCP server tool.
