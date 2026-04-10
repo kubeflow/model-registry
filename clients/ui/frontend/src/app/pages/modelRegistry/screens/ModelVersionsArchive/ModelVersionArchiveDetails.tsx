@@ -74,7 +74,7 @@ const ModelVersionsArchiveDetails: React.FC<ModelVersionsArchiveDetailsProps> = 
           mv && (
             <Flex alignItems={{ default: 'alignItemsCenter' }}>
               <FlexItem>{mv.name}</FlexItem>
-              <Label>Archived</Label>
+              <Label variant="outline">Archived</Label>
             </Flex>
           )
         }

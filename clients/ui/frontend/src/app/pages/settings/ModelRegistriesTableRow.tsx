@@ -43,7 +43,10 @@ const ModelRegistriesTableRow: React.FC<ModelRegistriesTableRowProps> = ({
         )}
       </Td>
       <Td dataLabel="Status" style={{ verticalAlign: 'middle' }}>
-        <ModelRegistryTableRowStatus conditions={mr.status?.conditions} />
+        <ModelRegistryTableRowStatus
+          conditions={mr.status?.conditions}
+          deletionTimestamp={mr.metadata.deletionTimestamp}
+        />
       </Td>
       <Td modifier="fitContent" style={{ verticalAlign: 'middle' }}>
         {filteredRoleBindings.length === 0 ? (
