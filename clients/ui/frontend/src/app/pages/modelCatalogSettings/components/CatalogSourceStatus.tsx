@@ -54,7 +54,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
     case CatalogSourceStatusEnum.AVAILABLE:
       return (
         <Label status="success" data-testid={`source-status-connected-${catalogSourceConfig.id}`}>
-          Connected
+          Ready
         </Label>
       );
 
