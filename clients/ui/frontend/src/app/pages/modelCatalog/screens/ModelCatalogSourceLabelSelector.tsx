@@ -131,19 +131,22 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             : {})}
         >
           <ToolbarContent rowWrap={{ default: 'wrap' }}>
-            <Flex>
-              <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>
-                <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
-                  <ToolbarItem>
+            <Flex style={{ flex: 1 }}>
+              <ToolbarToggleGroup style={{ flex: 1 }} breakpoint="md" toggleIcon={<FilterIcon />}>
+                <ToolbarGroup
+                  variant="filter-group"
+                  style={{ flex: 1 }}
+                  gap={{ default: 'gapMd' }}
+                  alignItems="center"
+                  className="toolbar-fieldset-wrapper"
+                >
+                  <ToolbarItem style={{ flex: 1 }}>
                     <ThemeAwareSearchInput
                       data-testid="search-input"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
                       placeholder="Filter by name, description and provider"
                       value={inputValue}
-                      style={{
-                        minWidth: '600px',
-                      }}
                       onChange={handleSearchInputChange}
                       onSearch={handleSearchInputSearch}
                       onClear={handleClear}
