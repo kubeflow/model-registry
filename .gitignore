@@ -55,7 +55,8 @@ istio-*
 venv/
 .python-version
 
-# Claude code
+# AI agent tool configs (keep local, don't track)
+.cursor/
 .claude/
 
 **/go.work
