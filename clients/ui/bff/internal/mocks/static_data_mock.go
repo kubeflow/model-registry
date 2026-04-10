@@ -2399,6 +2399,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("0.9.2"),
 		License:     stringToPointer("Apache 2.0"),
 		LicenseLink: stringToPointer("https://www.apache.org/licenses/LICENSE-2.0"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/cncf/artwork/main/projects/prometheus/icon/color/prometheus-icon-color.svg"),
 		Tags:        []string{"metrics", "monitoring", "alerting"},
 		ToolCount:   15,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
@@ -2447,6 +2448,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("1.2.0"),
 		License:     stringToPointer("Apache 2.0"),
 		LicenseLink: stringToPointer("https://www.apache.org/licenses/LICENSE-2.0"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.svg"),
 		Tags:        []string{"kubernetes", "containers", "orchestration"},
 		ToolCount:   23,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP, models.McpTransportTypeSSE},
@@ -2533,6 +2535,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("1.1.0"),
 		License:     stringToPointer("AGPL-3.0"),
 		LicenseLink: stringToPointer("https://www.gnu.org/licenses/agpl-3.0.html"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg"),
 		Tags:        []string{"dashboards", "visualization", "monitoring"},
 		ToolCount:   12,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
@@ -2544,6 +2547,9 @@ func GetMcpServerMocks() []models.McpServer {
 			VerifiedSource: &trueVal,
 			SecureEndpoint: &trueVal,
 			ReadOnlyTools:  &trueVal,
+		},
+		Endpoints: &models.McpEndpoints{
+			HTTP: stringToPointer("https://api.mcpservers.org/grafana-mcp/v1"),
 		},
 	}
 
@@ -2599,6 +2605,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("0.8.1"),
 		License:     stringToPointer("BSD-3-Clause"),
 		LicenseLink: stringToPointer("https://opensource.org/licenses/BSD-3-Clause"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/redis/redis-io/master/public/images/redis-white.png"),
 		Tags:        []string{"cache", "database", "messaging"},
 		ToolCount:   14,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP, models.McpTransportTypeSSE},

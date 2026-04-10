@@ -27,11 +27,11 @@ import {
   getModelUriLabel,
   getModelUriPopoverContent,
   getSourceLabel,
-  getDestinationUri,
   getSourcePath,
 } from '~/app/utils';
 
 type StorageLocationSectionProps = {
+  artifactUri?: string;
   fallbackNamespace: string;
   transferJob: ModelTransferJob | null;
   transferJobLoaded: boolean;
@@ -117,6 +117,7 @@ const StorageLocationTitle: React.FC = () => (
 );
 
 const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
+  artifactUri,
   fallbackNamespace,
   transferJob,
   transferJobLoaded,
@@ -185,7 +186,6 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   const destType = transferJob.destination.type;
   const sourceType = transferJob.source.type;
   const namespace = transferJob.namespace || '';
-  const destinationUri = getDestinationUri(transferJob);
   const sourcePath = getSourcePath(transferJob);
   const sourceLabel = getSourceLabel(sourceType);
 
@@ -209,13 +209,15 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
           <DashboardDescriptionListGroup
             title={getModelUriLabel(destType)}
             popover={getModelUriPopoverContent(destType)}
-            isEmpty={!destinationUri}
+            isEmpty={!artifactUri}
             contentWhenEmpty="No URI"
           >
-            <InlineTruncatedClipboardCopy
-              testId="storage-location-uri"
-              textToCopy={destinationUri}
-            />
+            {artifactUri && (
+              <InlineTruncatedClipboardCopy
+                testId="storage-location-uri"
+                textToCopy={artifactUri}
+              />
+            )}
           </DashboardDescriptionListGroup>
         </DescriptionList>
       </StackItem>

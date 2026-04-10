@@ -207,7 +207,8 @@ func (e *MockRepositoryError) Error() string {
 }
 
 func TestSourceConfigNamedQueries(t *testing.T) {
-	yamlContent := `
+	t.Run("legacy flat format without assetType", func(t *testing.T) {
+		yamlContent := `
 catalogs: []
 namedQueries:
   validation-default:
@@ -222,18 +223,72 @@ namedQueries:
       operator: '>'
       value: 0.95
 `
-	var config basecatalog.SourceConfig
-	err := yaml.UnmarshalStrict([]byte(yamlContent), &config)
-	assert.NoError(t, err)
-	assert.NotNil(t, config.NamedQueries)
-	assert.Len(t, config.NamedQueries, 2)
+		var config basecatalog.SourceConfig
+		err := yaml.UnmarshalStrict([]byte(yamlContent), &config)
+		assert.NoError(t, err)
+		assert.NotNil(t, config.NamedQueries)
+		assert.Len(t, config.NamedQueries, 2)
 
-	validationQuery := config.NamedQueries["validation-default"]
-	assert.NotNil(t, validationQuery)
-	assert.Equal(t, "<", validationQuery["ttft_p90"].Operator)
-	assert.Equal(t, float64(70), validationQuery["ttft_p90"].Value)
-	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
-	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
+		validationQuery := config.NamedQueries["validation-default"]
+		assert.Equal(t, "", validationQuery.AssetType) // defaults to models when filtering
+		assert.Equal(t, "<", validationQuery.Filters["ttft_p90"].Operator)
+		assert.Equal(t, float64(70), validationQuery.Filters["ttft_p90"].Value)
+		assert.Equal(t, "=", validationQuery.Filters["workload_type"].Operator)
+		assert.Equal(t, "Chat", validationQuery.Filters["workload_type"].Value)
+	})
+
+	t.Run("new format with explicit assetType", func(t *testing.T) {
+		yamlContent := `
+catalogs: []
+namedQueries:
+  model-query:
+    assetType: models
+    filters:
+      ttft_p90:
+        operator: '<'
+        value: 70
+  mcp-query:
+    assetType: mcp_servers
+    filters:
+      verified:
+        operator: '='
+        value: true
+`
+		var config basecatalog.SourceConfig
+		err := yaml.UnmarshalStrict([]byte(yamlContent), &config)
+		assert.NoError(t, err)
+		assert.Len(t, config.NamedQueries, 2)
+
+		modelQuery := config.NamedQueries["model-query"]
+		assert.Equal(t, basecatalog.AssetTypeModels, modelQuery.AssetType)
+		assert.Equal(t, "<", modelQuery.Filters["ttft_p90"].Operator)
+
+		mcpQuery := config.NamedQueries["mcp-query"]
+		assert.Equal(t, basecatalog.AssetTypeMCPServers, mcpQuery.AssetType)
+		assert.Equal(t, "=", mcpQuery.Filters["verified"].Operator)
+	})
+
+	t.Run("model loader only picks up models-scoped queries", func(t *testing.T) {
+		queries := map[string]basecatalog.NamedQuery{
+			"model-query": {
+				AssetType: basecatalog.AssetTypeModels,
+				Filters:   map[string]basecatalog.FieldFilter{"field": {Operator: "=", Value: "v"}},
+			},
+			"mcp-query": {
+				AssetType: basecatalog.AssetTypeMCPServers,
+				Filters:   map[string]basecatalog.FieldFilter{"field": {Operator: "=", Value: "v"}},
+			},
+			"default-query": {
+				// No AssetType — defaults to models
+				Filters: map[string]basecatalog.FieldFilter{"field": {Operator: "=", Value: "v"}},
+			},
+		}
+		filtered := basecatalog.FilterNamedQueriesByAssetType(queries, basecatalog.AssetTypeModels)
+		assert.Len(t, filtered, 2)
+		assert.Contains(t, filtered, "model-query")
+		assert.Contains(t, filtered, "default-query")
+		assert.NotContains(t, filtered, "mcp-query")
+	})
 }
 
 func TestLoader_StartWithLeaderElection(t *testing.T) {

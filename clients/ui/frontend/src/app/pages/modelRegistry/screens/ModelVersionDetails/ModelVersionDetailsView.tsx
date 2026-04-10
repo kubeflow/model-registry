@@ -170,6 +170,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                 )}
                 {isTransferJobSource && modelArtifact ? (
                   <StorageLocationSection
+                    artifactUri={modelArtifact.uri}
                     fallbackNamespace={transferJobParams.jobNamespace}
                     transferJob={transferJob}
                     transferJobLoaded={transferJobLoaded}

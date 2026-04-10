@@ -1,4 +1,4 @@
-package modelcatalog
+package testhelpers
 
 import (
 	"testing"
@@ -13,9 +13,7 @@ import (
 func GetCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogModel type")
-	}
+	require.NoError(t, err, "Failed to query CatalogModel type")
 	return typeRecord.ID
 }
 
@@ -23,9 +21,7 @@ func GetCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 func GetCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelArtifactTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogModelArtifact type")
-	}
+	require.NoError(t, err, "Failed to query CatalogModelArtifact type")
 	return typeRecord.ID
 }
 
@@ -33,9 +29,7 @@ func GetCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 func GetCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
-	}
+	require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
 	return typeRecord.ID
 }
 
@@ -43,8 +37,22 @@ func GetCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 func GetCatalogSourceTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogSourceTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogSource type")
-	}
+	require.NoError(t, err, "Failed to query CatalogSource type")
+	return typeRecord.ID
+}
+
+// GetMCPServerTypeIDForDBTest retrieves the MCPServer type ID for testing
+func GetMCPServerTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
+	var typeRecord schema.Type
+	err := db.Where("name = ?", service.MCPServerTypeName).First(&typeRecord).Error
+	require.NoError(t, err, "Failed to query MCPServer type")
+	return typeRecord.ID
+}
+
+// GetMCPServerToolTypeIDForDBTest retrieves the MCPServerTool type ID for testing
+func GetMCPServerToolTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
+	var typeRecord schema.Type
+	err := db.Where("name = ?", service.MCPServerToolTypeName).First(&typeRecord).Error
+	require.NoError(t, err, "Failed to query MCPServerTool type")
 	return typeRecord.ID
 }

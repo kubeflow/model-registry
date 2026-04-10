@@ -2,7 +2,6 @@ package mcpcatalog
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,10 +11,9 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	mcpmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	mcpcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/catalog/internal/testhelpers"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,52 +24,16 @@ func TestMain(m *testing.M) {
 	os.Exit(testutils.TestMainPostgresHelper(m))
 }
 
-func getMCPServerTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
-}
-
-func getMCPServerToolTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerToolTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerToolTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
-}
-
 func setupMCPLoaderTest(t *testing.T) (*gorm.DB, service.Services, func()) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 
 	// Get type IDs
-	catalogModelTypeID := modelcatalog.GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := modelcatalog.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := modelcatalog.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := modelcatalog.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
-	mcpServerTypeID := getMCPServerTypeIDForTest(t, sharedDB)
-	mcpServerToolTypeID := getMCPServerToolTypeIDForTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	mcpServerTypeID := testhelpers.GetMCPServerTypeIDForDBTest(t, sharedDB)
+	mcpServerToolTypeID := testhelpers.GetMCPServerToolTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelcatalogservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -833,17 +795,19 @@ func TestMCPLoader_NamedQueriesFromConfig(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// A sources file that includes named queries
+	// A sources file that includes named queries scoped to mcp_servers
 	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
 	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
 namedQueries:
   production_ready:
-    verifiedSource:
-      operator: "="
-      value: true
-    version:
-      operator: ">="
-      value: "2"
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
+      version:
+        operator: ">="
+        value: "2"
 `), 0644)
 	require.NoError(t, err)
 
@@ -864,6 +828,48 @@ namedQueries:
 	assert.Equal(t, "2", pq["version"].Value)
 }
 
+func TestMCPLoader_ModelNamedQueriesExcluded(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	// A sources file with both model-scoped and MCP-scoped named queries
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  model-only-query:
+    assetType: models
+    filters:
+      artifacts.ttft_p90.double_value:
+        operator: "<="
+        value: 100
+  mcp-query:
+    assetType: mcp_servers
+    filters:
+      verifiedSource:
+        operator: "="
+        value: true
+  default-query:
+    field:
+      operator: "="
+      value: "x"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	queries := loader.Sources.GetNamedQueries()
+	assert.Len(t, queries, 1, "MCP loader should only pick up mcp_servers-scoped named queries")
+	assert.Contains(t, queries, "mcp-query")
+	assert.NotContains(t, queries, "model-only-query")
+	assert.NotContains(t, queries, "default-query") // defaults to models
+}
+
 func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
 	_, services, cleanup := setupMCPLoaderTest(t)
 	defer cleanup()
@@ -874,9 +880,11 @@ func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
 	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
 namedQueries:
   bad_query:
-    name:
-      operator: "INVALID_OP"
-      value: "something"
+    assetType: mcp_servers
+    filters:
+      name:
+        operator: "INVALID_OP"
+        value: "something"
 `), 0644)
 	require.NoError(t, err)
 

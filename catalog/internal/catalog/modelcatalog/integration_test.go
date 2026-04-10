@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/testhelpers"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	mr_models "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -18,10 +19,10 @@ import (
 
 func setupIntegrationTestProvider(t *testing.T, ctx context.Context, sharedDB *gorm.DB) *dbCatalogImpl {
 	// Get type IDs
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
