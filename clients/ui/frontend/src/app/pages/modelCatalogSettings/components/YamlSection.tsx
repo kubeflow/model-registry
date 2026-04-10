@@ -12,6 +12,7 @@ import {
 } from '@patternfly/react-core';
 import { OpenDrawerRightIcon } from '@patternfly/react-icons';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
@@ -35,6 +36,7 @@ const YamlSection: React.FC<YamlSectionProps> = ({
   setData,
   onToggleExpectedFormatDrawer,
 }) => {
+  const { isMUITheme } = useThemeContext();
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
   const [fileUploadError, setFileUploadError] = React.useState<string | undefined>(undefined);
@@ -121,30 +123,66 @@ const YamlSection: React.FC<YamlSectionProps> = ({
           {fileUploadError}
         </Alert>
       )}
+      {isMUITheme && (
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+          className="pf-v6-u-mb-sm"
+        >
+          <FlexItem>
+            {FORM_LABELS.YAML_CONTENT}
+            <span className="pf-v6-c-form__label-required" aria-hidden="true">
+              {' '}
+              *
+            </span>
+          </FlexItem>
+          {onToggleExpectedFormatDrawer && (
+            <FlexItem>
+              <Button
+                variant="link"
+                isInline
+                onClick={onToggleExpectedFormatDrawer}
+                data-testid="view-expected-yaml-format-link"
+                icon={<OpenDrawerRightIcon />}
+                iconPosition="end"
+              >
+                {EXPECTED_YAML_FORMAT_LABEL}
+              </Button>
+            </FlexItem>
+          )}
+        </Flex>
+      )}
       <FormGroup
         label={
-          <Flex
-            justifyContent={{ default: 'justifyContentSpaceBetween' }}
-            alignItems={{ default: 'alignItemsCenter' }}
-          >
-            <FlexItem>{FORM_LABELS.YAML_CONTENT}</FlexItem>
-            {onToggleExpectedFormatDrawer && (
+          !isMUITheme ? (
+            <Flex
+              justifyContent={{ default: 'justifyContentSpaceBetween' }}
+              alignItems={{ default: 'alignItemsCenter' }}
+            >
               <FlexItem>
-                <Button
-                  variant="link"
-                  isInline
-                  onClick={onToggleExpectedFormatDrawer}
-                  data-testid="view-expected-yaml-format-link"
-                  icon={<OpenDrawerRightIcon />}
-                  iconPosition="end"
-                >
-                  {EXPECTED_YAML_FORMAT_LABEL}
-                </Button>
+                {FORM_LABELS.YAML_CONTENT}
+                <span className="pf-v6-c-form__label-required" aria-hidden="true">
+                  {' '}
+                  *
+                </span>
               </FlexItem>
-            )}
-          </Flex>
+              {onToggleExpectedFormatDrawer && (
+                <FlexItem>
+                  <Button
+                    variant="link"
+                    isInline
+                    onClick={onToggleExpectedFormatDrawer}
+                    data-testid="view-expected-yaml-format-link"
+                    icon={<OpenDrawerRightIcon />}
+                    iconPosition="end"
+                  >
+                    {EXPECTED_YAML_FORMAT_LABEL}
+                  </Button>
+                </FlexItem>
+              )}
+            </Flex>
+          ) : undefined
         }
-        isRequired
         fieldId="yaml-content"
       >
         <FormFieldset component={yamlInput} field="YAML" />
