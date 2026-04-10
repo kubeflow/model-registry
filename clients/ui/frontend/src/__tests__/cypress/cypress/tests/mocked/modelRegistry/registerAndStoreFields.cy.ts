@@ -331,6 +331,7 @@ describe('Register and Store Fields - Credential Validation', () => {
   it('Should have submit button disabled when S3 access key ID is missing', () => {
     // Fill all fields except S3 access key ID
     registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.selectModelType();
     registerAndStoreFields.fillVersionName('v1.0.0');
     registerAndStoreFields.fillJobName('my-transfer-job');
     registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
@@ -349,6 +350,7 @@ describe('Register and Store Fields - Credential Validation', () => {
   it('Should have submit button disabled when S3 secret access key is missing', () => {
     // Fill all fields except S3 secret access key
     registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.selectModelType();
     registerAndStoreFields.fillVersionName('v1.0.0');
     registerAndStoreFields.fillJobName('my-transfer-job');
     registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
@@ -367,6 +369,7 @@ describe('Register and Store Fields - Credential Validation', () => {
   it('Should have submit button disabled when OCI username is missing', () => {
     // Fill all fields except OCI username
     registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.selectModelType();
     registerAndStoreFields.fillVersionName('v1.0.0');
     registerAndStoreFields.fillJobName('my-transfer-job');
     registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
@@ -385,6 +388,7 @@ describe('Register and Store Fields - Credential Validation', () => {
   it('Should have submit button disabled when OCI password is missing', () => {
     // Fill all fields except OCI password
     registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.selectModelType();
     registerAndStoreFields.fillVersionName('v1.0.0');
     registerAndStoreFields.fillJobName('my-transfer-job');
     registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');

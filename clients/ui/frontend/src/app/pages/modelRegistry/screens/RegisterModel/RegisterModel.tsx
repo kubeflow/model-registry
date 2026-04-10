@@ -77,6 +77,7 @@ const RegisterModel: React.FC = () => {
       registeredModels,
       namespaceHasAccess,
       isNamespaceAccessLoading,
+      { requireModelType: true },
     );
 
   const handleSubmit = async () => {
@@ -160,6 +161,7 @@ const RegisterModel: React.FC = () => {
                 setData={setData}
                 hasModelNameError={hasModelNameError}
                 isModelNameDuplicate={isModelNameDuplicate}
+                isModelTypeRequired
               />
               <RegistrationCommonFormSections
                 formData={formData}

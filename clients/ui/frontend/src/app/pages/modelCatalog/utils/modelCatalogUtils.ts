@@ -35,7 +35,11 @@ import {
   ModelType,
 } from '~/concepts/modelCatalog/const';
 import { isSourceStatusWithModels } from '~/concepts/modelCatalogSettings/const';
-import { ModelRegistryMetadataType } from '~/app/types';
+import { ModelRegistryCustomProperties, ModelRegistryMetadataType } from '~/app/types';
+import {
+  buildCustomPropertiesWithModelType,
+  getModelTypeStoredValueFromCustomProperties,
+} from '~/app/pages/modelRegistry/screens/RegisterModel/registerModelTypeUtils';
 
 /**
  * Prefix used by the backend for artifact-specific filter options.
@@ -773,4 +777,15 @@ export const formatModelTypeDisplay = (modelTypeRaw: string | null): string => {
   }
   // Fallback: capitalize whatever value we got
   return capitalize(modelTypeRaw.trim());
+};
+
+/**
+ * Returns model registry customProperties entries to prefill `model_type` when registering
+ * from the catalog. Only generative/predictive are copied; unknown or missing values yield {}.
+ */
+export const getCatalogModelTypePropertyForRegistration = (
+  customProperties?: ModelRegistryCustomProperties,
+): ModelRegistryCustomProperties => {
+  const stored = getModelTypeStoredValueFromCustomProperties(customProperties);
+  return buildCustomPropertiesWithModelType(undefined, stored);
 };
