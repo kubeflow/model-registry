@@ -1,5 +1,6 @@
 import { useThemeContext } from 'mod-arch-kubeflow';
 import React, { CSSProperties, ReactNode } from 'react';
+import './FormFieldset.scss';
 
 interface FormFieldsetProps {
   component: ReactNode;
