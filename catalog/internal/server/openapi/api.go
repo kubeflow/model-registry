@@ -50,7 +50,7 @@ type ModelCatalogServiceAPIRouter interface {
 type MCPCatalogServiceAPIServicer interface {
 	FindMCPServers(context.Context, string, string, []string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindMCPServersFilterOptions(context.Context) (ImplResponse, error)
-	GetMCPServer(context.Context, string, bool) (ImplResponse, error)
+	GetMCPServer(context.Context, string, bool, int32) (ImplResponse, error)
 	FindMCPServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	GetMCPServerTool(context.Context, string, string) (ImplResponse, error)
 }

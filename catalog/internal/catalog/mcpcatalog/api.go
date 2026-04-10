@@ -33,8 +33,9 @@ type MCPCatalogProvider interface {
 
 	// GetMCPServer returns MCP server metadata for a single server by its ID.
 	// If includeTools is true, the server's tools are also included.
+	// toolLimit caps the number of tools returned; zero means no limit.
 	// If nothing is found with the ID provided it returns nil, without an error.
-	GetMCPServer(ctx context.Context, serverID string, includeTools bool) (*openapi.MCPServer, error)
+	GetMCPServer(ctx context.Context, serverID string, includeTools bool, toolLimit int32) (*openapi.MCPServer, error)
 
 	// ListMCPServerTools returns all tools for a specific MCP server.
 	// If no server is found with that ID, it returns nil. If the server is

@@ -385,7 +385,7 @@ func TestGetMCPServer_ToolCountWithoutIncludeTools(t *testing.T) {
 	toolRepo := &mockMCPServerToolRepo{countResult: 7}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	result, err := cat.GetMCPServer(context.Background(), "1", false)
+	result, err := cat.GetMCPServer(context.Background(), "1", false, 0)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, int32(7), result.ToolCount)
@@ -401,7 +401,7 @@ func TestGetMCPServer_CountByParentIDError(t *testing.T) {
 	toolRepo := &mockMCPServerToolRepo{countErr: errors.New("db count error")}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	_, err := cat.GetMCPServer(context.Background(), "1", false)
+	_, err := cat.GetMCPServer(context.Background(), "1", false, 0)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "error counting tools")
 }
@@ -497,6 +497,43 @@ func TestListMCPServers_ZeroToolLimitDoesNotSetPageSize(t *testing.T) {
 	assert.Nil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be nil when ToolLimit is 0")
 }
 
+func TestGetMCPServer_ToolLimitSetsPageSize(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 5,
+		listResult:  toolList(makeTool("tool-1")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServer(context.Background(), "1", true, 3)
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called on tool repo")
+	require.NotNil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be set when toolLimit > 0")
+	assert.Equal(t, int32(3), *toolRepo.capturedListOptions.PageSize)
+}
+
+func TestGetMCPServer_ZeroToolLimitOmitsPageSize(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 5,
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServer(context.Background(), "1", true, 0)
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called on tool repo")
+	assert.Nil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be nil when toolLimit is 0")
+}
+
 func TestGetMCPServerTool_StripsQualifiedPrefix(t *testing.T) {
 	serverEntity := &models.MCPServerImpl{
 		ID:         serverID(88),
@@ -542,7 +579,7 @@ func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	result, err := cat.GetMCPServer(context.Background(), "1", true)
+	result, err := cat.GetMCPServer(context.Background(), "1", true, 0)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// toolCount should reflect total (10), not len(returned tools) (1)

@@ -179,7 +179,7 @@ func mergeFilterQueries(a, b string) string {
 	}
 }
 
-func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (*openapi.MCPServer, error) {
+func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, includeTools bool, toolLimit int32) (*openapi.MCPServer, error) {
 	id, err := apiutils.ValidateIDAsInt32(serverID, "server")
 	if err != nil {
 		return nil, fmt.Errorf("invalid server ID '%s': %w", serverID, api.ErrBadRequest)
@@ -201,6 +201,9 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 	if includeTools {
 		toolOptions := models.MCPServerToolListOptions{
 			ParentID: *dbServer.GetID(),
+		}
+		if toolLimit > 0 {
+			toolOptions.Pagination.PageSize = &toolLimit
 		}
 		tools, err := d.mcpServerToolRepo.List(toolOptions)
 		if err != nil {

@@ -271,7 +271,24 @@ func (c *MCPCatalogServiceAPIController) GetMCPServer(w http.ResponseWriter, r *
 		var param bool = false
 		includeToolsParam = param
 	}
-	result, err := c.service.GetMCPServer(r.Context(), serverIdParam, includeToolsParam)
+	var toolLimitParam int32
+	if query.Has("toolLimit") {
+		param, err := parseNumericParameter[int32](
+			query.Get("toolLimit"),
+			WithParse[int32](parseInt32),
+			WithMaximum[int32](100),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "toolLimit", Err: err}, nil)
+			return
+		}
+
+		toolLimitParam = param
+	} else {
+		var param int32 = 10
+		toolLimitParam = param
+	}
+	result, err := c.service.GetMCPServer(r.Context(), serverIdParam, includeToolsParam, toolLimitParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

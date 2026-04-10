@@ -297,6 +297,7 @@ paths:
         in: path
         required: true
       - $ref: "#/components/parameters/includeTools"
+      - $ref: "#/components/parameters/toolLimit"
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools:
     description: >-
       The REST endpoint/path used to list zero or more `MCPTool` entities for an `MCPServer`.
