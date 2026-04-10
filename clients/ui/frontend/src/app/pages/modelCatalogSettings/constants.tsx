@@ -37,7 +37,7 @@ export const DESCRIPTION_TEXT = {
   ACCESS_TOKEN:
     'Enter your fine-grained Hugging Face access token. The token must have the following permissions: read repos in your namespace, read public repos that you can access, access webhooks, and create webhooks.',
   ORGANIZATION:
-    'Enter the name of the organization (for example, Google) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
+    'Enter the name of the organization (for example, meta-llama) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
   ENABLE_SOURCE:
     'Enable users in your organization to view models from this source in the model catalog.',
   FILTER_INFO_GENERIC:
@@ -50,7 +50,7 @@ export const HELPER_TEXT = {
 } as const;
 
 export const PLACEHOLDERS = {
-  ORGANIZATION: 'Example: Google',
+  ORGANIZATION: 'Example: meta-llama',
   ALLOWED_MODELS: 'Example: Llama*, Llama-3.1-8B-Instruct',
   EXCLUDED_MODELS: 'Example: Llama*, Llama-3.1-8B-Instruct',
 } as const;

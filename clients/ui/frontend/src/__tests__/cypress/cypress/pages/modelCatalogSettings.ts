@@ -97,7 +97,7 @@ class CatalogSourceConfigRow extends TableRow {
     return this;
   }
 
-  shouldHaveValidationStatus(status: 'Connected' | 'Failed' | 'Starting' | 'Unknown' | '-') {
+  shouldHaveValidationStatus(status: 'Ready' | 'Failed' | 'Starting' | 'Unknown' | '-') {
     this.findValidationStatus().contains(status);
     return this;
   }
@@ -142,11 +142,11 @@ class ModelCatalogSettings {
 
   findHeading() {
     cy.findByTestId('app-page-title').should('exist');
-    cy.findByTestId('app-page-title').contains('Model catalog sources');
+    cy.findByTestId('app-page-title').contains('Model catalog settings');
   }
 
   findNavItem() {
-    return appChrome.findNavItem('Model catalog sources', 'Settings');
+    return appChrome.findNavItem('Model catalog settings', 'Settings');
   }
 
   findDescription() {
@@ -242,7 +242,7 @@ class ManageSourcePage {
   }
 
   findBreadcrumb() {
-    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog sources');
+    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog settings');
   }
 
   findBreadcrumbAction() {

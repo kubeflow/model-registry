@@ -443,7 +443,7 @@ describe('Catalog Source Configs Table', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
-      row.shouldHaveValidationStatus('Connected');
+      row.shouldHaveValidationStatus('Ready');
       row.findValidationStatus().findByTestId('source-status-connected-hf-google').should('exist');
     });
 
