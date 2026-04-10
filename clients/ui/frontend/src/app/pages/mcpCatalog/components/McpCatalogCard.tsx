@@ -52,12 +52,21 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
           className="pf-v6-u-mb-md"
         >
           <FlexItem>
-            <span
-              className="pf-v6-u-display-inline-block pf-v6-u-font-size-2xl pf-v6-u-color-200"
-              aria-hidden
-            >
-              <ApplicationsIcon />
-            </span>
+            {server.logo ? (
+              <img
+                src={server.logo}
+                alt=""
+                style={{ height: '32px', width: '32px' }}
+                data-testid={`mcp-catalog-card-logo-${serverId}`}
+              />
+            ) : (
+              <span
+                className="pf-v6-u-display-inline-block pf-v6-u-font-size-2xl pf-v6-u-color-200"
+                aria-hidden
+              >
+                <ApplicationsIcon />
+              </span>
+            )}
           </FlexItem>
           {isMcpRemoteDeploymentMode(server.deploymentMode) && (
             <FlexItem>
