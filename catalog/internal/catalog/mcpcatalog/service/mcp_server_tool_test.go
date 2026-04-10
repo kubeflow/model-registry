@@ -163,13 +163,13 @@ func TestMCPServerToolRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// List all tools for parent
-		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
+		toolsList, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
-		assert.Len(t, tools, 3)
+		assert.Len(t, toolsList.Items, 3)
 
 		// Verify tool names
-		toolNames := make([]string, len(tools))
-		for i, tool := range tools {
+		toolNames := make([]string, len(toolsList.Items))
+		for i, tool := range toolsList.Items {
 			toolNames[i] = *tool.GetAttributes().Name
 		}
 		assert.Contains(t, toolNames, "tool-1")
@@ -297,18 +297,18 @@ func TestMCPServerToolRepository(t *testing.T) {
 		}
 
 		// Verify 5 tools exist
-		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
+		toolsList, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
-		assert.Len(t, tools, 5)
+		assert.Len(t, toolsList.Items, 5)
 
 		// Delete all tools by parent ID
 		err = toolRepo.DeleteByParentID(parentID)
 		require.NoError(t, err)
 
 		// Verify all tools are deleted
-		tools, err = toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
+		toolsList, err = toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
-		assert.Empty(t, tools)
+		assert.Empty(t, toolsList.Items)
 	})
 
 	t.Run("TestCascadeDeleteToolsWithParent", func(t *testing.T) {
@@ -344,9 +344,9 @@ func TestMCPServerToolRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify tools exist
-		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
+		toolsList, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
-		assert.Len(t, tools, 2)
+		assert.Len(t, toolsList.Items, 2)
 
 		// Delete tools first, then delete parent server
 		// Note: ML Metadata schema doesn't cascade delete Executions when Context is deleted
@@ -554,47 +554,59 @@ func TestMCPServerToolRepository(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// List with PageSize=1 should return exactly 1 tool
+		// List with PageSize=1 should return exactly 1 tool with a nextPageToken
 		pageSize1 := int32(1)
-		tools, err := toolRepo.List(models.MCPServerToolListOptions{
+		page1, err := toolRepo.List(models.MCPServerToolListOptions{
 			Pagination: dbmodels.Pagination{PageSize: &pageSize1},
 			ParentID:   parentID,
 		})
 		require.NoError(t, err)
-		assert.Len(t, tools, 1, "PageSize=1 should limit results to 1 tool")
+		assert.Len(t, page1.Items, 1, "PageSize=1 should limit results to 1 tool")
+		assert.NotEmpty(t, page1.NextPageToken, "should return a nextPageToken when more results exist")
+
+		// Using the token should return a different (next) page
+		page2, err := toolRepo.List(models.MCPServerToolListOptions{
+			Pagination: dbmodels.Pagination{PageSize: &pageSize1, NextPageToken: &page1.NextPageToken},
+			ParentID:   parentID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, page2.Items, 1, "second page should also return 1 tool")
+		assert.NotEqual(t, *page1.Items[0].GetID(), *page2.Items[0].GetID(), "pages should contain different tools")
 
 		// List with PageSize=3 should return exactly 3 tools
 		pageSize3 := int32(3)
-		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+		page3, err := toolRepo.List(models.MCPServerToolListOptions{
 			Pagination: dbmodels.Pagination{PageSize: &pageSize3},
 			ParentID:   parentID,
 		})
 		require.NoError(t, err)
-		assert.Len(t, tools, 3, "PageSize=3 should limit results to 3 tools")
+		assert.Len(t, page3.Items, 3, "PageSize=3 should limit results to 3 tools")
+		assert.NotEmpty(t, page3.NextPageToken, "should return a nextPageToken when more results exist")
 
-		// List with PageSize=10 (greater than total) should return all 5 tools
+		// List with PageSize=10 (greater than total) should return all 5 tools with no nextPageToken
 		pageSize10 := int32(10)
-		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+		allTools, err := toolRepo.List(models.MCPServerToolListOptions{
 			Pagination: dbmodels.Pagination{PageSize: &pageSize10},
 			ParentID:   parentID,
 		})
 		require.NoError(t, err)
-		assert.Len(t, tools, 5, "PageSize=10 (greater than total) should return all 5 tools")
+		assert.Len(t, allTools.Items, 5, "PageSize=10 (greater than total) should return all 5 tools")
+		assert.Empty(t, allTools.NextPageToken, "should not return nextPageToken when all results fit")
 
 		// List without PageSize should still return all 5 tools
-		tools, err = toolRepo.List(models.MCPServerToolListOptions{
+		noPageSize, err := toolRepo.List(models.MCPServerToolListOptions{
 			ParentID: parentID,
 		})
 		require.NoError(t, err)
-		assert.Len(t, tools, 5, "No PageSize should return all tools")
+		assert.Len(t, noPageSize.Items, 5, "No PageSize should return all tools")
 	})
 
 	t.Run("TestListToolsForNonExistentParent", func(t *testing.T) {
 		// List tools for a non-existent parent ID
 		nonExistentParentID := int32(999999)
-		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: nonExistentParentID})
+		toolsList, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: nonExistentParentID})
 		require.NoError(t, err)
-		assert.Empty(t, tools, "Should return empty slice for non-existent parent")
+		assert.Empty(t, toolsList.Items, "Should return empty slice for non-existent parent")
 	})
 
 	t.Run("TestDeleteToolsByNonExistentParentID", func(t *testing.T) {
