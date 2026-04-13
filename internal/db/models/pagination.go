@@ -29,7 +29,7 @@ func (p *Pagination) GetNextPageToken() string {
 }
 
 func (p *Pagination) GetOrderBy() string {
-	if p.OrderBy == nil {
+	if p.OrderBy == nil || *p.OrderBy == "" {
 		return DefaultOrderBy
 	}
 
@@ -37,7 +37,7 @@ func (p *Pagination) GetOrderBy() string {
 }
 
 func (p *Pagination) GetSortOrder() string {
-	if p.SortOrder == nil {
+	if p.SortOrder == nil || *p.SortOrder == "" {
 		return DefaultSortOrder
 	}
 

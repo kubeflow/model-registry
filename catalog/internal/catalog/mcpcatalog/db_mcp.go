@@ -107,8 +107,12 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 	orderBy := strings.ToUpper(string(params.OrderBy))
 	sortOrder := strings.ToUpper(string(params.SortOrder))
 	listOptions.Pagination.PageSize = &params.PageSize
-	listOptions.Pagination.OrderBy = &orderBy
-	listOptions.Pagination.SortOrder = &sortOrder
+	if orderBy != "" {
+		listOptions.Pagination.OrderBy = &orderBy
+	}
+	if sortOrder != "" {
+		listOptions.Pagination.SortOrder = &sortOrder
+	}
 	if params.NextPageToken != nil {
 		listOptions.Pagination.NextPageToken = params.NextPageToken
 	}
