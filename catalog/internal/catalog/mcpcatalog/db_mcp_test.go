@@ -586,6 +586,103 @@ func TestGetMCPServerTool_PassesToolNameFilter(t *testing.T) {
 	assert.Equal(t, "list_problems", *toolRepo.capturedListOptions.ToolName)
 }
 
+// --- Pagination default tests ---
+
+func TestListMCPServers_EmptyOrderByUsesDefault(t *testing.T) {
+	// When OrderBy and SortOrder are not specified (empty strings from the API layer),
+	// the pagination must still apply default ordering ("id" / "ASC") so that
+	// cursor-based pagination works correctly on subsequent pages.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    10,
+		// OrderBy and SortOrder are zero values (empty strings)
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+	// The pagination must resolve to the defaults ("id" / "ASC").
+	// Either OrderBy is nil (so GetOrderBy falls through to DefaultOrderBy),
+	// or it is set to the explicit default value — but it must NOT be a
+	// pointer to an empty string, which would skip the ORDER BY clause.
+	orderBy := pagination.GetOrderBy()
+	sortOrder := pagination.GetSortOrder()
+	assert.Equal(t, "id", orderBy, "expected default orderBy 'id' when param is empty")
+	assert.Equal(t, "ASC", sortOrder, "expected default sortOrder 'ASC' when param is empty")
+}
+
+func TestListMCPServers_EmptyOrderByPaginationNotNilEmptyString(t *testing.T) {
+	// Regression: when OrderBy/SortOrder are empty, they must NOT be set as
+	// pointers to empty strings. The downstream paginator skips ORDER BY when
+	// both are empty, but still applies the cursor WHERE clause, causing
+	// non-deterministic results and empty second pages.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    1,
+		// OrderBy and SortOrder deliberately left as zero values
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+
+	// If OrderBy is non-nil, it must not point to an empty string.
+	if pagination.OrderBy != nil {
+		assert.NotEmpty(t, *pagination.OrderBy, "OrderBy must not be a pointer to an empty string")
+	}
+	// If SortOrder is non-nil, it must not point to an empty string.
+	if pagination.SortOrder != nil {
+		assert.NotEmpty(t, *pagination.SortOrder, "SortOrder must not be a pointer to an empty string")
+	}
+}
+
+func TestListMCPServers_ExplicitOrderByIsPreserved(t *testing.T) {
+	// When OrderBy/SortOrder are explicitly provided, they should be passed through.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    10,
+		OrderBy:     "CREATE_TIME",
+		SortOrder:   "DESC",
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+	assert.Equal(t, "CREATE_TIME", pagination.GetOrderBy())
+	assert.Equal(t, "DESC", pagination.GetSortOrder())
+}
+
+func TestListMCPServerTools_EmptyOrderByUsesDefault(t *testing.T) {
+	// Same bug applies to ListMCPServerTools — empty OrderBy/SortOrder must
+	// resolve to defaults for correct cursor-based pagination.
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{listResult: toolList()}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.ListMCPServerTools(context.Background(), "1", ListMCPServerToolsParams{
+		PageSize: 10,
+		// OrderBy and SortOrder are zero values (empty strings)
+	})
+	require.NoError(t, err)
+
+	require.NotNil(t, toolRepo.capturedListOptions)
+	pagination := toolRepo.capturedListOptions.Pagination
+	orderBy := pagination.GetOrderBy()
+	sortOrder := pagination.GetSortOrder()
+	assert.Equal(t, "id", orderBy, "expected default orderBy 'id' when param is empty")
+	assert.Equal(t, "ASC", sortOrder, "expected default sortOrder 'ASC' when param is empty")
+}
+
 func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
 	serverEntity := &models.MCPServerImpl{
 		ID:         serverID(1),
