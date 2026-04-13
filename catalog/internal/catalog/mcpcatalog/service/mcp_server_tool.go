@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
@@ -69,7 +70,8 @@ func applyMCPServerToolListFilters(query *gorm.DB, listOptions *models.MCPServer
 		Where(fmt.Sprintf("%s.context_id = ?", associationTable), listOptions.ParentID)
 
 	if listOptions.ToolName != nil {
-		query = query.Where(fmt.Sprintf("%s.name LIKE ?", executionTable), fmt.Sprintf("%%:%s", *listOptions.ToolName))
+		escaped := strings.NewReplacer("%", "\\%", "_", "\\_").Replace(*listOptions.ToolName)
+		query = query.Where(fmt.Sprintf("%s.name LIKE ?", executionTable), fmt.Sprintf("%%:%s", escaped))
 	}
 
 	return query
