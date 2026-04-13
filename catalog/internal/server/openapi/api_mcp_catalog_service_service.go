@@ -87,8 +87,8 @@ func (m *MCPCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Co
 }
 
 // GetMCPServer - Get an `MCPServer`.
-func (m *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (ImplResponse, error) {
-	server, err := m.mcpProvider.GetMCPServer(ctx, serverID, includeTools)
+func (m *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID string, includeTools bool, toolLimit int32) (ImplResponse, error) {
+	server, err := m.mcpProvider.GetMCPServer(ctx, serverID, includeTools, toolLimit)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
