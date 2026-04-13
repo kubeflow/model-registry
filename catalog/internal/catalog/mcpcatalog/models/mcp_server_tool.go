@@ -10,6 +10,7 @@ import (
 type MCPServerToolListOptions struct {
 	dbmodels.Pagination
 	ParentID int32
+	ToolName *string
 }
 
 // GetRestEntityType implements the FilterApplier interface.
@@ -35,7 +36,7 @@ type MCPServerToolImpl = dbmodels.BaseEntity[MCPServerToolAttributes]
 // MCPServerToolRepository defines the interface for MCP server tool persistence.
 type MCPServerToolRepository interface {
 	GetByID(id int32) (MCPServerTool, error)
-	List(listOptions MCPServerToolListOptions) ([]MCPServerTool, error)
+	List(listOptions MCPServerToolListOptions) (*dbmodels.ListWrapper[MCPServerTool], error)
 	CountByParentIDs(parentIDs []int32) (map[int32]int32, error)
 	Save(tool MCPServerTool, parentID *int32) (MCPServerTool, error)
 	DeleteByParentID(parentID int32) error

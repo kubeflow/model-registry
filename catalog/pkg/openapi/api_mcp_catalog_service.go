@@ -598,11 +598,18 @@ type ApiGetMCPServerRequest struct {
 	ApiService   *MCPCatalogServiceAPIService
 	serverId     string
 	includeTools *bool
+	toolLimit    *int32
 }
 
 // Whether to include the tools array in each MCP server result.
 func (r ApiGetMCPServerRequest) IncludeTools(includeTools bool) ApiGetMCPServerRequest {
 	r.includeTools = &includeTools
+	return r
+}
+
+// Maximum number of tools to include when includeTools is true.
+func (r ApiGetMCPServerRequest) ToolLimit(toolLimit int32) ApiGetMCPServerRequest {
+	r.toolLimit = &toolLimit
 	return r
 }
 
@@ -654,6 +661,13 @@ func (a *MCPCatalogServiceAPIService) GetMCPServerExecute(r ApiGetMCPServerReque
 		var defaultValue bool = false
 		parameterAddToHeaderOrQuery(localVarQueryParams, "includeTools", defaultValue, "form", "")
 		r.includeTools = &defaultValue
+	}
+	if r.toolLimit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "toolLimit", r.toolLimit, "form", "")
+	} else {
+		var defaultValue int32 = 10
+		parameterAddToHeaderOrQuery(localVarQueryParams, "toolLimit", defaultValue, "form", "")
+		r.toolLimit = &defaultValue
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

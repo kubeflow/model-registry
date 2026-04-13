@@ -150,10 +150,10 @@ func TestMCPLoaderBasicLoad(t *testing.T) {
 
 	// Verify tools were persisted to the database
 	require.NotNil(t, server.GetID())
-	tools, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
+	toolsList, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
 	require.NoError(t, err)
-	require.Len(t, tools, 1)
-	toolAttrs := tools[0].GetAttributes()
+	require.Len(t, toolsList.Items, 1)
+	toolAttrs := toolsList.Items[0].GetAttributes()
 	require.NotNil(t, toolAttrs)
 	assert.Equal(t, "test-server@1.0.0:test-tool", *toolAttrs.Name)
 }
@@ -224,13 +224,13 @@ func TestMCPLoaderToolAccessTypeAndParameters(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, server.GetID())
 
-	tools, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
+	toolsList, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
 	require.NoError(t, err)
-	require.Len(t, tools, 2)
+	require.Len(t, toolsList.Items, 2)
 
 	// Build a map for easy lookup
 	toolByName := make(map[string]mcpmodels.MCPServerTool)
-	for _, tool := range tools {
+	for _, tool := range toolsList.Items {
 		attrs := tool.GetAttributes()
 		require.NotNil(t, attrs)
 		toolByName[*attrs.Name] = tool

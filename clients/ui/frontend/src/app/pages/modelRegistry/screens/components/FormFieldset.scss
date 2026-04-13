@@ -1,0 +1,9 @@
+.toolbar-fieldset-wrapper {
+  flex: 1 1 0;
+  min-width: 0;
+
+  > .pf-v6-c-input-group__item:not(.pf-m-search-action) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

@@ -3,7 +3,7 @@ module github.com/kubeflow/model-registry/ui/bff
 go 1.25.7
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.7.3
+	github.com/brianvoe/gofakeit/v7 v7.14.1
 	github.com/google/uuid v1.6.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kubeflow/model-registry/pkg/openapi v0.3.2
