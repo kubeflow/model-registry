@@ -347,7 +347,7 @@ catalogs:
 	}
 
 	if _, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
-		return fmt.Errorf("failed to create model-catalog-default-sources configmap: %w", err)
+		return fmt.Errorf("failed to create default-catalog-sources configmap: %w", err)
 	}
 
 	return nil
