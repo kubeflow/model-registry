@@ -11,7 +11,6 @@ import {
 } from '~/app/modelCatalogTypes';
 import {
   AllLanguageCode,
-  ModelCatalogLicense,
   ModelCatalogNumberFilterKey,
   ModelCatalogProvider,
   ModelCatalogStringFilterKey,
@@ -52,7 +51,7 @@ describe('filtersToFilterQuery', () => {
     ttft_mean = undefined,
   }: {
     tasks?: ModelCatalogTask[];
-    license?: ModelCatalogLicense[];
+    license?: string[];
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
@@ -107,16 +106,7 @@ describe('filtersToFilterQuery', () => {
       },
       [ModelCatalogStringFilterKey.LICENSE]: {
         type: 'string',
-        values: [
-          ModelCatalogLicense.APACHE_2_0,
-          ModelCatalogLicense.GEMMA,
-          ModelCatalogLicense.LLLAMA_3_3,
-          ModelCatalogLicense.LLLAMA_3_1,
-          ModelCatalogLicense.LLLAMA_3_3_ALTERNATE,
-          ModelCatalogLicense.LLLAMA_4,
-          ModelCatalogLicense.MIT,
-          ModelCatalogLicense.MODIFIED_MIT,
-        ],
+        values: ['Apache 2.0', 'Gemma', 'Llama 3.3', 'Llama 3.1', 'Llama 4', 'MIT', 'Modified MIT'],
       },
       [ModelCatalogStringFilterKey.LANGUAGE]: {
         type: 'string',
@@ -233,11 +223,8 @@ describe('filtersToFilterQuery', () => {
         ),
       ).toBe("provider='Google'");
       expect(
-        filtersToFilterQuery(
-          mockFormData({ license: [ModelCatalogLicense.APACHE_2_0] }),
-          mockFilterOptions,
-        ),
-      ).toBe("license='apache-2.0'");
+        filtersToFilterQuery(mockFormData({ license: ['Apache 2.0'] }), mockFilterOptions),
+      ).toBe("license='Apache 2.0'");
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
       ).toBe("language='ca'");
@@ -260,11 +247,11 @@ describe('filtersToFilterQuery', () => {
         filtersToFilterQuery(
           mockFormData({
             tasks: [ModelCatalogTask.TEXT_TO_TEXT],
-            license: [ModelCatalogLicense.APACHE_2_0],
+            license: ['Apache 2.0'],
           }),
           mockFilterOptions,
         ),
-      ).toBe("tasks='text-to-text' AND license='apache-2.0'");
+      ).toBe("tasks='text-to-text' AND license='Apache 2.0'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE], language: [AllLanguageCode.CA] }),
@@ -287,11 +274,8 @@ describe('filtersToFilterQuery', () => {
         ),
       ).toBe("provider IN ('Google','DeepSeek')");
       expect(
-        filtersToFilterQuery(
-          mockFormData({ license: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT] }),
-          mockFilterOptions,
-        ),
-      ).toBe("license IN ('apache-2.0','mit')");
+        filtersToFilterQuery(mockFormData({ license: ['Apache 2.0', 'MIT'] }), mockFilterOptions),
+      ).toBe("license IN ('Apache 2.0','MIT')");
       expect(
         filtersToFilterQuery(
           mockFormData({ language: [AllLanguageCode.CA, AllLanguageCode.PT] }),
@@ -330,7 +314,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({
             tasks: [ModelCatalogTask.TEXT_TO_TEXT, ModelCatalogTask.IMAGE_TO_TEXT],
             provider: [ModelCatalogProvider.GOOGLE],
-            license: [ModelCatalogLicense.MIT],
+            license: ['MIT'],
             language: [
               AllLanguageCode.CA,
               AllLanguageCode.PT,
@@ -341,7 +325,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe(
-        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='mit' AND language IN ('ca','pt','vi','zsm')",
+        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='MIT' AND language IN ('ca','pt','vi','zsm')",
       );
     });
 
@@ -385,13 +369,13 @@ describe('filtersToFilterQuery', () => {
   //           mockFormData({
   //             ttft_mean: 100,
   //             tasks: [ModelCatalogTask.TEXT_TO_TEXT],
-  //             license: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT],
+  //             license: ['Apache 2.0', 'MIT'],
   //             rps_mean: 3,
   //           }),
   //           mockFilterOptions,
   //         ),
   //       ).toBe(
-  //         "tasks='text-to-text' AND license IN ('apache-2.0','mit') AND ttft_mean < 100 AND rps_mean > 3",
+  //         "tasks='text-to-text' AND license IN ('Apache 2.0','MIT') AND ttft_mean < 100 AND rps_mean > 3",
   //       );
   //     });
   //   });
@@ -815,7 +799,7 @@ describe('hasFiltersApplied', () => {
     ttft_mean = undefined,
   }: {
     tasks?: ModelCatalogTask[];
-    license?: ModelCatalogLicense[];
+    license?: string[];
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
@@ -870,7 +854,7 @@ describe('hasFiltersApplied', () => {
       expect(hasFiltersApplied(mockFormData({ provider: [ModelCatalogProvider.GOOGLE] }))).toBe(
         true,
       );
-      expect(hasFiltersApplied(mockFormData({ license: [ModelCatalogLicense.MIT] }))).toBe(true);
+      expect(hasFiltersApplied(mockFormData({ license: ['MIT'] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ language: [AllLanguageCode.EN] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ hardware_type: ['GPU'] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ use_case: [UseCaseOptionValue.CHATBOT] }))).toBe(

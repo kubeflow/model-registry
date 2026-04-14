@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { Divider, StackItem } from '@patternfly/react-core';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
-import {
-  ModelCatalogStringFilterKey,
-  MODEL_CATALOG_LICENSE_NAME_MAPPING,
-} from '~/concepts/modelCatalog/const';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 import { CatalogFilterOptions, ModelCatalogStringFilterOptions } from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogStringFilterKey.LICENSE;
@@ -26,7 +23,7 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
         <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LICENSE>
           title="License"
           filterKey={filterKey}
-          filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}
+          filterToNameMapping={{}}
           filters={license}
         />
       </StackItem>

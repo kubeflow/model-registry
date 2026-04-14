@@ -8,13 +8,11 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import {
   ModelCatalogStringFilterKey,
   MODEL_CATALOG_PROVIDER_NAME_MAPPING,
-  MODEL_CATALOG_LICENSE_NAME_MAPPING,
   MODEL_CATALOG_TASK_NAME_MAPPING,
   AllLanguageCodesMap,
   MODEL_CATALOG_FILTER_CATEGORY_NAMES,
   MODEL_CATALOG_FILTER_CHIP_PREFIXES,
   ModelCatalogProvider,
-  ModelCatalogLicense,
   ModelCatalogTask,
   AllLanguageCode,
   ModelCatalogNumberFilterKey,
@@ -97,9 +95,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
             : valueStr;
         }
         case ModelCatalogStringFilterKey.LICENSE: {
-          return isEnumMember(valueStr, ModelCatalogLicense)
-            ? MODEL_CATALOG_LICENSE_NAME_MAPPING[valueStr]
-            : valueStr;
+          return valueStr;
         }
         case ModelCatalogStringFilterKey.TASK: {
           return isEnumMember(valueStr, ModelCatalogTask)
