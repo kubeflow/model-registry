@@ -37,7 +37,7 @@ const McpCatalog: React.FC = () => {
       <ScrollViewOnMount shouldScroll scrollToTop />
       <ApplicationsPage
         title={
-          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
+          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.mcpCatalog} />
         }
         description={MCP_CATALOG_DESCRIPTION}
         empty={false}
