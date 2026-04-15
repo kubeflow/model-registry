@@ -15,14 +15,12 @@
   - [Factory](#factory)
   - [Kubeflow implementation](#kubeflow-implementation)
   - [Configuration](#configuration)
-  - [Intent support across backends](#intent-support-across-backends)
   - [Migration path for mr_client.py](#migration-path-for-mr_clientpy)
   - [Test Plan](#test-plan)
   - [Graduation Criteria](#graduation-criteria)
 - [Implementation History](#implementation-history)
 - [Drawbacks](#drawbacks)
 - [Alternatives](#alternatives)
-- [References](#references)
 <!-- /toc -->
 
 ## Summary
@@ -37,10 +35,10 @@ to registry operations.
 
 The [async-upload job](https://github.com/kubeflow/model-registry/tree/main/jobs/async-upload)
 currently imports and directly uses the Kubeflow Model Registry Python client for all
-registry operations: creating registered models, model versions, and model artifacts, as
-well as querying and updating artifact state. This tight coupling means organizations
-using a different model registry (e.g. MLflow Model Registry) cannot use the async-upload
-job without forking it.
+registry operations: creating registered
+models, model versions, and model artifacts, as well as querying and updating artifact
+state. This tight coupling means organizations using a different model registry (e.g.
+MLflow Model Registry) cannot use the async-upload job without forking it.
 
 The job's download, upload, and signing logic is already registry-agnostic. Only the
 registry CRUD operations in `mr_client.py` and client instantiation in `entrypoint.py`
@@ -50,9 +48,8 @@ support with minimal disruption to the existing codebase.
 ### Goals
 
 - Define a Python interface (protocol or ABC) for the registry operations the async-upload
-  job requires
-- Fold the ModelArtifact concept into ModelVersion at the interface level, since MLflow
-  and other registries don't have a separate artifact entity
+  job requires: create, read, update, and delete of registered models, model versions,
+  and model artifacts
 - Implement the Kubeflow Model Registry backend as the first (and default) implementation
   of this interface
 - Provide a factory function that selects the backend at runtime based on configuration
@@ -106,25 +103,25 @@ internals.
   (`client._register_model`, `client._api.get_registered_model_by_id`, etc.). The
   abstraction provides an opportunity to encapsulate these behind a stable interface,
   reducing fragility even for the Kubeflow-only case.
-- Different registries have different entity models. Kubeflow has a three-level hierarchy
-  (RegisteredModel → ModelVersion → ModelArtifact) while MLflow has two levels
-  (RegisteredModel → ModelVersion, with the artifact URI stored directly on the version).
-  The interface uses the two-level model, and the Kubeflow backend manages its artifact
-  entity internally.
-- `ArtifactState` (PENDING, LIVE, UNKNOWN) is a Kubeflow concept. The interface defines
-  its own state enum. Backends that don't natively support artifact states can implement
-  state tracking as a no-op or via custom properties/tags.
+- Different registries have different entity models. The interface must define
+  backend-agnostic data classes for `RegisteredModel`, `ModelVersion`, and
+  `ModelArtifact` that capture the common subset, with backend-specific extensions
+  possible via custom properties.
+- `ArtifactState` (PENDING, LIVE, UNKNOWN) is a Kubeflow concept. The interface should
+  define its own state enum. Backends that don't natively support artifact states can
+  implement state tracking as a no-op or via custom properties.
 
 ### Risks and Mitigations
 
-- **Risk**: The abstract interface may not map cleanly to all registry backends.
-  **Mitigation**: Validate the interface against an MLflow proof-of-concept before
-  stabilizing. Use the MLflow implementation as a second data point before declaring
-  the interface stable.
+- **Risk**: The abstract interface may not map cleanly to all registry backends (e.g.
+  MLflow has a different entity hierarchy).
+  **Mitigation**: Start with the Kubeflow interface shape and validate against MLflow
+  before stabilizing the interface. Use the MLflow implementation as a second data point
+  before declaring the interface stable.
 
 - **Risk**: Introducing an abstraction layer adds indirection and maintenance overhead.
-  **Mitigation**: The abstraction is narrow (5 methods). The Kubeflow implementation is
-  a thin wrapper around existing code. Net new code is small.
+  **Mitigation**: The abstraction is narrow (approximately 9 methods). The Kubeflow
+  implementation is a thin wrapper around existing code. Net new code is small.
 
 - **Risk**: Backend-agnostic data classes lose type information or features specific to
   one registry.
@@ -145,21 +142,6 @@ jobs/async-upload/job/
 ```
 
 ### Abstract interface
-
-The initial 9-method interface was simplified to 5 methods after analyzing actual usage
-patterns and cross-registry compatibility. See
-[interface-simplification-analysis.md](interface-simplification-analysis.md) for the full
-analysis.
-
-Key simplifications:
-- **ModelArtifact folded into ModelVersion** — MLflow doesn't have a separate artifact
-  entity, and in the async-upload job artifacts are always 1:1 with versions. The
-  Kubeflow backend manages its artifact entity internally.
-- **`get_by_id` and `get_by_name` merged** into one `get_registered_model` method that
-  accepts either identifier.
-- **`create_model_version` and `create_model_artifact` merged** into one call that
-  creates a version with its URI and state in a single operation.
-- **`delete_registered_model` removed** — not called anywhere in the current codebase.
 
 ```python
 from __future__ import annotations
@@ -189,13 +171,20 @@ class ModelVersion:
     id: str
     name: str
     registered_model_id: str
-    uri: str | None = None
-    state: ArtifactState = ArtifactState.UNKNOWN
     author: str | None = None
     description: str | None = None
     custom_properties: dict = field(default_factory=dict)
-    # Kubeflow-specific: the backend can store an artifact_id internally
-    artifact_id: str | None = None
+
+
+@dataclass
+class ModelArtifact:
+    id: str
+    name: str
+    uri: str | None = None
+    state: ArtifactState = ArtifactState.UNKNOWN
+    model_format_name: str | None = None
+    model_format_version: str | None = None
+    custom_properties: dict = field(default_factory=dict)
 
 
 @runtime_checkable
@@ -214,36 +203,37 @@ class ModelRegistryClient(Protocol):
         self,
         registered_model: RegisteredModel,
         version_name: str,
-        uri: str,
         author: str | None = None,
         description: str | None = None,
-        state: ArtifactState = ArtifactState.UNKNOWN,
+        custom_properties: dict | None = None,
+    ) -> ModelVersion: ...
+
+    def create_model_artifact(
+        self,
+        model_version: ModelVersion,
+        artifact_name: str,
+        uri: str,
         model_format_name: str | None = None,
         model_format_version: str | None = None,
         storage_key: str | None = None,
         storage_path: str | None = None,
         service_account_name: str | None = None,
         custom_properties: dict | None = None,
+    ) -> ModelArtifact: ...
+
+    def get_registered_model_by_id(self, model_id: str) -> RegisteredModel: ...
+
+    def get_registered_model_by_name(self, name: str) -> RegisteredModel: ...
+
+    def get_model_version_by_params(
+        self, registered_model_id: str, name: str
     ) -> ModelVersion: ...
 
-    def get_registered_model(
-        self,
-        model_id: str | None = None,
-        name: str | None = None,
-    ) -> RegisteredModel | None: ...
+    def get_model_artifact_by_id(self, artifact_id: str) -> ModelArtifact: ...
 
-    def get_model_version(
-        self,
-        registered_model_id: str,
-        version_name: str,
-    ) -> ModelVersion | None: ...
+    def update_model_artifact(self, artifact: ModelArtifact) -> ModelArtifact: ...
 
-    def update_model_version(
-        self,
-        model_version_id: str,
-        state: ArtifactState | None = None,
-        uri: str | None = None,
-    ) -> ModelVersion: ...
+    def delete_registered_model(self, model_id: str) -> None: ...
 ```
 
 ### Factory
@@ -268,12 +258,6 @@ Lazy imports keep backend-specific dependencies optional. An MLflow backend woul
 translating between the backend-agnostic data classes and the Kubeflow-specific types.
 This is largely a reorganization of the current `mr_client.py` code.
 
-The Kubeflow backend internally manages the ModelArtifact entity:
-- `create_model_version` creates both a ModelVersion and a ModelArtifact, returning a
-  `ModelVersion` with the `artifact_id` field populated.
-- `update_model_version` translates state and URI updates to artifact-level operations
-  (get artifact by ID, mutate, upsert).
-
 ### Configuration
 
 Add a `--registry-backend` CLI argument (default: `kubeflow`):
@@ -290,38 +274,6 @@ is set to something other than `kubeflow`, the job should warn if Kubeflow-speci
 are also provided. Other backends can define their own configuration via environment
 variables or a `--registry-config` argument that accepts a JSON blob, allowing
 backend-specific configuration without polluting the shared CLI argument namespace.
-
-### Intent support across backends
-
-The async-upload job supports three intents: `create_model`, `create_version`, and
-`update_artifact`. Not all intents are portable across backends due to fundamental
-differences in how registries handle mutability.
-
-| | Kubeflow | MLflow |
-|---|---|---|
-| Mutate artifact/version URI | Yes | No (`source` is immutable) |
-| Delete a version | No | Yes |
-| `create_model` intent | Supported | Supported |
-| `create_version` intent | Supported | Supported |
-| `update_artifact` intent | Supported | **Not supported** |
-
-The `update_artifact` intent relies on URI mutability: set state to PENDING, re-upload
-the model, then update the existing artifact with the new URI and set state to LIVE. This
-works naturally in Kubeflow but has no direct equivalent in MLflow.
-
-While an MLflow backend could simulate `update_artifact` by creating a new ModelVersion
-with the new URI and archiving or deleting the old one, this has significant caveats:
-- Version number changes (MLflow auto-increments), breaking anything referencing the old
-  version number (deployment configs, aliases like `@champion`, CI pipelines)
-- Creation timestamp resets, losing the history of when the model was first registered
-- MLflow run linkage and tags are not automatically carried over
-- What looks like a URI update in Kubeflow looks like a delete + create in MLflow,
-  confusing external systems watching version events
-
-Backends should declare which intents they support, and the job should validate this at
-startup before doing any expensive download/upload work. Unsupported intents should fail
-with a clear error message directing users to a supported alternative (e.g. "MLflow does
-not support update_artifact — use create_version instead").
 
 ### Migration path for mr_client.py
 
@@ -363,7 +315,6 @@ stabilizes when a second backend implementation validates the abstraction.
 ## Implementation History
 
 - 2026-04-02: KEP created
-- 2026-04-14: Simplified interface from 9 methods to 5, added intent support analysis
 
 ## Drawbacks
 
@@ -371,9 +322,10 @@ stabilizes when a second backend implementation validates the abstraction.
   However, the indirection is thin (data class translation + method delegation) and the
   current code already uses private APIs that could break on upgrades, so the wrapper
   provides stability benefits even in the single-backend case.
-- The `update_artifact` intent cannot be supported by all backends (e.g. MLflow), meaning
-  backend choice constrains available functionality. This is an inherent limitation of
-  abstracting over registries with different mutability models.
+- The interface is designed around Kubeflow's entity model (RegisteredModel → ModelVersion
+  → ModelArtifact). Registries with a different hierarchy (e.g. MLflow's
+  RegisteredModel → ModelVersion with artifacts as a property) may require adapters that
+  feel unnatural.
 
 ## Alternatives
 
@@ -401,19 +353,3 @@ Users wanting MLflow support fork the job and replace `mr_client.py`.
 
 Rejected because: this fragments the codebase, duplicates maintenance, and prevents
 upstream contributions from benefiting all backends.
-
-### 4. Full 9-method interface mirroring Kubeflow's entity model
-
-The initial design (see [v1-initial-proposal.md](v1-initial-proposal.md)) proposed 9
-methods with a separate `ModelArtifact` data class. This was simplified after analysis
-showed that MLflow and other registries don't have a separate artifact entity, and the
-async-upload job always uses artifacts 1:1 with versions.
-
-Rejected because: the larger interface surface is harder to implement for new backends,
-and the `ModelArtifact` abstraction doesn't map to registries other than Kubeflow.
-
-## References
-
-- [v1-initial-proposal.md](v1-initial-proposal.md) — initial 9-method interface design
-- [interface-simplification-analysis.md](interface-simplification-analysis.md) — analysis
-  of usage patterns and cross-registry compatibility that led to the simplified interface
