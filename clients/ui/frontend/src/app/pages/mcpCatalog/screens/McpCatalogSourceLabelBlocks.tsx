@@ -64,6 +64,11 @@ const McpCatalogSourceLabelBlocks: React.FC = () => {
     return null;
   }
 
+  const activeCategoryCount = blocks.length - 1;
+  if (activeCategoryCount <= 1) {
+    return null;
+  }
+
   const isSelected = (block: SourceLabelBlock) =>
     block.label === undefined
       ? selectedSourceLabel === undefined

@@ -32,6 +32,7 @@ import {
   hasFiltersApplied,
   getArchitecturesFromArtifacts,
   getModelName,
+  getActiveSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockCatalogModelArtifact } from '~/__mocks__/mockCatalogModelArtifactList';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -1381,5 +1382,193 @@ describe('getModelName', () => {
   it('should handle model names with hyphens and underscores', () => {
     const result = getModelName('my_org/my-model_v1');
     expect(result).toBe('my-model_v1');
+  });
+});
+
+describe('getActiveSourceLabels', () => {
+  const createSource = (overrides: Partial<CatalogSource> = {}): CatalogSource => ({
+    id: 'source-1',
+    name: 'Test Source',
+    labels: ['Red Hat'],
+    enabled: true,
+    status: CatalogSourceStatus.AVAILABLE,
+    ...overrides,
+  });
+
+  const createSourceList = (items: CatalogSource[] = []): CatalogSourceList => ({
+    items,
+    size: items.length,
+    pageSize: 10,
+    nextPageToken: '',
+  });
+
+  it('returns empty array when catalogSources is null', () => {
+    expect(getActiveSourceLabels(null, null)).toEqual([]);
+  });
+
+  it('returns empty array when no sources are enabled or available', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        enabled: false,
+        status: CatalogSourceStatus.DISABLED,
+      }),
+      createSource({
+        id: '2',
+        enabled: true,
+        status: CatalogSourceStatus.ERROR,
+      }),
+    ]);
+    expect(getActiveSourceLabels(sources, null)).toEqual([]);
+  });
+
+  it('returns a single label when only one category exists', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    expect(getActiveSourceLabels(sources, null)).toEqual(['Red Hat']);
+  });
+
+  it('returns multiple labels when multiple categories exist', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Community'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toHaveLength(2);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('Community');
+  });
+
+  it('includes "null" label for sources without labels', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('null');
+  });
+
+  it('excludes disabled sources from active categories', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Excluded'],
+        enabled: false,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('excludes sources with error status', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Error Source'],
+        enabled: true,
+        status: CatalogSourceStatus.ERROR,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('includes partially-available sources', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Partial'],
+        enabled: true,
+        status: CatalogSourceStatus.PARTIALLY_AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toHaveLength(2);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('Partial');
+  });
+
+  it('deduplicates labels from multiple sources with the same label', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('returns only "null" label when all sources have no labels', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['null']);
   });
 });

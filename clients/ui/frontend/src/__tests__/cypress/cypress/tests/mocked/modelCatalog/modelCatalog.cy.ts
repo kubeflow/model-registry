@@ -397,7 +397,14 @@ describe('Performance Empty State', () => {
   describe('Labeled Section Without Validated Models', () => {
     it('should show performance empty state when toggle is ON and no validated models', () => {
       initIntercepts({
-        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({
+            id: 'source-2',
+            name: 'Provider Two Source',
+            labels: ['Provider two'],
+          }),
+        ],
         hasValidatedModels: false,
       });
       // No user filters/search; this scenario should hit the special "No performance data" state.
@@ -414,7 +421,14 @@ describe('Performance Empty State', () => {
 
     it('should show models when toggle is OFF', () => {
       initIntercepts({
-        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({
+            id: 'source-2',
+            name: 'Provider Two Source',
+            labels: ['Provider two'],
+          }),
+        ],
         hasValidatedModels: false,
       });
       modelCatalog.visit();
@@ -428,7 +442,14 @@ describe('Performance Empty State', () => {
   describe('Labeled Section With Validated Models', () => {
     it('should show models when toggle is ON and section has validated models', () => {
       initIntercepts({
-        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({
+            id: 'source-2',
+            name: 'Provider Two Source',
+            labels: ['Provider two'],
+          }),
+        ],
         hasValidatedModels: true,
       });
       modelCatalog.visit();
@@ -485,7 +506,14 @@ describe('Performance Empty State', () => {
 
     it('should show performance empty state after clicking Reset filters when toggle is ON', () => {
       initIntercepts({
-        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({
+            id: 'source-2',
+            name: 'Provider Two Source',
+            labels: ['Provider two'],
+          }),
+        ],
         hasValidatedModels: false,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
@@ -535,7 +563,14 @@ describe('Performance Empty State', () => {
 
   it('should show "No results found" when toggle is ON and user applies filter that returns 0 results', () => {
     initIntercepts({
-      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+      sources: [
+        mockCatalogSource({ labels: ['Provider one'] }),
+        mockCatalogSource({
+          id: 'source-2',
+          name: 'Provider Two Source',
+          labels: ['Provider two'],
+        }),
+      ],
       hasValidatedModels: true,
     });
     setupFilteredModelsIntercept({ returnModelsForFilters: false });
@@ -556,7 +591,14 @@ describe('Performance Empty State', () => {
 describe('All Models Section', () => {
   it('should show models in All models section even when toggle is ON', () => {
     initIntercepts({
-      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+      sources: [
+        mockCatalogSource({ labels: ['Provider one'] }),
+        mockCatalogSource({
+          id: 'source-2',
+          name: 'Provider Two Source',
+          labels: ['Provider two'],
+        }),
+      ],
       hasValidatedModels: true,
     });
     modelCatalog.visit();
@@ -567,5 +609,37 @@ describe('All Models Section', () => {
     modelCatalog.findAllModelsToggle().click();
     modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
     modelCatalog.findPerformanceEmptyState().should('not.exist');
+  });
+});
+
+describe('Single Category Behavior', () => {
+  it('should hide category toggle when only one category is active', () => {
+    initIntercepts({
+      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+    });
+    modelCatalog.visit();
+
+    cy.findByTestId('label-Provider one').should('not.exist');
+    cy.findByTestId('all').should('not.exist');
+  });
+
+  it('should auto-select the single active category and show its models', () => {
+    initIntercepts({
+      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+    });
+    modelCatalog.visit();
+
+    modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+  });
+
+  it('should show full grid view for the auto-selected single category', () => {
+    initIntercepts({
+      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+      hasValidatedModels: true,
+    });
+    modelCatalog.visit();
+
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
   });
 });
