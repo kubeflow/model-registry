@@ -88,15 +88,22 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     ) : undefined;
 
   const organizationFormGroup = (
-    <ThemeAwareFormGroupWrapper
-      label={FORM_LABELS.ORGANIZATION}
-      fieldId="organization"
-      isRequired
-      descriptionTextNode={organizationDescriptionTxtNode}
-      helperTextNode={organizationHelperTxtNode}
-    >
-      {organizationInput}
-    </ThemeAwareFormGroupWrapper>
+    <>
+      <ThemeAwareFormGroupWrapper
+        label={FORM_LABELS.ORGANIZATION}
+        fieldId="organization"
+        isRequired
+        descriptionTextNode={organizationDescriptionTxtNode}
+        helperTextNode={organizationHelperTxtNode}
+      >
+        {organizationInput}
+      </ThemeAwareFormGroupWrapper>
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem>{HELP_TEXT.ORGANIZATION_SLUG}</HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    </>
   );
 
   const accessTokenInput = (
