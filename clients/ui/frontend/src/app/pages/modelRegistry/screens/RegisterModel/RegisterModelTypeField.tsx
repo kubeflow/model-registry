@@ -11,14 +11,7 @@ import {
   getModelTypeStoredValueFromCustomProperties,
 } from './registerModelTypeUtils';
 
-const MODEL_TYPE_PLACEHOLDER_KEY = '__model-type-unset__';
-
 const MODEL_TYPE_SELECT_OPTIONS: SimpleSelectOption[] = [
-  {
-    key: MODEL_TYPE_PLACEHOLDER_KEY,
-    label: 'Select model type',
-    isPlaceholder: true,
-  },
   {
     key: ModelType.GENERATIVE,
     label: formatModelTypeDisplay(ModelType.GENERATIVE),
@@ -42,13 +35,7 @@ const RegisterModelTypeField: React.FC<RegisterModelTypeFieldProps> = ({
 }) => {
   const stored = getModelTypeStoredValueFromCustomProperties(modelCustomProperties);
 
-  const handleChange = (key: string, isPlaceholder: boolean) => {
-    if (isPlaceholder) {
-      onModelCustomPropertiesChange(
-        buildCustomPropertiesWithModelType(modelCustomProperties, undefined),
-      );
-      return;
-    }
+  const handleChange = (key: string) => {
     if (key === ModelType.GENERATIVE || key === ModelType.PREDICTIVE) {
       onModelCustomPropertiesChange(buildCustomPropertiesWithModelType(modelCustomProperties, key));
     }

@@ -123,6 +123,11 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
 
   const infoSection = (
     <>
+      <DashboardDescriptionListGroup title="Model type">
+        <Content component="p" data-testid="registered-model-model-type">
+          {formatModelTypeDisplay(modelTypeRaw)}
+        </Content>
+      </DashboardDescriptionListGroup>
       <DashboardDescriptionListGroup
         title="Owner"
         popover="The owner is the user who registered the model."
@@ -154,11 +159,6 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         title="Created"
       >
         <ModelTimestamp timeSinceEpoch={rm.createTimeSinceEpoch} />
-      </DashboardDescriptionListGroup>
-      <DashboardDescriptionListGroup title="Model type">
-        <Content component="p" data-testid="registered-model-model-type">
-          {formatModelTypeDisplay(modelTypeRaw)}
-        </Content>
       </DashboardDescriptionListGroup>
     </>
   );
