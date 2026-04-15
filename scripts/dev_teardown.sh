@@ -40,10 +40,12 @@ if [ "$KEEP_CLUSTER" = false ]; then
   echo "=== Deleting Kind cluster '${CLUSTER_NAME}' ==="
   kind delete cluster --name "$CLUSTER_NAME"
 
-  echo "=== Stopping Colima ==="
-  colima stop 2>/dev/null || true
+  if [ $(which colima 2>/dev/null) ]; then
+    echo "=== Stopping Colima ==="
+    colima stop 2>/dev/null
+  fi
 else
-  echo "=== Keeping Kind cluster and Colima running ==="
+  echo "=== Keeping Kind cluster running ==="
 fi
 
 echo "=== Done ==="
