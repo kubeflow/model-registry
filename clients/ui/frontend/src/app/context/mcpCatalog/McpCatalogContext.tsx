@@ -55,6 +55,8 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   filterOptions: null,
   filterOptionsLoaded: false,
   filterOptionsLoadError: undefined,
+  emptyCategoryLabels: new Set<string>(),
+  reportCategoryEmpty: () => undefined,
 });
 
 const MODEL_CATALOG_PATH = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_catalog`;
@@ -89,6 +91,25 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<string | undefined>(
     initialState.selectedSourceLabel,
   );
+  const [emptyCategoryLabels, setEmptyCategoryLabels] = React.useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const emptyCategoryLabelsRef = React.useRef(emptyCategoryLabels);
+  emptyCategoryLabelsRef.current = emptyCategoryLabels;
+
+  const reportCategoryEmpty = React.useCallback((label: string, isEmpty: boolean) => {
+    const { current } = emptyCategoryLabelsRef;
+    const hasLabel = current.has(label);
+    if (isEmpty && !hasLabel) {
+      const next = new Set(current);
+      next.add(label);
+      setEmptyCategoryLabels(next);
+    } else if (!isEmpty && hasLabel) {
+      const next = new Set(current);
+      next.delete(label);
+      setEmptyCategoryLabels(next);
+    }
+  }, []);
 
   React.useEffect(() => {
     syncToUrl({ searchQuery, filters, selectedSourceLabel });
@@ -137,6 +158,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     }),
     [
       apiStateMcpCatalog,
@@ -158,6 +181,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       setPageSize,
       setTotalItems,
       clearAllFilters,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     ],
   );
 

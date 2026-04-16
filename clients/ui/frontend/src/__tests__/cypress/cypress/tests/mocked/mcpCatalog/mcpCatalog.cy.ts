@@ -1,5 +1,5 @@
 import { mockModArchResponse } from 'mod-arch-core';
-import { mockCatalogSourceList } from '~/__mocks__';
+import { mockCatalogLabel, mockCatalogSourceList, mockCatalogSource } from '~/__mocks__';
 import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -95,6 +95,91 @@ describe('MCP Catalog Empty State', () => {
     );
     mcpCatalog.visit();
     mcpCatalog.findEmptyState().should('be.visible');
+  });
+});
+
+describe('MCP Catalog Empty Category Hiding', () => {
+  it('should hide categories that have 0 servers from toggle', () => {
+    const sources = [
+      mockCatalogSource({
+        id: 'community-mcp-source',
+        name: 'Community MCP Servers',
+        labels: ['community_mcp_servers'],
+      }),
+      mockCatalogSource({
+        id: 'org-mcp-source',
+        name: 'Organization MCP Servers',
+        labels: ['organization_mcp_servers'],
+      }),
+    ];
+
+    cy.interceptApi(
+      `GET /api/:apiVersion/model_catalog/sources`,
+      { path: { apiVersion: MODEL_CATALOG_API_VERSION }, query: { assetType: 'mcp_servers' } },
+      mockCatalogSourceList({ items: sources }),
+    );
+
+    cy.intercept(
+      {
+        method: 'GET',
+        url: new RegExp(`/api/${MODEL_CATALOG_API_VERSION}/model_catalog/labels`),
+      },
+      mockModArchResponse({
+        items: [
+          mockCatalogLabel({
+            name: 'community_mcp_servers',
+            displayName: 'Community MCP Servers',
+          }),
+          mockCatalogLabel({
+            name: 'organization_mcp_servers',
+            displayName: 'Organization MCP Servers',
+          }),
+        ],
+        size: 2,
+        pageSize: 10,
+        nextPageToken: '',
+      }),
+    );
+
+    cy.interceptApi(
+      `GET /api/:apiVersion/mcp_catalog/mcp_servers`,
+      {
+        path: { apiVersion: MODEL_CATALOG_API_VERSION },
+        query: { sourceLabel: 'community_mcp_servers' },
+      },
+      { items: [], size: 0, pageSize: 10, nextPageToken: '' },
+    );
+
+    cy.interceptApi(
+      `GET /api/:apiVersion/mcp_catalog/mcp_servers`,
+      {
+        path: { apiVersion: MODEL_CATALOG_API_VERSION },
+        query: { sourceLabel: 'organization_mcp_servers' },
+      },
+      {
+        items: [
+          {
+            id: 'server-1',
+            name: 'Test Server',
+            description: 'test',
+            source_id: 'org-mcp-source', // eslint-disable-line camelcase
+          },
+        ],
+        size: 1,
+        pageSize: 10,
+        nextPageToken: '',
+      },
+    );
+
+    cy.intercept(
+      { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
+      mockModArchResponse(mockMcpCatalogFilterOptions()),
+    );
+
+    mcpCatalog.visit();
+
+    cy.findByTestId('mcp-category-title-community_mcp_servers').should('not.exist');
+    cy.findByTestId('mcp-category-title-organization_mcp_servers').should('be.visible');
   });
 });
 

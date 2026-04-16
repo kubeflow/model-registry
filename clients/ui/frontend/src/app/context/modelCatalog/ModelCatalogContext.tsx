@@ -69,6 +69,8 @@ export type ModelCatalogContextType = {
   ) => string | number | string[] | undefined;
   sortBy: ModelCatalogSortOption | null;
   setSortBy: (sortBy: ModelCatalogSortOption | null) => void;
+  emptyCategoryLabels: Set<string>;
+  reportCategoryEmpty: (label: string, isEmpty: boolean) => void;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -116,6 +118,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   getPerformanceFilterDefaultValue: () => undefined,
   sortBy: null,
   setSortBy: () => undefined,
+  emptyCategoryLabels: new Set<string>(),
+  reportCategoryEmpty: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -150,6 +154,25 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState(false);
   const [lastViewedModelName, setLastViewedModelName] = React.useState<string | null>(null);
   const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
+  const [emptyCategoryLabels, setEmptyCategoryLabels] = React.useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const emptyCategoryLabelsRef = React.useRef(emptyCategoryLabels);
+  emptyCategoryLabelsRef.current = emptyCategoryLabels;
+
+  const reportCategoryEmpty = React.useCallback((label: string, isEmpty: boolean) => {
+    const { current } = emptyCategoryLabelsRef;
+    const hasLabel = current.has(label);
+    if (isEmpty && !hasLabel) {
+      const next = new Set(current);
+      next.add(label);
+      setEmptyCategoryLabels(next);
+    } else if (!isEmpty && hasLabel) {
+      const next = new Set(current);
+      next.delete(label);
+      setEmptyCategoryLabels(next);
+    }
+  }, []);
 
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
@@ -350,6 +373,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
       sortBy,
       setSortBy,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     }),
     [
       catalogSourcesLoaded,
@@ -379,6 +404,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       getDefaultValueForPerformanceFilter,
       sortBy,
       setSortBy,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     ],
   );
 

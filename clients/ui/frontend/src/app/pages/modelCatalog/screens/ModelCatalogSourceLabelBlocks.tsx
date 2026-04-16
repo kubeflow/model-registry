@@ -17,8 +17,13 @@ type SourceLabelBlock = {
 };
 
 const ModelCatalogSourceLabelBlocks: React.FC = () => {
-  const { catalogSources, catalogLabels, updateSelectedSourceLabel, selectedSourceLabel } =
-    React.useContext(ModelCatalogContext);
+  const {
+    catalogSources,
+    catalogLabels,
+    updateSelectedSourceLabel,
+    selectedSourceLabel,
+    emptyCategoryLabels,
+  } = React.useContext(ModelCatalogContext);
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
     if (!catalogSources) {
@@ -29,7 +34,6 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
     const uniqueLabels = getUniqueSourceLabels(enabledSources);
     const hasNoLabels = hasSourcesWithoutLabels(enabledSources);
 
-    // Order labels according to catalogLabels priority
     const orderedLabels = orderLabelsByPriority(uniqueLabels, catalogLabels);
 
     const allBlock: SourceLabelBlock = {
@@ -38,15 +42,17 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
       displayName: CategoryName.allModels,
     };
 
-    const labelBlocks: SourceLabelBlock[] = orderedLabels.map((label) => ({
-      id: `label-${label}`,
-      label,
-      displayName: getLabelDisplayName(label, catalogLabels),
-    }));
+    const labelBlocks: SourceLabelBlock[] = orderedLabels
+      .filter((label) => !emptyCategoryLabels.has(label))
+      .map((label) => ({
+        id: `label-${label}`,
+        label,
+        displayName: getLabelDisplayName(label, catalogLabels),
+      }));
 
     const blocksToReturn: SourceLabelBlock[] = [allBlock, ...labelBlocks];
 
-    if (hasNoLabels) {
+    if (hasNoLabels && !emptyCategoryLabels.has(SourceLabel.other)) {
       const noLabelsBlock: SourceLabelBlock = {
         id: 'no-labels',
         label: SourceLabel.other,
@@ -56,7 +62,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
     }
 
     return blocksToReturn;
-  }, [catalogSources, catalogLabels]);
+  }, [catalogSources, catalogLabels, emptyCategoryLabels]);
 
   if (!catalogSources) {
     return null;

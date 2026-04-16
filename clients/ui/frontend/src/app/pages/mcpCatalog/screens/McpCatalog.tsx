@@ -24,6 +24,7 @@ const McpCatalog: React.FC = () => {
     catalogSources,
     catalogLabels,
     catalogSourcesLoaded,
+    emptyCategoryLabels,
   } = React.useContext(McpCatalogContext);
 
   const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
@@ -34,20 +35,19 @@ const McpCatalog: React.FC = () => {
     [catalogSources, catalogLabels],
   );
 
-  const isSingleCategory = activeCategories.length === 1;
-  const hasNoCategories = activeCategories.length === 0;
+  const effectiveActiveCategories = React.useMemo(
+    () => activeCategories.filter((c) => !emptyCategoryLabels.has(c)),
+    [activeCategories, emptyCategoryLabels],
+  );
+
+  const isSingleCategory = effectiveActiveCategories.length === 1;
+  const hasNoCategories = effectiveActiveCategories.length === 0;
 
   React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
-      setSelectedSourceLabel(activeCategories[0]);
+    if (catalogSourcesLoaded && isSingleCategory) {
+      setSelectedSourceLabel(effectiveActiveCategories[0]);
     }
-  }, [
-    catalogSourcesLoaded,
-    isSingleCategory,
-    activeCategories,
-    selectedSourceLabel,
-    setSelectedSourceLabel,
-  ]);
+  }, [catalogSourcesLoaded, isSingleCategory, effectiveActiveCategories, setSelectedSourceLabel]);
 
   const handleSearch = React.useCallback(
     (term: string) => {

@@ -38,7 +38,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   catalogSources,
   onShowMore,
 }) => {
-  const { catalogLabels } = React.useContext(ModelCatalogContext);
+  const { catalogLabels, reportCategoryEmpty } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     undefined,
     label,
@@ -48,9 +48,23 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
 
   const itemsToDisplay = catalogModels.items.slice(0, pageSize);
 
-  // Get display name and description from labels API
   const categoryTitle = getLabelDisplayName(label, catalogLabels);
   const description = getLabelDescription(label, catalogLabels);
+
+  const reportTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+  React.useEffect(() => {
+    clearTimeout(reportTimerRef.current);
+    if (catalogModelsLoaded && !searchTerm) {
+      reportTimerRef.current = setTimeout(() => {
+        reportCategoryEmpty(label, catalogModels.items.length === 0);
+      }, 100);
+    }
+    return () => clearTimeout(reportTimerRef.current);
+  }, [catalogModelsLoaded, catalogModels.items.length, label, searchTerm, reportCategoryEmpty]);
+
+  if (catalogModelsLoaded && catalogModels.items.length === 0 && !searchTerm) {
+    return null;
+  }
 
   return (
     <>

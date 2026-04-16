@@ -38,7 +38,7 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = ({
   pageSize,
   onShowMore,
 }) => {
-  const { mcpApiState, catalogLabels } = React.useContext(McpCatalogContext);
+  const { mcpApiState, catalogLabels, reportCategoryEmpty } = React.useContext(McpCatalogContext);
   const { mcpServers, mcpServersLoaded, mcpServersLoadError } = useMcpServersBySourceLabelWithAPI(
     mcpApiState,
     {
@@ -57,6 +57,21 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = ({
     'servers',
   );
   const description = getLabelDescription(label, catalogLabels);
+
+  const reportTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+  React.useEffect(() => {
+    clearTimeout(reportTimerRef.current);
+    if (mcpServersLoaded && !searchTerm) {
+      reportTimerRef.current = setTimeout(() => {
+        reportCategoryEmpty(label, mcpServers.items.length === 0);
+      }, 100);
+    }
+    return () => clearTimeout(reportTimerRef.current);
+  }, [mcpServersLoaded, mcpServers.items.length, label, searchTerm, reportCategoryEmpty]);
+
+  if (mcpServersLoaded && mcpServers.items.length === 0 && !searchTerm) {
+    return null;
+  }
 
   return (
     <StackItem className="pf-v6-u-pb-xl">

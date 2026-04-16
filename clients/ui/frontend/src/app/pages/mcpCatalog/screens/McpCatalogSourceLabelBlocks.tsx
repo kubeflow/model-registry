@@ -16,8 +16,13 @@ const ALL_SERVERS_LABEL = 'All MCP servers';
 type SourceLabelBlock = { id: string; label?: string; displayName: string };
 
 const McpCatalogSourceLabelBlocks: React.FC = () => {
-  const { catalogSources, catalogLabels, selectedSourceLabel, setSelectedSourceLabel } =
-    React.useContext(McpCatalogContext);
+  const {
+    catalogSources,
+    catalogLabels,
+    selectedSourceLabel,
+    setSelectedSourceLabel,
+    emptyCategoryLabels,
+  } = React.useContext(McpCatalogContext);
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
     if (!catalogSources) {
@@ -31,20 +36,22 @@ const McpCatalogSourceLabelBlocks: React.FC = () => {
 
     const allBlock: SourceLabelBlock = { id: 'all', displayName: ALL_SERVERS_LABEL };
 
-    const labelBlocks: SourceLabelBlock[] = orderedLabels.map((label) => ({
-      id: `label-${label}`,
-      label,
-      displayName: getLabelDisplayName(
+    const labelBlocks: SourceLabelBlock[] = orderedLabels
+      .filter((label) => !emptyCategoryLabels.has(label))
+      .map((label) => ({
+        id: `label-${label}`,
         label,
-        catalogLabels,
-        OTHER_MCP_SERVERS_DISPLAY_NAME,
-        'servers',
-      ),
-    }));
+        displayName: getLabelDisplayName(
+          label,
+          catalogLabels,
+          OTHER_MCP_SERVERS_DISPLAY_NAME,
+          'servers',
+        ),
+      }));
 
     const result: SourceLabelBlock[] = [allBlock, ...labelBlocks];
 
-    if (hasNoLabels) {
+    if (hasNoLabels && !emptyCategoryLabels.has(SourceLabel.other)) {
       result.push({
         id: 'no-labels',
         label: SourceLabel.other,
@@ -58,7 +65,7 @@ const McpCatalogSourceLabelBlocks: React.FC = () => {
     }
 
     return result;
-  }, [catalogSources, catalogLabels]);
+  }, [catalogSources, catalogLabels, emptyCategoryLabels]);
 
   if (!catalogSources) {
     return null;

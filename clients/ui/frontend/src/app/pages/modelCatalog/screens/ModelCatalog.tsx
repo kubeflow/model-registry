@@ -22,6 +22,7 @@ const ModelCatalog: React.FC = () => {
     catalogSources,
     catalogLabels,
     catalogSourcesLoaded,
+    emptyCategoryLabels,
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = useHasVisibleFiltersApplied();
 
@@ -30,18 +31,22 @@ const ModelCatalog: React.FC = () => {
     [catalogSources, catalogLabels],
   );
 
-  const isSingleCategory = activeCategories.length === 1;
-  const hasNoCategories = activeCategories.length === 0;
+  const effectiveActiveCategories = React.useMemo(
+    () => activeCategories.filter((c) => !emptyCategoryLabels.has(c)),
+    [activeCategories, emptyCategoryLabels],
+  );
+
+  const isSingleCategory = effectiveActiveCategories.length === 1;
+  const hasNoCategories = effectiveActiveCategories.length === 0;
 
   React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
-      updateSelectedSourceLabel(activeCategories[0]);
+    if (catalogSourcesLoaded && isSingleCategory) {
+      updateSelectedSourceLabel(effectiveActiveCategories[0]);
     }
   }, [
     catalogSourcesLoaded,
     isSingleCategory,
-    activeCategories,
-    selectedSourceLabel,
+    effectiveActiveCategories,
     updateSelectedSourceLabel,
   ]);
 
