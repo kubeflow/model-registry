@@ -1,6 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as React from 'react';
-import { waitFor } from '@testing-library/react';
 import { useFetchState } from 'mod-arch-core';
 import useModelVersionById from '~/app/hooks/useModelVersionById';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
@@ -48,72 +47,44 @@ const mockModelRegistryAPIs: ModelRegistryAPIs = {
   getModelTransferJobEvents: jest.fn(),
 };
 
+const captureCallback = (): ((opts: unknown) => Promise<unknown>) => {
+  mockUseFetchState.mockReturnValue([null, false, undefined, jest.fn()]);
+  return mockUseFetchState.mock.calls[0][0] as (opts: unknown) => Promise<unknown>;
+};
+
 describe('useModelVersionById', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should return an error when the API is not available', async () => {
+  it('should reject with an error when the API is not available', async () => {
     mockUseModelRegistryAPI.mockReturnValue({
       api: mockModelRegistryAPIs,
       apiAvailable: false,
       refreshAllAPI: jest.fn(),
     });
 
-    const mockError = new Error('API not yet available');
-    mockUseFetchState.mockReturnValue([null, false, mockError, jest.fn()]);
+    testHook(useModelVersionById)('version-1');
+    const callback = captureCallback();
 
-    const { result } = testHook(useModelVersionById)('version-1');
-
-    await waitFor(() => {
-      const [, , error] = result.current;
-      expect(error).toBeInstanceOf(Error);
-      expect(error?.message).toBe('API not yet available');
-    });
+    await expect(callback({})).rejects.toThrow('API not yet available');
   });
 
-  it('should silently fail when modelVersionId is not provided', async () => {
+  it('should reject with NotReadyError when modelVersionId is not provided', async () => {
     mockUseModelRegistryAPI.mockReturnValue({
       api: mockModelRegistryAPIs,
       apiAvailable: true,
       refreshAllAPI: jest.fn(),
     });
 
-    mockUseFetchState.mockReturnValue([null, false, undefined, jest.fn()]);
+    testHook(useModelVersionById)();
+    const callback = captureCallback();
 
-    const { result } = testHook(useModelVersionById)();
-
-    await waitFor(() => {
-      const [data, , error] = result.current;
-      expect(data).toBeNull();
-      expect(error).toBeUndefined();
-    });
+    await expect(callback({})).rejects.toThrow('No model version id');
+    await expect(callback({})).rejects.toMatchObject({ name: 'NotReadyError' });
   });
 
-  it('should fetch the model version when API is available and id is provided', async () => {
-    const mockedVersion = mockModelVersion({ id: 'version-1', name: 'my-version' });
-
-    mockUseModelRegistryAPI.mockReturnValue({
-      api: {
-        ...mockModelRegistryAPIs,
-        getModelVersion: jest.fn().mockResolvedValue(mockedVersion),
-      },
-      apiAvailable: true,
-      refreshAllAPI: jest.fn(),
-    });
-
-    mockUseFetchState.mockReturnValue([mockedVersion, true, undefined, jest.fn()]);
-
-    const { result } = testHook(useModelVersionById)('version-1');
-
-    await waitFor(() => {
-      const [data, loaded] = result.current;
-      expect(loaded).toBe(true);
-      expect(data).toEqual(mockedVersion);
-    });
-  });
-
-  it('should pass the correct modelVersionId to api.getModelVersion', async () => {
+  it('should call api.getModelVersion with the correct modelVersionId', async () => {
     const getModelVersionMock = jest.fn().mockResolvedValue(mockModelVersion({ id: 'v-42' }));
 
     mockUseModelRegistryAPI.mockReturnValue({
@@ -122,18 +93,12 @@ describe('useModelVersionById', () => {
       refreshAllAPI: jest.fn(),
     });
 
-    // Capture the callback that the hook passes to useFetchState
-    mockUseFetchState.mockReturnValue([null, false, undefined, jest.fn()]);
-
     testHook(useModelVersionById)('v-42');
+    const callback = captureCallback();
 
-    // useFetchState receives the callback as its first argument
-    const capturedCallback = mockUseFetchState.mock.calls[0][0] as (
-      opts: unknown,
-    ) => Promise<unknown>;
-
-    await capturedCallback({});
+    const result = await callback({});
 
     expect(getModelVersionMock).toHaveBeenCalledWith({}, 'v-42');
+    expect(result).toEqual(mockModelVersion({ id: 'v-42' }));
   });
 });
