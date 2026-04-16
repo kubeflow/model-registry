@@ -48,7 +48,7 @@ export const HELPER_TEXT = {
   ACCESS_TOKEN: 'Enter your Hugging Face access token.',
   YAML: 'Upload or paste a YAML string.',
   ORGANIZATION_SLUG:
-    'Hugging Face organization’s name is case-sensitive and match the organization’s URL, which may differ from the displayed name. Use the organization’s URL slug found in the URL (e.g., Input: meta-llama from huggingface.co/meta-llama).',
+    'Hugging Face organization’s name is case-sensitive and should match the organization’s URL, which may differ from the displayed name. Use the organization’s URL slug found in the URL (e.g., Input: meta-llama from huggingface.co/meta-llama).',
 } as const;
 
 export const PLACEHOLDERS = {
