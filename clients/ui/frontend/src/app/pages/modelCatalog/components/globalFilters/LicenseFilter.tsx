@@ -23,7 +23,6 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
         <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LICENSE>
           title="License"
           filterKey={filterKey}
-          filterToNameMapping={{}}
           filters={license}
         />
       </StackItem>
