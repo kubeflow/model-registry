@@ -69,8 +69,7 @@ export const ERROR_MESSAGES = {
   FILE_UPLOAD_FAILED_BODY:
     "The YAML file couldn't be uploaded. Check its syntax and structure, then try again.",
   VALIDATION_FAILED: 'Validation failed',
-  VALIDATION_FAILED_BODY:
-    'The system cannot establish a connection to the source. Ensure that the organization is accurate, then try again.',
+  VALIDATION_FAILED_BODY: 'The system cannot establish a connection to the source.',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -89,7 +88,7 @@ export const TABLE_COLUMN_LABELS = {
 
 export const TABLE_COLUMN_POPOVERS = {
   ORGANIZATION:
-    'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, Google). Only models within this organization are included in the catalog.',
+    'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, meta-llama). Only models within this organization are included in the catalog.',
   ENABLE:
     'Enable a source to make its models available to users in your organization from the model catalog.',
 } as const;

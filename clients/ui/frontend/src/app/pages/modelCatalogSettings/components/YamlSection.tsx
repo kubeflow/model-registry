@@ -110,6 +110,19 @@ const YamlSection: React.FC<YamlSectionProps> = ({
       </FormHelperText>
     );
 
+  const expectedFormatButton = onToggleExpectedFormatDrawer ? (
+    <Button
+      variant="link"
+      isInline
+      onClick={onToggleExpectedFormatDrawer}
+      data-testid="view-expected-yaml-format-link"
+      icon={<OpenDrawerRightIcon />}
+      iconPosition="end"
+    >
+      {EXPECTED_YAML_FORMAT_LABEL}
+    </Button>
+  ) : null;
+
   return (
     <FormSection data-testid="yaml-section">
       {fileUploadError && (
@@ -129,60 +142,14 @@ const YamlSection: React.FC<YamlSectionProps> = ({
           alignItems={{ default: 'alignItemsCenter' }}
           className="pf-v6-u-mb-sm"
         >
-          <FlexItem>
-            {FORM_LABELS.YAML_CONTENT}
-            <span className="pf-v6-c-form__label-required" aria-hidden="true">
-              {' '}
-              *
-            </span>
-          </FlexItem>
-          {onToggleExpectedFormatDrawer && (
-            <FlexItem>
-              <Button
-                variant="link"
-                isInline
-                onClick={onToggleExpectedFormatDrawer}
-                data-testid="view-expected-yaml-format-link"
-                icon={<OpenDrawerRightIcon />}
-                iconPosition="end"
-              >
-                {EXPECTED_YAML_FORMAT_LABEL}
-              </Button>
-            </FlexItem>
-          )}
+          <FlexItem>{FORM_LABELS.YAML_CONTENT}</FlexItem>
+          <FlexItem>{expectedFormatButton}</FlexItem>
         </Flex>
       )}
       <FormGroup
-        label={
-          !isMUITheme ? (
-            <Flex
-              justifyContent={{ default: 'justifyContentSpaceBetween' }}
-              alignItems={{ default: 'alignItemsCenter' }}
-            >
-              <FlexItem>
-                {FORM_LABELS.YAML_CONTENT}
-                <span className="pf-v6-c-form__label-required" aria-hidden="true">
-                  {' '}
-                  *
-                </span>
-              </FlexItem>
-              {onToggleExpectedFormatDrawer && (
-                <FlexItem>
-                  <Button
-                    variant="link"
-                    isInline
-                    onClick={onToggleExpectedFormatDrawer}
-                    data-testid="view-expected-yaml-format-link"
-                    icon={<OpenDrawerRightIcon />}
-                    iconPosition="end"
-                  >
-                    {EXPECTED_YAML_FORMAT_LABEL}
-                  </Button>
-                </FlexItem>
-              )}
-            </Flex>
-          ) : undefined
-        }
+        label={!isMUITheme ? FORM_LABELS.YAML_CONTENT : undefined}
+        labelInfo={!isMUITheme ? expectedFormatButton : undefined}
+        isRequired
         fieldId="yaml-content"
       >
         <FormFieldset component={yamlInput} field="YAML" />
