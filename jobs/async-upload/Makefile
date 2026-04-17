@@ -4,6 +4,7 @@ JOB_IMG_ORG ?= opendatahub
 JOB_IMG_NAME ?= model-registry-job-async-upload
 JOB_IMG ?= $(JOB_IMG_REGISTRY)/$(JOB_IMG_ORG)/$(JOB_IMG_NAME):$(JOB_IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
+include odh_rules.mk
 CLUSTER_NAME ?= mr-e2e
 
 # MR Server Params
@@ -100,3 +101,13 @@ install: install-poetry-export
 .PHONY: install-poetry-export
 install-poetry-export:
 	poetry self add poetry-plugin-export
+
+.PHONY: undeploy-minio
+undeploy-minio:
+	@echo "Undeploy Minio..."
+	cd ../../ && ./scripts/undeploy_minio.sh
+
+.PHONY: undeploy-local-kind-registry
+undeploy-local-kind-registry:
+	@echo "Undeploy Local Kind Registry..."
+	cd ../../ && ./scripts/undeploy_local_registry.sh
