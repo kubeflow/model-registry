@@ -7,7 +7,7 @@ import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalo
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { CategoryName } from '~/app/modelCatalogTypes';
 import { useHasVisibleFiltersApplied } from '~/app/hooks/modelCatalog/useHasVisibleFiltersApplied';
-import { getActiveSourceLabels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import useEffectiveCategories from '~/app/hooks/useEffectiveCategories';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
 import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
@@ -26,29 +26,13 @@ const ModelCatalog: React.FC = () => {
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = useHasVisibleFiltersApplied();
 
-  const activeCategories = React.useMemo(
-    () => getActiveSourceLabels(catalogSources, catalogLabels),
-    [catalogSources, catalogLabels],
-  );
-
-  const effectiveActiveCategories = React.useMemo(
-    () => activeCategories.filter((c) => !emptyCategoryLabels.has(c)),
-    [activeCategories, emptyCategoryLabels],
-  );
-
-  const isSingleCategory = effectiveActiveCategories.length === 1;
-  const hasNoCategories = effectiveActiveCategories.length === 0;
-
-  React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory) {
-      updateSelectedSourceLabel(effectiveActiveCategories[0]);
-    }
-  }, [
+  const { isSingleCategory, hasNoCategories } = useEffectiveCategories(
+    catalogSources,
+    catalogLabels,
+    emptyCategoryLabels,
     catalogSourcesLoaded,
-    isSingleCategory,
-    effectiveActiveCategories,
     updateSelectedSourceLabel,
-  ]);
+  );
 
   const isAllModelsView =
     selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
