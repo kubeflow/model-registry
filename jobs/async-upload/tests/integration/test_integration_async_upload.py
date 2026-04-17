@@ -83,7 +83,7 @@ def model_registry_client(user_token: str) -> ModelRegistry:
 
 @pytest.fixture(scope="session")
 def user_token() -> str:
-    return os.getenv("AUTH_TOKEN", None)  # type: ignore[arg-type]
+    return os.getenv("AUTH_TOKEN", "")
 
 @pytest.fixture(scope="session")
 def verify_ssl() -> bool:
