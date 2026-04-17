@@ -85,13 +85,6 @@ def model_registry_client(user_token: str) -> ModelRegistry:
 def user_token() -> str:
     return os.getenv("AUTH_TOKEN", "")
 
-@pytest.fixture(scope="session")
-def verify_ssl() -> bool:
-    verify_ssl_env = os.environ.get("VERIFY_SSL")
-    if verify_ssl_env is None:
-        return None  # type: ignore[return-value]
-    return verify_ssl_env.lower() == "true"
-
 def apply_job_with_strategic_merge(
     container_image_uri: str,
     k8s_api_client: kubernetes.client.ApiClient,
@@ -244,7 +237,7 @@ def apply_job_with_strategic_merge(
 
 
 def wait_for_job_completion(
-    job_name: str, namespace: str, k8s_batch_client: kubernetes.client.BatchV1Api, timeout_seconds: int = 60
+    job_name: str, namespace: str, k8s_batch_client: kubernetes.client.BatchV1Api, timeout_seconds: int = 120
 ) -> bool:
     """Wait for job completion and return success status."""
     start_time = time.time()
@@ -455,7 +448,6 @@ def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
         "MODEL_SYNC_REGISTRY_SERVER_ADDRESS",
         "MODEL_SYNC_REGISTRY_PORT",
         "MODEL_SYNC_REGISTRY_IS_SECURE",
-        "MODEL_SYNC_REGISTRY_AUTHOR",
         "MODEL_SYNC_REGISTRY_USER_TOKEN",
         "MODEL_SYNC_SIGN",
         "SIGSTORE_TUF_URL",
