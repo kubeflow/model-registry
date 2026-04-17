@@ -81,7 +81,7 @@ def minimal_env_source_dest_vars():
     os.environ.update(original_env)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 def test_model_registry_config_throws_error_on_missing_user_token(
     minimal_env_source_dest_vars,
 ):
@@ -92,7 +92,7 @@ def test_model_registry_config_throws_error_on_missing_user_token(
     assert "user token must be provided for secure connection" in str(e.value)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 def test_model_registry_config_correct(minimal_env_source_dest_vars):
     """Test that the model registry config is correct"""
     sample_config = get_config(["--registry-is-secure", False])
@@ -101,7 +101,7 @@ def test_model_registry_config_correct(minimal_env_source_dest_vars):
     assert isinstance(client, ModelRegistry)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 def test_model_registry_config_throws_when_mr_is_unreachable(
     minimal_env_source_dest_vars,
 ):
@@ -120,7 +120,7 @@ def test_model_registry_config_throws_when_mr_is_unreachable(
     assert "Cannot connect to host" in str(e.value)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_model_intent_success(mr_client, sample_metadata):
     """Test successful validation for create_model intent with non-existent model."""
@@ -137,7 +137,7 @@ async def test_validate_create_model_intent_success(mr_client, sample_metadata):
     await validate_create_model_intent(mr_client, sample_metadata)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_model_intent_model_already_exists(mr_client, sample_metadata):
     """Test validation failure when model already exists."""
@@ -163,7 +163,7 @@ async def test_validate_create_model_intent_model_already_exists(mr_client, samp
             pass
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_model_intent_missing_metadata(mr_client):
     """Test validation failure when required metadata is missing."""
@@ -194,7 +194,7 @@ async def test_validate_create_model_intent_missing_metadata(mr_client):
             "RegisteredModel name is required" in str(exc_info.value))
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_version_intent_success(mr_client, version_only_metadata):
     """Test successful validation for create_version intent."""
@@ -218,7 +218,7 @@ async def test_validate_create_version_intent_success(mr_client, version_only_me
             pass
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_version_intent_model_not_found(mr_client, version_only_metadata):
     """Test validation failure when parent model doesn't exist."""
@@ -233,7 +233,7 @@ async def test_validate_create_version_intent_model_not_found(mr_client, version
     assert "Use 'create_model' intent to create a new model first" in str(exc_info.value)
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_version_intent_version_already_exists(mr_client, version_only_metadata):
     """Test validation failure when version already exists."""
@@ -269,7 +269,7 @@ async def test_validate_create_version_intent_version_already_exists(mr_client, 
             pass
 
 
-@pytest.mark.e2e
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_validate_create_version_intent_missing_metadata(mr_client):
     """Test validation failure when required metadata is missing."""
