@@ -19,7 +19,7 @@ const ModelPerformanceViewToggleCard: React.FC = () => {
     React.useContext(ModelCatalogContext);
 
   return (
-    <Card>
+    <Card style={{ minWidth: '280px' }}>
       <CardBody>
         <Stack hasGutter>
           <StackItem>
