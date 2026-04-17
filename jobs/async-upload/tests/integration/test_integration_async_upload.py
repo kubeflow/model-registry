@@ -70,7 +70,7 @@ def k8s(k8s_api_client, k8s_batch_client, k8s_core_client):
 
 
 @pytest.fixture(scope="session")
-def model_registry_client():
+def model_registry_client(user_token: str) -> ModelRegistry:
     """Create model registry client for integration tests."""
 
     # Parse URL to extract host and port
@@ -79,8 +79,11 @@ def model_registry_client():
     host = f"{parsed.scheme}://{parsed.hostname}"
     port = parsed.port or (443 if parsed.scheme == "https" else 8080)
 
-    return ModelRegistry(host, port, author="integration-test", is_secure=False)
+    return ModelRegistry(host, port, author="integration-test", is_secure=False, user_token=user_token)
 
+@pytest.fixture(scope="session")
+def user_token() -> str:
+    return os.getenv("AUTH_TOKEN", "")
 
 def apply_job_with_strategic_merge(
     container_image_uri: str,
@@ -234,7 +237,7 @@ def apply_job_with_strategic_merge(
 
 
 def wait_for_job_completion(
-    job_name: str, namespace: str, k8s_batch_client: kubernetes.client.BatchV1Api, timeout_seconds: int = 60
+    job_name: str, namespace: str, k8s_batch_client: kubernetes.client.BatchV1Api, timeout_seconds: int = 120
 ) -> bool:
     """Wait for job completion and return success status."""
     start_time = time.time()
@@ -377,7 +380,9 @@ def _setup_s3(tmp_path):
     model_filepath = model_dirpath / "mnist-8.onnx"
 
     # Download the model
-    response = requests.get(HTTP_SOURCE)
+    verify_env = os.environ.get("VERIFY_SSL")
+    verify = verify_env.lower() == "true" if verify_env is not None else None
+    response = requests.get(HTTP_SOURCE, verify=verify)
     response.raise_for_status()
 
     model_dirpath.mkdir()
@@ -440,6 +445,10 @@ def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
     # Forward optional env vars from the host environment to the container
     for var in (
         "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE",
+        "MODEL_SYNC_REGISTRY_SERVER_ADDRESS",
+        "MODEL_SYNC_REGISTRY_PORT",
+        "MODEL_SYNC_REGISTRY_IS_SECURE",
+        "MODEL_SYNC_REGISTRY_USER_TOKEN",
         "MODEL_SYNC_SIGN",
         "SIGSTORE_TUF_URL",
         "SIGSTORE_FULCIO_URL",
@@ -600,7 +609,7 @@ def job_cleanup():
         ),
     ],
 )
-@pytest.mark.integration
+@pytest.mark.e2e
 def test_update_artifact_integration(
     setup,
     env,
@@ -663,7 +672,7 @@ def test_update_artifact_integration(
         },
     ],
 )
-@pytest.mark.integration
+@pytest.mark.e2e
 def test_create_model_integration(
     env,
     tmp_path,
@@ -738,7 +747,7 @@ def test_create_model_integration(
         },
     ],
 )
-@pytest.mark.integration
+@pytest.mark.e2e
 def test_create_version_integration(
     env,
     tmp_path,
