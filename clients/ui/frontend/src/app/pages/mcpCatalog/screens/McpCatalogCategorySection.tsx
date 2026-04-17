@@ -13,6 +13,7 @@ import {
 } from '@patternfly/react-core';
 import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
+import useReportCategoryEmpty from '~/app/hooks/useReportCategoryEmpty';
 import {
   getLabelDescription,
   getLabelDisplayName,
@@ -58,16 +59,13 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = ({
   );
   const description = getLabelDescription(label, catalogLabels);
 
-  const reportTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
-  React.useEffect(() => {
-    clearTimeout(reportTimerRef.current);
-    if (mcpServersLoaded && !searchTerm) {
-      reportTimerRef.current = setTimeout(() => {
-        reportCategoryEmpty(label, mcpServers.items.length === 0);
-      }, 100);
-    }
-    return () => clearTimeout(reportTimerRef.current);
-  }, [mcpServersLoaded, mcpServers.items.length, label, searchTerm, reportCategoryEmpty]);
+  useReportCategoryEmpty(
+    reportCategoryEmpty,
+    label,
+    mcpServersLoaded,
+    mcpServers.items.length,
+    searchTerm,
+  );
 
   if (mcpServersLoaded && mcpServers.items.length === 0 && !searchTerm) {
     return null;

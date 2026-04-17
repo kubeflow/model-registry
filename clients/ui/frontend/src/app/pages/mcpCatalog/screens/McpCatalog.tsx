@@ -7,7 +7,7 @@ import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { hasMcpFiltersApplied } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
 import { MCP_CATALOG_TITLE, MCP_CATALOG_DESCRIPTION } from '~/app/pages/mcpCatalog/const';
-import { getActiveSourceLabels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import useEffectiveCategories from '~/app/hooks/useEffectiveCategories';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import McpCatalogSourceLabelSelector from './McpCatalogSourceLabelSelector';
 import McpCatalogAllServersView from './McpCatalogAllServersView';
@@ -30,24 +30,13 @@ const McpCatalog: React.FC = () => {
   const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
   const isAllServersView = selectedSourceLabel === undefined && !filtersApplied;
 
-  const activeCategories = React.useMemo(
-    () => getActiveSourceLabels(catalogSources, catalogLabels),
-    [catalogSources, catalogLabels],
+  const { isSingleCategory, hasNoCategories } = useEffectiveCategories(
+    catalogSources,
+    catalogLabels,
+    emptyCategoryLabels,
+    catalogSourcesLoaded,
+    setSelectedSourceLabel,
   );
-
-  const effectiveActiveCategories = React.useMemo(
-    () => activeCategories.filter((c) => !emptyCategoryLabels.has(c)),
-    [activeCategories, emptyCategoryLabels],
-  );
-
-  const isSingleCategory = effectiveActiveCategories.length === 1;
-  const hasNoCategories = effectiveActiveCategories.length === 0;
-
-  React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory) {
-      setSelectedSourceLabel(effectiveActiveCategories[0]);
-    }
-  }, [catalogSourcesLoaded, isSingleCategory, effectiveActiveCategories, setSelectedSourceLabel]);
 
   const handleSearch = React.useCallback(
     (term: string) => {

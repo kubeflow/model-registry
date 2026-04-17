@@ -8,6 +8,7 @@ import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
+import useEmptyCategoryTracking from '~/app/hooks/useEmptyCategoryTracking';
 import {
   CatalogFilterOptionsList,
   CatalogLabelList,
@@ -154,25 +155,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState(false);
   const [lastViewedModelName, setLastViewedModelName] = React.useState<string | null>(null);
   const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
-  const [emptyCategoryLabels, setEmptyCategoryLabels] = React.useState<Set<string>>(
-    () => new Set<string>(),
-  );
-  const emptyCategoryLabelsRef = React.useRef(emptyCategoryLabels);
-  emptyCategoryLabelsRef.current = emptyCategoryLabels;
-
-  const reportCategoryEmpty = React.useCallback((label: string, isEmpty: boolean) => {
-    const { current } = emptyCategoryLabelsRef;
-    const hasLabel = current.has(label);
-    if (isEmpty && !hasLabel) {
-      const next = new Set(current);
-      next.add(label);
-      setEmptyCategoryLabels(next);
-    } else if (!isEmpty && hasLabel) {
-      const next = new Set(current);
-      next.delete(label);
-      setEmptyCategoryLabels(next);
-    }
-  }, []);
+  const { emptyCategoryLabels, reportCategoryEmpty } = useEmptyCategoryTracking();
 
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);

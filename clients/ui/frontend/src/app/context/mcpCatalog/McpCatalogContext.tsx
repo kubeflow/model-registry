@@ -7,6 +7,7 @@ import useModelCatalogAPIState, {
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import { useCatalogLabels } from '~/app/hooks/modelCatalog/useCatalogLabels';
 import { useMcpServerFilterOptionListWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList';
+import useEmptyCategoryTracking from '~/app/hooks/useEmptyCategoryTracking';
 import type {
   McpCatalogContextType,
   McpCatalogPaginationState,
@@ -91,25 +92,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<string | undefined>(
     initialState.selectedSourceLabel,
   );
-  const [emptyCategoryLabels, setEmptyCategoryLabels] = React.useState<Set<string>>(
-    () => new Set<string>(),
-  );
-  const emptyCategoryLabelsRef = React.useRef(emptyCategoryLabels);
-  emptyCategoryLabelsRef.current = emptyCategoryLabels;
-
-  const reportCategoryEmpty = React.useCallback((label: string, isEmpty: boolean) => {
-    const { current } = emptyCategoryLabelsRef;
-    const hasLabel = current.has(label);
-    if (isEmpty && !hasLabel) {
-      const next = new Set(current);
-      next.add(label);
-      setEmptyCategoryLabels(next);
-    } else if (!isEmpty && hasLabel) {
-      const next = new Set(current);
-      next.delete(label);
-      setEmptyCategoryLabels(next);
-    }
-  }, []);
+  const { emptyCategoryLabels, reportCategoryEmpty } = useEmptyCategoryTracking();
 
   React.useEffect(() => {
     syncToUrl({ searchQuery, filters, selectedSourceLabel });

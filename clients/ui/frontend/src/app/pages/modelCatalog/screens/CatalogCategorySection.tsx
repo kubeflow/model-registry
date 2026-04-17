@@ -14,6 +14,7 @@ import React from 'react';
 import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
+import useReportCategoryEmpty from '~/app/hooks/useReportCategoryEmpty';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import {
   getLabelDescription,
@@ -51,16 +52,13 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   const categoryTitle = getLabelDisplayName(label, catalogLabels);
   const description = getLabelDescription(label, catalogLabels);
 
-  const reportTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
-  React.useEffect(() => {
-    clearTimeout(reportTimerRef.current);
-    if (catalogModelsLoaded && !searchTerm) {
-      reportTimerRef.current = setTimeout(() => {
-        reportCategoryEmpty(label, catalogModels.items.length === 0);
-      }, 100);
-    }
-    return () => clearTimeout(reportTimerRef.current);
-  }, [catalogModelsLoaded, catalogModels.items.length, label, searchTerm, reportCategoryEmpty]);
+  useReportCategoryEmpty(
+    reportCategoryEmpty,
+    label,
+    catalogModelsLoaded,
+    catalogModels.items.length,
+    searchTerm,
+  );
 
   if (catalogModelsLoaded && catalogModels.items.length === 0 && !searchTerm) {
     return null;
