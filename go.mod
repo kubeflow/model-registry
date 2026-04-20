@@ -28,7 +28,7 @@ require (
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
-	k8s.io/apimachinery v0.35.3
+	k8s.io/apimachinery v0.35.4
 )
 
 require (
