@@ -3,6 +3,7 @@ import {
   Alert,
   Bullseye,
   Button,
+  Content,
   EmptyState,
   Flex,
   Grid,
@@ -13,8 +14,15 @@ import {
 import { SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
-import { MCP_CATALOG_GRID_SPAN } from '~/app/pages/mcpCatalog/const';
+import {
+  MCP_CATALOG_GRID_SPAN,
+  OTHER_MCP_SERVERS_DISPLAY_NAME,
+} from '~/app/pages/mcpCatalog/const';
 import { mcpFiltersToFilterQuery } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
+import {
+  getLabelDisplayName,
+  getLabelDescription,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import McpCatalogCard from '~/app/pages/mcpCatalog/components/McpCatalogCard';
@@ -23,11 +31,21 @@ const PAGE_SIZE = 10;
 
 type McpCatalogGalleryViewProps = {
   handleFilterReset: () => void;
+  isSingleCategory?: boolean;
 };
 
-const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({ handleFilterReset }) => {
-  const { mcpApiState, selectedSourceLabel, searchQuery, filters, catalogLabelsLoaded } =
-    React.useContext(McpCatalogContext);
+const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({
+  handleFilterReset,
+  isSingleCategory = false,
+}) => {
+  const {
+    mcpApiState,
+    selectedSourceLabel,
+    searchQuery,
+    filters,
+    catalogLabels,
+    catalogLabelsLoaded,
+  } = React.useContext(McpCatalogContext);
 
   const filterQuery = React.useMemo(() => mcpFiltersToFilterQuery(filters), [filters]);
 
@@ -80,9 +98,33 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({ handleFil
     );
   }
 
+  const categoryTitle = isSingleCategory
+    ? getLabelDisplayName(
+        selectedSourceLabel || '',
+        catalogLabels,
+        OTHER_MCP_SERVERS_DISPLAY_NAME,
+        'servers',
+      )
+    : undefined;
+  const categoryDescription = isSingleCategory
+    ? getLabelDescription(selectedSourceLabel || '', catalogLabels)
+    : undefined;
+
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
+      {isSingleCategory && categoryTitle && (
+        <div className="pf-v6-u-mb-lg" data-testid="single-category-header">
+          <Title headingLevel="h3" size="lg">
+            {categoryTitle}
+          </Title>
+          {categoryDescription && (
+            <Content component="p" className="pf-v6-u-color-200 pf-v6-u-mt-sm">
+              {categoryDescription}
+            </Content>
+          )}
+        </div>
+      )}
       <Grid hasGutter>
         {items.map((server) => (
           <GridItem

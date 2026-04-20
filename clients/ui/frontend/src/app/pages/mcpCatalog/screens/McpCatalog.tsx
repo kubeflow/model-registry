@@ -94,7 +94,10 @@ const McpCatalog: React.FC = () => {
                   {isAllServersView && !isSingleCategory ? (
                     <McpCatalogAllServersView searchTerm={searchQuery} />
                   ) : (
-                    <McpCatalogGalleryView handleFilterReset={handleResetAllFilters} />
+                    <McpCatalogGalleryView
+                      handleFilterReset={handleResetAllFilters}
+                      isSingleCategory={isSingleCategory}
+                    />
                   )}
                 </PageSection>
               </Stack>

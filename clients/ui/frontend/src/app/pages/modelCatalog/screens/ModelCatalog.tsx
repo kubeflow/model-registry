@@ -92,6 +92,7 @@ const ModelCatalog: React.FC = () => {
                   <ModelCatalogGalleryView
                     searchTerm={searchTerm}
                     handleFilterReset={handleFilterReset}
+                    isSingleCategory={isSingleCategory}
                   />
                 )}
               </PageSection>
