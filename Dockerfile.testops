@@ -31,17 +31,25 @@ RUN ARCH="${TARGETARCH:-amd64}" && \
     echo "$(<kubectl.sha256) kubectl" | sha256sum -c - && \
     install -m 0755 kubectl /usr/local/bin/ && rm -f kubectl kubectl.sha256
 
-# Install poetry and pytest
-RUN pip install --no-cache-dir poetry pytest
-
 # Give write permissions to all copied folders and change ownership to odh user
 RUN chown -R odh:odh /home/odh && \
     chmod -R 755 api/ manifests/ scripts/
+# Install poetry and pytest (as root, into the app-root virtualenv)
+RUN pip install --no-cache-dir poetry pytest
+
 RUN chown -R odh:odh /opt/app-root/src/
+
+# Disable the base image's auto-activation of /opt/app-root virtualenv so
+# Poetry creates its own in-project .venv instead of installing into root-owned dirs
+ENV VIRTUAL_ENV="" \
+    BASH_ENV="" \
+    ENV="" \
+    PROMPT_COMMAND="" \
+    POETRY_VIRTUALENVS_IN_PROJECT=true
+
 # Switch to odh user
 USER odh
 
-# Add user's pip bin to PATH
 ENV PATH="/home/odh/.local/bin:$PATH"
 
 # Set entrypoint to make command
