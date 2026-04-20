@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: distribution-registry-test
-          image: docker.io/library/registry:2
+          image: public.ecr.aws/docker/library/registry:2
           args:
             - /etc/docker/registry/config.yml
           env:
