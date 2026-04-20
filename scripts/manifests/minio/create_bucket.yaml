@@ -9,7 +9,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: mc
-        image: minio/mc
+        image: quay.io/minio/mc
         env:
           - name: MINIO_ROOT_USER
             valueFrom:

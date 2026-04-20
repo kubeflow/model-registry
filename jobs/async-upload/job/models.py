@@ -43,7 +43,7 @@ class OCIConfig(BaseModel):
     username: str | None = None
     password: str | None = None
     email: str | None = None
-    base_image: str = "busybox:latest"
+    base_image: str = "public.ecr.aws/docker/library/busybox:latest"
     enable_tls_verify: bool = True
 
     @model_validator(mode='after')
