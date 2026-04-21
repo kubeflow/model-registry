@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
@@ -278,5 +279,68 @@ func TestRegisteredModelRepository(t *testing.T) {
 
 		assert.NotNil(t, retrieved.GetCustomProperties())
 		assert.Len(t, *retrieved.GetCustomProperties(), 2)
+	})
+
+	t.Run("TestCustomPropertyTypeChange", func(t *testing.T) {
+		// Create a model with an int custom property
+		registeredModel := &models.RegisteredModelImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.RegisteredModelAttributes{
+				Name: apiutils.Of("type-change-model"),
+			},
+			CustomProperties: &[]models.Properties{
+				{
+					Name:     "score",
+					IntValue: apiutils.Of(int32(42)),
+				},
+			},
+		}
+
+		saved, err := repo.Save(registeredModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		// Verify the int value was saved
+		retrieved, err := repo.GetByID(*saved.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.GetCustomProperties())
+		require.Len(t, *retrieved.GetCustomProperties(), 1)
+		scoreProp := (*retrieved.GetCustomProperties())[0]
+		require.NotNil(t, scoreProp.IntValue)
+		assert.Equal(t, int32(42), *scoreProp.IntValue)
+		assert.Nil(t, scoreProp.DoubleValue)
+
+		// Update the same property to a double value
+		registeredModel.ID = saved.GetID()
+		registeredModel.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
+		registeredModel.CustomProperties = &[]models.Properties{
+			{
+				Name:        "score",
+				DoubleValue: apiutils.Of(3.14),
+			},
+		}
+
+		updated, err := repo.Save(registeredModel)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+
+		// Retrieve and verify through the repository
+		retrieved, err = repo.GetByID(*updated.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, retrieved.GetCustomProperties())
+		require.Len(t, *retrieved.GetCustomProperties(), 1)
+		scoreProp = (*retrieved.GetCustomProperties())[0]
+		assert.NotNil(t, scoreProp.DoubleValue, "double_value should be set after type change")
+		assert.Equal(t, 3.14, *scoreProp.DoubleValue)
+		assert.Nil(t, scoreProp.IntValue, "int_value should be cleared after type change to double")
+
+		// Also verify directly in the database to rule out mapper masking
+		var dbProp schema.ContextProperty
+		err = sharedDB.Where("context_id = ? AND name = ? AND is_custom_property = ?",
+			*updated.GetID(), "score", true).First(&dbProp).Error
+		require.NoError(t, err)
+		assert.NotNil(t, dbProp.DoubleValue, "DB double_value column should be set")
+		assert.Equal(t, 3.14, *dbProp.DoubleValue)
+		assert.Nil(t, dbProp.IntValue, "DB int_value column should be NULL after type change")
 	})
 }
