@@ -100,7 +100,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       </ThemeAwareFormGroupWrapper>
       <FormHelperText>
         <HelperText>
-          <HelperTextItem>{HELP_TEXT.ORGANIZATION_SLUG}</HelperTextItem>
+          <HelperTextItem>{HELPER_TEXT.ORGANIZATION_SLUG}</HelperTextItem>
         </HelperText>
       </FormHelperText>
     </>
