@@ -130,27 +130,47 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
         </Content>
       </Td>
       <Td dataLabel="Transfer job status">
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
           <FlexItem>
-            <Label
-              color={statusInfo.color}
-              icon={statusInfo.icon}
-              data-testid="job-status"
-              isClickable
-              onClick={() => setIsStatusModalOpen(true)}
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              spaceItems={{ default: 'spaceItemsSm' }}
             >
-              {statusInfo.label}
-            </Label>
+              <FlexItem>
+                <Label
+                  color={statusInfo.color}
+                  icon={statusInfo.icon}
+                  data-testid="job-status"
+                  isClickable
+                  onClick={() => setIsStatusModalOpen(true)}
+                >
+                  {statusInfo.label}
+                </Label>
+              </FlexItem>
+              {job.status === ModelTransferJobStatus.FAILED && onRequestRetry && (
+                <FlexItem>
+                  <Button
+                    variant="link"
+                    isInline
+                    onClick={() => onRequestRetry(job)}
+                    data-testid="job-retry-button"
+                  >
+                    Retry
+                  </Button>
+                </FlexItem>
+              )}
+            </Flex>
           </FlexItem>
-          {job.status === ModelTransferJobStatus.FAILED && onRequestRetry && (
+          {job.status === ModelTransferJobStatus.FAILED && job.errorMessage && (
             <FlexItem>
               <Button
                 variant="link"
                 isInline
-                onClick={() => onRequestRetry(job)}
-                data-testid="job-retry-button"
+                onClick={() => setIsStatusModalOpen(true)}
+                data-testid="job-error-message"
+                style={{ textDecoration: 'underline dotted', textUnderlineOffset: '3px' }}
               >
-                Retry
+                <Truncate content={job.errorMessage} />
               </Button>
             </FlexItem>
           )}
