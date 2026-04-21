@@ -38,6 +38,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
   const startingOrUnknownLabel = (
     <Label
       color="grey"
+      variant="outline"
       icon={<InProgressIcon />}
       data-testid={`source-status-${catalogSourcesLoadError ? 'unknown' : 'starting'}-${catalogSourceConfig.id}`}
     >
@@ -53,7 +54,11 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
   switch (matchingSource.status) {
     case CatalogSourceStatusEnum.AVAILABLE:
       return (
-        <Label status="success" data-testid={`source-status-connected-${catalogSourceConfig.id}`}>
+        <Label
+          status="success"
+          variant="outline"
+          data-testid={`source-status-connected-${catalogSourceConfig.id}`}
+        >
           Connected
         </Label>
       );
@@ -65,7 +70,11 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
         <>
           <Stack hasGutter>
             <StackItem>
-              <Label status="danger" data-testid={`source-status-failed-${catalogSourceConfig.id}`}>
+              <Label
+                status="danger"
+                variant="outline"
+                data-testid={`source-status-failed-${catalogSourceConfig.id}`}
+              >
                 Failed
               </Label>
             </StackItem>

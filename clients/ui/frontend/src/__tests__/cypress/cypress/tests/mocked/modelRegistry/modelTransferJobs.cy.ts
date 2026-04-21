@@ -250,7 +250,7 @@ describe('Model transfer jobs', () => {
     failedRow.find().findByTestId('job-status').should('contain.text', 'Failed');
 
     const cancelledRow = modelTransferJobsPage.getRow('job-cancelled');
-    cancelledRow.find().findByTestId('job-status').should('contain.text', 'Cancelled');
+    cancelledRow.find().findByTestId('job-status').should('contain.text', 'Canceled');
 
     completedRow.find().findByTestId('job-status').click();
     cy.findByTestId('transfer-job-status-modal').should('be.visible');

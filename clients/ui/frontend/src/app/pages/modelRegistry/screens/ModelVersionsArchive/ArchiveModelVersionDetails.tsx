@@ -63,7 +63,7 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
               <Content>{mv.name}</Content>
             </FlexItem>
             <FlexItem>
-              <Label>Archived</Label>
+              <Label variant="outline">Archived</Label>
             </FlexItem>
           </Flex>
         )

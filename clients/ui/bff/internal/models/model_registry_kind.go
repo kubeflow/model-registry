@@ -21,6 +21,7 @@ type Metadata struct {
 	Name              string            `json:"name"`
 	Namespace         string            `json:"namespace"`
 	CreationTimestamp time.Time         `json:"creationTimestamp"`
+	DeletionTimestamp *time.Time        `json:"deletionTimestamp,omitempty"`
 	Annotations       map[string]string `json:"annotations,omitempty"`
 }
 
