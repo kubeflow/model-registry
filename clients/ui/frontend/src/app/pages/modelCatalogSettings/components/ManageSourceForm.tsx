@@ -15,7 +15,11 @@ import { catalogSettingsUrl } from '~/app/routes/modelCatalogSettings/modelCatal
 import { isFormValid } from '~/app/pages/modelCatalogSettings/utils/validation';
 import { useManageSourceData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { useSourcePreview } from '~/app/pages/modelCatalogSettings/useSourcePreview';
-import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
+import {
+  FORM_LABELS,
+  DESCRIPTION_TEXT,
+  ERROR_MESSAGES,
+} from '~/app/pages/modelCatalogSettings/constants';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import {
   catalogSourceConfigToFormData,
@@ -82,7 +86,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
       refreshCatalogSourceConfigs();
       navigate(catalogSettingsUrl());
     } catch (error) {
-      setSubmitError(error instanceof Error ? error : new Error(`Failed to save source`));
+      setSubmitError(error instanceof Error ? error : new Error(ERROR_MESSAGES.SAVE_FAILED));
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +158,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                       id="enable-source"
                       name="enable-source"
                       data-testid="enable-source-checkbox"
-                      description={DESCRIPTIONS.ENABLE_SOURCE}
+                      description={DESCRIPTION_TEXT.ENABLE_SOURCE}
                       isChecked={formData.enabled}
                       onChange={(_event, checked) => setData('enabled', checked)}
                     />
