@@ -10,6 +10,7 @@ import {
   ModalVariant,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
+import { ERROR_MESSAGES } from '~/app/pages/modelCatalogSettings/constants';
 
 type CatalogSourceStatusErrorModalProps = {
   isOpen: boolean;
@@ -45,12 +46,11 @@ const CatalogSourceStatusErrorModal: React.FC<CatalogSourceStatusErrorModalProps
         <Alert
           variant="danger"
           isInline
-          title="Validation failed"
+          title={ERROR_MESSAGES.VALIDATION_FAILED}
           data-testid="catalog-source-status-error-alert"
         >
           <p data-testid="catalog-source-status-error-details">
-            The system cannot establish a connection to the source. Ensure that the organization is
-            accurate, then try again.
+            {ERROR_MESSAGES.VALIDATION_FAILED_BODY}
           </p>
           {errorMessage && <p data-testid="catalog-source-status-error-message">{errorMessage}</p>}
         </Alert>

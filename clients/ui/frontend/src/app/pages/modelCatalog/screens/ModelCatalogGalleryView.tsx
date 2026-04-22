@@ -2,6 +2,7 @@ import {
   Alert,
   Bullseye,
   Button,
+  Content,
   EmptyState,
   EmptyStateVariant,
   Flex,
@@ -22,6 +23,8 @@ import {
   getActiveLatencyFieldName,
   getSortParams,
   generateCategoryName,
+  getLabelDisplayName,
+  getLabelDescription,
   hasFiltersApplied,
   isValueDifferentFromDefault,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -38,11 +41,15 @@ import {
 type ModelCatalogPageProps = {
   searchTerm: string;
   handleFilterReset: () => void;
+  isSingleCategory?: boolean;
+  singleCategoryLabel?: string;
 };
 
 const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   searchTerm,
   handleFilterReset,
+  isSingleCategory = false,
+  singleCategoryLabel,
 }) => {
   const {
     selectedSourceLabel,
@@ -51,6 +58,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoaded,
     filterOptionsLoadError,
     catalogSources,
+    catalogLabels,
     catalogLabelsLoaded,
     catalogLabelsLoadError,
     setPerformanceViewEnabled,
@@ -270,9 +278,29 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
+  const effectiveCategoryLabel = singleCategoryLabel || selectedSourceLabel || '';
+  const categoryTitle = isSingleCategory
+    ? getLabelDisplayName(effectiveCategoryLabel, catalogLabels)
+    : undefined;
+  const categoryDescription = isSingleCategory
+    ? getLabelDescription(effectiveCategoryLabel, catalogLabels)
+    : undefined;
+
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
+      {isSingleCategory && categoryTitle && (
+        <div className="pf-v6-u-mb-lg" data-testid="single-category-header">
+          <Title headingLevel="h3" size="lg">
+            {categoryTitle}
+          </Title>
+          {categoryDescription && (
+            <Content component="p" className="pf-v6-u-color-200 pf-v6-u-mt-sm">
+              {categoryDescription}
+            </Content>
+          )}
+        </div>
+      )}
       <Grid hasGutter>
         {catalogModels.items.map((model: CatalogModel) => (
           <GridItem key={`${model.name}/${model.source_id}`} sm={6} md={6} lg={6} xl={6} xl2={3}>

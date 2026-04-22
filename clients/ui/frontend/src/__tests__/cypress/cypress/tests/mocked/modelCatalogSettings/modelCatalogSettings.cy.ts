@@ -443,7 +443,7 @@ describe('Catalog Source Configs Table', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
-      row.shouldHaveValidationStatus('Connected');
+      row.shouldHaveValidationStatus('Ready');
       row.findValidationStatus().findByTestId('source-status-connected-hf-google').should('exist');
     });
 
@@ -783,7 +783,7 @@ describe('Manage Source Page', () => {
 
       // Before entering organization, should show generic text
       cy.contains(
-        'Optionally filter which models from your source appear in the model catalog',
+        'Optionally filter which models from this source appear in the model catalog',
       ).should('exist');
 
       // Fill organization name
@@ -791,7 +791,7 @@ describe('Manage Source Page', () => {
 
       // After entering organization, should show organization-specific text
       cy.contains(
-        'Optionally filter which Google models from your source appear in the model catalog',
+        'Optionally filter which Google models from this source appear in the model catalog',
       ).should('exist');
       cy.contains('all Google models from the source will be visible').should('exist');
 
@@ -800,7 +800,7 @@ describe('Manage Source Page', () => {
 
       // Text should update to new organization
       cy.contains(
-        'Optionally filter which Meta models from your source appear in the model catalog',
+        'Optionally filter which Meta models from this source appear in the model catalog',
       ).should('exist');
       cy.contains('all Meta models from the source will be visible').should('exist');
     });
