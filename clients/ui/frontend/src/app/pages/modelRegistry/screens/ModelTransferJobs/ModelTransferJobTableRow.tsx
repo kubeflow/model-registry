@@ -168,7 +168,10 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
                 isInline
                 onClick={() => setIsStatusModalOpen(true)}
                 data-testid="job-error-message"
-                style={{ textDecoration: 'underline dotted', textUnderlineOffset: '3px' }}
+                style={{
+                  textDecoration: 'underline dotted',
+                  textUnderlineOffset: 'var(--pf-t--global--spacer--xs)',
+                }}
               >
                 <Truncate content={job.errorMessage} />
               </Button>
