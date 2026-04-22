@@ -73,9 +73,6 @@ def pytest_report_teststatus(report, config):
             print(f"\nTEST: {test_name} STATUS: \033[0;31mFAILED\033[0m")
 
 
-start_time = time.time()
-
-
 @pytest.fixture(scope="session")
 def root(request) -> Path:
     return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
@@ -103,13 +100,14 @@ def verify_ssl() -> bool:
 
 
 def poll_for_ready(user_token, verify_ssl):
+    poll_start = time.time()
     params = {
         "url": REGISTRY_URL,
         "headers": {"Authorization": f"Bearer {user_token}", } if user_token else None,
         "verify": verify_ssl
     }
     while True:
-        elapsed_time = time.time() - start_time
+        elapsed_time = time.time() - poll_start
         if elapsed_time >= MAX_POLL_TIME:
             print("Polling timed out.")
             break
