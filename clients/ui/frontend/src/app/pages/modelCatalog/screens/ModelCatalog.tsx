@@ -34,10 +34,16 @@ const ModelCatalog: React.FC = () => {
   const hasNoCategories = activeCategories.length === 0;
 
   React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory) {
+    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
       updateSelectedSourceLabel(activeCategories[0]);
     }
-  }, [catalogSourcesLoaded, isSingleCategory, activeCategories, updateSelectedSourceLabel]);
+  }, [
+    catalogSourcesLoaded,
+    isSingleCategory,
+    activeCategories,
+    selectedSourceLabel,
+    updateSelectedSourceLabel,
+  ]);
 
   const isAllModelsView =
     selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
@@ -93,6 +99,7 @@ const ModelCatalog: React.FC = () => {
                     searchTerm={searchTerm}
                     handleFilterReset={handleFilterReset}
                     isSingleCategory={isSingleCategory}
+                    singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
                   />
                 )}
               </PageSection>

@@ -2,6 +2,8 @@
 /* eslint-disable camelcase */
 import {
   CatalogFilterOptionsList,
+  CatalogLabel,
+  CatalogLabelList,
   CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
@@ -1570,5 +1572,43 @@ describe('getActiveSourceLabels', () => {
     ]);
     const result = getActiveSourceLabels(sources, null);
     expect(result).toEqual(['null']);
+  });
+
+  it('orders labels by catalogLabels priority when catalogLabels is provided', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Community'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '3',
+        labels: ['Partner'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+
+    const createLabel = (name: string | null): CatalogLabel => ({
+      name,
+      displayName: name ?? undefined,
+    });
+
+    const catalogLabels: CatalogLabelList = {
+      items: [createLabel('Red Hat'), createLabel('Partner'), createLabel('Community')],
+      size: 3,
+      pageSize: 10,
+      nextPageToken: '',
+    };
+
+    const result = getActiveSourceLabels(sources, catalogLabels);
+    expect(result).toEqual(['Red Hat', 'Partner', 'Community']);
   });
 });

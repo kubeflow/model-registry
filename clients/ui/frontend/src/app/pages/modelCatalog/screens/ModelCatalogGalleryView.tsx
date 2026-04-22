@@ -42,12 +42,14 @@ type ModelCatalogPageProps = {
   searchTerm: string;
   handleFilterReset: () => void;
   isSingleCategory?: boolean;
+  singleCategoryLabel?: string;
 };
 
 const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   searchTerm,
   handleFilterReset,
   isSingleCategory = false,
+  singleCategoryLabel,
 }) => {
   const {
     selectedSourceLabel,
@@ -276,11 +278,12 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
+  const effectiveCategoryLabel = singleCategoryLabel || selectedSourceLabel || '';
   const categoryTitle = isSingleCategory
-    ? getLabelDisplayName(selectedSourceLabel || '', catalogLabels)
+    ? getLabelDisplayName(effectiveCategoryLabel, catalogLabels)
     : undefined;
   const categoryDescription = isSingleCategory
-    ? getLabelDescription(selectedSourceLabel || '', catalogLabels)
+    ? getLabelDescription(effectiveCategoryLabel, catalogLabels)
     : undefined;
 
   return (
