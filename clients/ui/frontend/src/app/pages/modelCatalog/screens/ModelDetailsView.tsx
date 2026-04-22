@@ -166,11 +166,13 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>License</DescriptionListTerm>
-                  <ExternalLink
-                    text="Agreement"
-                    to={model.licenseLink || ''}
-                    testId="model-license-link"
-                  />
+                  <DescriptionListDescription>
+                    <ExternalLink
+                      text="Agreement"
+                      to={model.licenseLink || ''}
+                      testId="model-license-link"
+                    />
+                  </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Provider</DescriptionListTerm>
