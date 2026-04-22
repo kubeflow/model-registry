@@ -4,6 +4,18 @@ class ModelTransferJobsTableRow extends TableRow {
   findJobName() {
     return this.find().findByTestId('job-name');
   }
+
+  findStatus() {
+    return this.find().findByTestId('job-status');
+  }
+
+  findErrorMessage() {
+    return this.find().findByTestId('job-error-message');
+  }
+
+  findRetryButton() {
+    return this.find().findByTestId('job-retry-button');
+  }
 }
 
 class ModelTransferJobsPage {
@@ -56,6 +68,14 @@ class ModelTransferJobsPage {
 
   findEmptyState() {
     return cy.findByTestId('empty-model-transfer-jobs');
+  }
+
+  findRetryModal() {
+    return cy.findByTestId('retry-job-modal');
+  }
+
+  findRetryModalSubmitButton() {
+    return this.findRetryModal().findByTestId('retry-job-submit-button');
   }
 }
 
