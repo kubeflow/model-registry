@@ -168,6 +168,10 @@ class ModelCatalog {
     return cy.findByTestId('model-long-description');
   }
 
+  findModelCardMarkdown() {
+    return cy.findByTestId('model-card-markdown');
+  }
+
   findModelArchitecture() {
     return cy.findByTestId('model-architecture');
   }
