@@ -211,7 +211,7 @@ def apply_job_with_strategic_merge(
 
     # Apply resources using kubectl apply -k
     result = subprocess.run(
-        ["kubectl", "apply", "-k", "."],
+        ["kubectl", "apply", "-k", ".", "-n", "default"],
         capture_output=True,
         text=True,
         cwd=manifest_dir,
@@ -224,7 +224,7 @@ def apply_job_with_strategic_merge(
     # Describe job
     print("Applied Job:")
     result = subprocess.run(
-        ["kubectl", "describe", "jobs/my-async-upload-job"],
+        ["kubectl", "describe", "jobs/my-async-upload-job", "-n", "default"],
         capture_output=True,
         text=True,
         cwd=manifest_dir,
