@@ -30,7 +30,7 @@ const McpCatalog: React.FC = () => {
   const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
   const isAllServersView = selectedSourceLabel === undefined && !filtersApplied;
 
-  const { isSingleCategory, hasNoCategories } = useEffectiveCategories(
+  const { effectiveActiveCategories, isSingleCategory, hasNoCategories } = useEffectiveCategories(
     catalogSources,
     catalogLabels,
     emptyCategoryLabels,
@@ -92,7 +92,9 @@ const McpCatalog: React.FC = () => {
                     <McpCatalogGalleryView
                       handleFilterReset={handleResetAllFilters}
                       isSingleCategory={isSingleCategory}
-                      singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
+                      singleCategoryLabel={
+                        isSingleCategory ? effectiveActiveCategories[0] : undefined
+                      }
                     />
                   )}
                 </PageSection>
