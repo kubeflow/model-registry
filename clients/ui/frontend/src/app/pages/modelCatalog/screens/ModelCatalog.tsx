@@ -26,7 +26,7 @@ const ModelCatalog: React.FC = () => {
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = useHasVisibleFiltersApplied();
 
-  const { isSingleCategory, hasNoCategories } = useEffectiveCategories(
+  const { effectiveActiveCategories, isSingleCategory, hasNoCategories } = useEffectiveCategories(
     catalogSources,
     catalogLabels,
     emptyCategoryLabels,
@@ -88,7 +88,9 @@ const ModelCatalog: React.FC = () => {
                     searchTerm={searchTerm}
                     handleFilterReset={handleFilterReset}
                     isSingleCategory={isSingleCategory}
-                    singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
+                    singleCategoryLabel={
+                      isSingleCategory ? effectiveActiveCategories[0] : undefined
+                    }
                   />
                 )}
               </PageSection>
