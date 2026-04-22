@@ -750,6 +750,21 @@ export const orderLabelsByPriority = (
   return orderedLabels;
 };
 
+export const getActiveSourceLabels = (
+  catalogSources: CatalogSourceList | null,
+  catalogLabels: CatalogLabelList | null,
+): string[] => {
+  const enabledSources = filterEnabledCatalogSources(catalogSources);
+  const uniqueLabels = getUniqueSourceLabels(enabledSources);
+  const orderedLabels = orderLabelsByPriority(uniqueLabels, catalogLabels);
+
+  if (hasSourcesWithoutLabels(enabledSources)) {
+    return [...orderedLabels, SourceLabel.other];
+  }
+
+  return orderedLabels;
+};
+
 /**
  * Formats model type value for display in the UI.
  * Converts raw API values (generative, predictive, unknown) to user-friendly display labels.

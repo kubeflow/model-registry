@@ -1,21 +1,53 @@
 import * as React from 'react';
 import { PageSection, Sidebar, SidebarContent, SidebarPanel, Stack } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
+import { SearchIcon } from '@patternfly/react-icons';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { hasMcpFiltersApplied } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
 import { MCP_CATALOG_TITLE, MCP_CATALOG_DESCRIPTION } from '~/app/pages/mcpCatalog/const';
+import { getActiveSourceLabels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import McpCatalogSourceLabelSelector from './McpCatalogSourceLabelSelector';
 import McpCatalogAllServersView from './McpCatalogAllServersView';
 import McpCatalogGalleryView from './McpCatalogGalleryView';
 
 const McpCatalog: React.FC = () => {
-  const { searchQuery, setSearchQuery, clearAllFilters, selectedSourceLabel, filters } =
-    React.useContext(McpCatalogContext);
+  const {
+    searchQuery,
+    setSearchQuery,
+    clearAllFilters,
+    selectedSourceLabel,
+    setSelectedSourceLabel,
+    filters,
+    catalogSources,
+    catalogLabels,
+    catalogSourcesLoaded,
+  } = React.useContext(McpCatalogContext);
 
   const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
   const isAllServersView = selectedSourceLabel === undefined && !filtersApplied;
+
+  const activeCategories = React.useMemo(
+    () => getActiveSourceLabels(catalogSources, catalogLabels),
+    [catalogSources, catalogLabels],
+  );
+
+  const isSingleCategory = activeCategories.length === 1;
+  const hasNoCategories = activeCategories.length === 0;
+
+  React.useEffect(() => {
+    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
+      setSelectedSourceLabel(activeCategories[0]);
+    }
+  }, [
+    catalogSourcesLoaded,
+    isSingleCategory,
+    activeCategories,
+    selectedSourceLabel,
+    setSelectedSourceLabel,
+  ]);
 
   const handleSearch = React.useCallback(
     (term: string) => {
@@ -44,28 +76,41 @@ const McpCatalog: React.FC = () => {
         loaded
         provideChildrenPadding
       >
-        <Sidebar hasBorder hasGutter>
-          <SidebarPanel variant="sticky">
-            <McpCatalogFilters />
-          </SidebarPanel>
-          <SidebarContent>
-            <Stack hasGutter>
-              <McpCatalogSourceLabelSelector
-                searchTerm={searchQuery}
-                onSearch={handleSearch}
-                onClearSearch={handleClearSearch}
-                onResetAllFilters={handleResetAllFilters}
-              />
-              <PageSection isFilled padding={{ default: 'noPadding' }}>
-                {isAllServersView ? (
-                  <McpCatalogAllServersView searchTerm={searchQuery} />
-                ) : (
-                  <McpCatalogGalleryView handleFilterReset={handleResetAllFilters} />
-                )}
-              </PageSection>
-            </Stack>
-          </SidebarContent>
-        </Sidebar>
+        {catalogSourcesLoaded && hasNoCategories ? (
+          <EmptyModelCatalogState
+            testid="empty-mcp-catalog-no-categories"
+            title="No MCP servers available"
+            headerIcon={SearchIcon}
+            description="There are no MCP server categories available. Configure sources in settings to get started."
+          />
+        ) : (
+          <Sidebar hasBorder hasGutter>
+            <SidebarPanel variant="sticky">
+              <McpCatalogFilters />
+            </SidebarPanel>
+            <SidebarContent>
+              <Stack hasGutter>
+                <McpCatalogSourceLabelSelector
+                  searchTerm={searchQuery}
+                  onSearch={handleSearch}
+                  onClearSearch={handleClearSearch}
+                  onResetAllFilters={handleResetAllFilters}
+                />
+                <PageSection isFilled padding={{ default: 'noPadding' }}>
+                  {isAllServersView && !isSingleCategory ? (
+                    <McpCatalogAllServersView searchTerm={searchQuery} />
+                  ) : (
+                    <McpCatalogGalleryView
+                      handleFilterReset={handleResetAllFilters}
+                      isSingleCategory={isSingleCategory}
+                      singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
+                    />
+                  )}
+                </PageSection>
+              </Stack>
+            </SidebarContent>
+          </Sidebar>
+        )}
       </ApplicationsPage>
     </>
   );

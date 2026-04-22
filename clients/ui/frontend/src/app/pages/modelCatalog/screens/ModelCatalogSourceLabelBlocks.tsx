@@ -62,6 +62,11 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
     return null;
   }
 
+  const activeCategoryCount = blocks.length - 1;
+  if (activeCategoryCount <= 1) {
+    return null;
+  }
+
   const handleToggleClick = (label: string) => {
     updateSelectedSourceLabel(label);
   };
