@@ -38,10 +38,16 @@ const McpCatalog: React.FC = () => {
   const hasNoCategories = activeCategories.length === 0;
 
   React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory) {
+    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
       setSelectedSourceLabel(activeCategories[0]);
     }
-  }, [catalogSourcesLoaded, isSingleCategory, activeCategories, setSelectedSourceLabel]);
+  }, [
+    catalogSourcesLoaded,
+    isSingleCategory,
+    activeCategories,
+    selectedSourceLabel,
+    setSelectedSourceLabel,
+  ]);
 
   const handleSearch = React.useCallback(
     (term: string) => {
@@ -97,6 +103,7 @@ const McpCatalog: React.FC = () => {
                     <McpCatalogGalleryView
                       handleFilterReset={handleResetAllFilters}
                       isSingleCategory={isSingleCategory}
+                      singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
                     />
                   )}
                 </PageSection>

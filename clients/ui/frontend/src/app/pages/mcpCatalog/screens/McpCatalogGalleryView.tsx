@@ -32,11 +32,13 @@ const PAGE_SIZE = 10;
 type McpCatalogGalleryViewProps = {
   handleFilterReset: () => void;
   isSingleCategory?: boolean;
+  singleCategoryLabel?: string;
 };
 
 const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({
   handleFilterReset,
   isSingleCategory = false,
+  singleCategoryLabel,
 }) => {
   const {
     mcpApiState,
@@ -98,16 +100,17 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({
     );
   }
 
+  const effectiveCategoryLabel = singleCategoryLabel || selectedSourceLabel || '';
   const categoryTitle = isSingleCategory
     ? getLabelDisplayName(
-        selectedSourceLabel || '',
+        effectiveCategoryLabel,
         catalogLabels,
         OTHER_MCP_SERVERS_DISPLAY_NAME,
         'servers',
       )
     : undefined;
   const categoryDescription = isSingleCategory
-    ? getLabelDescription(selectedSourceLabel || '', catalogLabels)
+    ? getLabelDescription(effectiveCategoryLabel, catalogLabels)
     : undefined;
 
   return (
