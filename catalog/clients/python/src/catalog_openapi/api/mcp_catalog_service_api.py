@@ -406,7 +406,7 @@ class MCPCatalogServiceApi:
         filter_query: Annotated[Optional[StrictStr], Field(description="A SQL-like query string to filter MCP servers.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Examples:** - `license = \"Apache 2.0\"` - `verifiedSource = true` - `provider ILIKE \"%local%\"` - `(license = \"Apache 2.0\" OR license = \"MIT\") AND verifiedSource = true` ")] = None,
         named_query: Annotated[Optional[StrictStr], Field(description="Predefined filter template name to apply when listing MCP servers.")] = None,
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
-        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")] = None,
         sort_order: Annotated[Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")] = None,
@@ -515,7 +515,7 @@ class MCPCatalogServiceApi:
         filter_query: Annotated[Optional[StrictStr], Field(description="A SQL-like query string to filter MCP servers.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Examples:** - `license = \"Apache 2.0\"` - `verifiedSource = true` - `provider ILIKE \"%local%\"` - `(license = \"Apache 2.0\" OR license = \"MIT\") AND verifiedSource = true` ")] = None,
         named_query: Annotated[Optional[StrictStr], Field(description="Predefined filter template name to apply when listing MCP servers.")] = None,
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
-        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")] = None,
         sort_order: Annotated[Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")] = None,
@@ -624,7 +624,7 @@ class MCPCatalogServiceApi:
         filter_query: Annotated[Optional[StrictStr], Field(description="A SQL-like query string to filter MCP servers.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Examples:** - `license = \"Apache 2.0\"` - `verifiedSource = true` - `provider ILIKE \"%local%\"` - `(license = \"Apache 2.0\" OR license = \"MIT\") AND verifiedSource = true` ")] = None,
         named_query: Annotated[Optional[StrictStr], Field(description="Predefined filter template name to apply when listing MCP servers.")] = None,
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
-        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
         order_by: Annotated[Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")] = None,
         sort_order: Annotated[Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")] = None,
@@ -1094,6 +1094,7 @@ class MCPCatalogServiceApi:
         self,
         server_id: Annotated[StrictStr, Field(description="A unique identifier for an `MCPServer`.")],
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1114,6 +1115,8 @@ class MCPCatalogServiceApi:
         :type server_id: str
         :param include_tools: Whether to include the tools array in each MCP server result.
         :type include_tools: bool
+        :param tool_limit: Maximum number of tools to include when includeTools is true.
+        :type tool_limit: int
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1139,6 +1142,7 @@ class MCPCatalogServiceApi:
         _param = self._get_mcp_server_serialize(
             server_id=server_id,
             include_tools=include_tools,
+            tool_limit=tool_limit,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1167,6 +1171,7 @@ class MCPCatalogServiceApi:
         self,
         server_id: Annotated[StrictStr, Field(description="A unique identifier for an `MCPServer`.")],
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1187,6 +1192,8 @@ class MCPCatalogServiceApi:
         :type server_id: str
         :param include_tools: Whether to include the tools array in each MCP server result.
         :type include_tools: bool
+        :param tool_limit: Maximum number of tools to include when includeTools is true.
+        :type tool_limit: int
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1212,6 +1219,7 @@ class MCPCatalogServiceApi:
         _param = self._get_mcp_server_serialize(
             server_id=server_id,
             include_tools=include_tools,
+            tool_limit=tool_limit,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1240,6 +1248,7 @@ class MCPCatalogServiceApi:
         self,
         server_id: Annotated[StrictStr, Field(description="A unique identifier for an `MCPServer`.")],
         include_tools: Annotated[Optional[StrictBool], Field(description="Whether to include the tools array in each MCP server result.")] = None,
+        tool_limit: Annotated[Optional[Annotated[int, Field(le=100, strict=True, ge=0)]], Field(description="Maximum number of tools to include when includeTools is true.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1260,6 +1269,8 @@ class MCPCatalogServiceApi:
         :type server_id: str
         :param include_tools: Whether to include the tools array in each MCP server result.
         :type include_tools: bool
+        :param tool_limit: Maximum number of tools to include when includeTools is true.
+        :type tool_limit: int
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1285,6 +1296,7 @@ class MCPCatalogServiceApi:
         _param = self._get_mcp_server_serialize(
             server_id=server_id,
             include_tools=include_tools,
+            tool_limit=tool_limit,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1308,6 +1320,7 @@ class MCPCatalogServiceApi:
         self,
         server_id,
         include_tools,
+        tool_limit,
         _request_auth,
         _content_type,
         _headers,
@@ -1335,6 +1348,10 @@ class MCPCatalogServiceApi:
         if include_tools is not None:
             
             _query_params.append(('includeTools', include_tools))
+            
+        if tool_limit is not None:
+            
+            _query_params.append(('toolLimit', tool_limit))
             
         # process the header parameters
         # process the form parameters

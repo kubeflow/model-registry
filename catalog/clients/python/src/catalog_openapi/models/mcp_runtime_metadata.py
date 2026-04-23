@@ -17,10 +17,11 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
 from catalog_openapi.models.mcp_env_var_metadata import MCPEnvVarMetadata
+from catalog_openapi.models.mcp_prerequisites import MCPPrerequisites
 from catalog_openapi.models.mcp_resource_recommendation import MCPResourceRecommendation
 from catalog_openapi.models.mcp_runtime_metadata_capabilities import MCPRuntimeMetadataCapabilities
 from catalog_openapi.models.mcp_runtime_metadata_health_endpoints import MCPRuntimeMetadataHealthEndpoints
@@ -38,7 +39,19 @@ class MCPRuntimeMetadata(BaseModel):
     recommended_resources: Optional[MCPResourceRecommendation] = Field(default=None, alias="recommendedResources")
     health_endpoints: Optional[MCPRuntimeMetadataHealthEndpoints] = Field(default=None, alias="healthEndpoints")
     capabilities: Optional[MCPRuntimeMetadataCapabilities] = None
-    __properties: ClassVar[List[str]] = ["defaultPort", "defaultArgs", "requiredEnvironmentVariables", "optionalEnvironmentVariables", "recommendedResources", "healthEndpoints", "capabilities"]
+    mcp_path: Optional[Annotated[str, Field(strict=True)]] = Field(default='/mcp', description="HTTP path where MCP server accepts requests. Used for HTTP and SSE transports. Aligns with MCP Lifecycle operator conventions.", alias="mcpPath")
+    prerequisites: Optional[MCPPrerequisites] = None
+    __properties: ClassVar[List[str]] = ["defaultPort", "defaultArgs", "requiredEnvironmentVariables", "optionalEnvironmentVariables", "recommendedResources", "healthEndpoints", "capabilities", "mcpPath", "prerequisites"]
+
+    @field_validator('mcp_path')
+    def mcp_path_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if value is None:
+            return value
+
+        if not re.match(r"^\/[a-zA-Z0-9\/_.-]*$", value):
+            raise ValueError(r"must validate the regular expression /^\/[a-zA-Z0-9\/_.-]*$/")
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -102,6 +115,9 @@ class MCPRuntimeMetadata(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of capabilities
         if self.capabilities:
             _dict['capabilities'] = self.capabilities.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of prerequisites
+        if self.prerequisites:
+            _dict['prerequisites'] = self.prerequisites.to_dict()
         return _dict
 
     @classmethod
@@ -120,7 +136,9 @@ class MCPRuntimeMetadata(BaseModel):
             "optionalEnvironmentVariables": [MCPEnvVarMetadata.from_dict(_item) for _item in obj["optionalEnvironmentVariables"]] if obj.get("optionalEnvironmentVariables") is not None else None,
             "recommendedResources": MCPResourceRecommendation.from_dict(obj["recommendedResources"]) if obj.get("recommendedResources") is not None else None,
             "healthEndpoints": MCPRuntimeMetadataHealthEndpoints.from_dict(obj["healthEndpoints"]) if obj.get("healthEndpoints") is not None else None,
-            "capabilities": MCPRuntimeMetadataCapabilities.from_dict(obj["capabilities"]) if obj.get("capabilities") is not None else None
+            "capabilities": MCPRuntimeMetadataCapabilities.from_dict(obj["capabilities"]) if obj.get("capabilities") is not None else None,
+            "mcpPath": obj.get("mcpPath") if obj.get("mcpPath") is not None else '/mcp',
+            "prerequisites": MCPPrerequisites.from_dict(obj["prerequisites"]) if obj.get("prerequisites") is not None else None
         })
         return _obj
 

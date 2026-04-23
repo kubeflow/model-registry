@@ -17,18 +17,30 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
+from typing import Any, ClassVar, Dict, List, Optional
+from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
 
-class MetadataStructValue(BaseModel):
+class MCPServiceAccountRequirement(BaseModel):
     """
-    A struct property value.
+    ServiceAccount requirements for Kubernetes deployment. Provides discovery hints about RBAC permissions needed.
     """ # noqa: E501
-    struct_value: StrictStr = Field(description="Base64 encoded bytes for struct value")
-    metadata_type: StrictStr = Field(alias="metadataType")
-    __properties: ClassVar[List[str]] = ["struct_value", "metadataType"]
+    required: Optional[StrictBool] = Field(default=False, description="Whether a ServiceAccount is required for this MCP server")
+    hint: Optional[Annotated[str, Field(strict=True, max_length=500)]] = Field(default=None, description="Human-readable description of required RBAC permissions. Example: \"Needs 'view' ClusterRole for read-only K8s access\"")
+    suggested_name: Optional[Annotated[str, Field(strict=True, max_length=253)]] = Field(default=None, description="Suggested ServiceAccount name (must be valid Kubernetes name)", alias="suggestedName")
+    __properties: ClassVar[List[str]] = ["required", "hint", "suggestedName"]
+
+    @field_validator('suggested_name')
+    def suggested_name_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if value is None:
+            return value
+
+        if not re.match(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", value):
+            raise ValueError(r"must validate the regular expression /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/")
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -48,7 +60,7 @@ class MetadataStructValue(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of MetadataStructValue from a JSON string"""
+        """Create an instance of MCPServiceAccountRequirement from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,7 +85,7 @@ class MetadataStructValue(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of MetadataStructValue from a dict"""
+        """Create an instance of MCPServiceAccountRequirement from a dict"""
         if obj is None:
             return None
 
@@ -81,8 +93,9 @@ class MetadataStructValue(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "struct_value": obj.get("struct_value"),
-            "metadataType": obj.get("metadataType") if obj.get("metadataType") is not None else 'MetadataStructValue'
+            "required": obj.get("required") if obj.get("required") is not None else False,
+            "hint": obj.get("hint"),
+            "suggestedName": obj.get("suggestedName")
         })
         return _obj
 

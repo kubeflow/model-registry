@@ -20,6 +20,7 @@ from catalog_openapi.models.base_resource_dates import BaseResourceDates
 from catalog_openapi.models.base_resource_list import BaseResourceList
 from catalog_openapi.models.catalog_artifact import CatalogArtifact
 from catalog_openapi.models.catalog_artifact_list import CatalogArtifactList
+from catalog_openapi.models.catalog_asset_type import CatalogAssetType
 from catalog_openapi.models.catalog_label import CatalogLabel
 from catalog_openapi.models.catalog_label_list import CatalogLabelList
 from catalog_openapi.models.catalog_metrics_artifact import CatalogMetricsArtifact
@@ -37,8 +38,11 @@ from catalog_openapi.models.filter_option import FilterOption
 from catalog_openapi.models.filter_option_range import FilterOptionRange
 from catalog_openapi.models.filter_options_list import FilterOptionsList
 from catalog_openapi.models.mcp_artifact import MCPArtifact
+from catalog_openapi.models.mcp_config_map_key import MCPConfigMapKey
+from catalog_openapi.models.mcp_config_map_requirement import MCPConfigMapRequirement
 from catalog_openapi.models.mcp_endpoints import MCPEndpoints
 from catalog_openapi.models.mcp_env_var_metadata import MCPEnvVarMetadata
+from catalog_openapi.models.mcp_prerequisites import MCPPrerequisites
 from catalog_openapi.models.mcp_resource_recommendation import MCPResourceRecommendation
 from catalog_openapi.models.mcp_resource_recommendation_high import MCPResourceRecommendationHigh
 from catalog_openapi.models.mcp_resource_recommendation_minimal import MCPResourceRecommendationMinimal
@@ -46,9 +50,12 @@ from catalog_openapi.models.mcp_resource_recommendation_recommended import MCPRe
 from catalog_openapi.models.mcp_runtime_metadata import MCPRuntimeMetadata
 from catalog_openapi.models.mcp_runtime_metadata_capabilities import MCPRuntimeMetadataCapabilities
 from catalog_openapi.models.mcp_runtime_metadata_health_endpoints import MCPRuntimeMetadataHealthEndpoints
+from catalog_openapi.models.mcp_secret_key import MCPSecretKey
+from catalog_openapi.models.mcp_secret_requirement import MCPSecretRequirement
 from catalog_openapi.models.mcp_security_indicator import MCPSecurityIndicator
 from catalog_openapi.models.mcp_server import MCPServer
 from catalog_openapi.models.mcp_server_list import MCPServerList
+from catalog_openapi.models.mcp_service_account_requirement import MCPServiceAccountRequirement
 from catalog_openapi.models.mcp_tool import MCPTool
 from catalog_openapi.models.mcp_tool_parameter import MCPToolParameter
 from catalog_openapi.models.mcp_tool_with_server import MCPToolWithServer

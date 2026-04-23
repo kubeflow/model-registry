@@ -18,6 +18,7 @@ __version__ = "1.0.0"
 
 # Define package exports
 __all__ = [
+    "MCPCatalogServiceApi",
     "ModelCatalogServiceApi",
     "ApiResponse",
     "ApiClient",
@@ -35,6 +36,7 @@ __all__ = [
     "BaseResourceList",
     "CatalogArtifact",
     "CatalogArtifactList",
+    "CatalogAssetType",
     "CatalogLabel",
     "CatalogLabelList",
     "CatalogMetricsArtifact",
@@ -51,6 +53,29 @@ __all__ = [
     "FilterOption",
     "FilterOptionRange",
     "FilterOptionsList",
+    "MCPArtifact",
+    "MCPConfigMapKey",
+    "MCPConfigMapRequirement",
+    "MCPEndpoints",
+    "MCPEnvVarMetadata",
+    "MCPPrerequisites",
+    "MCPResourceRecommendation",
+    "MCPResourceRecommendationHigh",
+    "MCPResourceRecommendationMinimal",
+    "MCPResourceRecommendationRecommended",
+    "MCPRuntimeMetadata",
+    "MCPRuntimeMetadataCapabilities",
+    "MCPRuntimeMetadataHealthEndpoints",
+    "MCPSecretKey",
+    "MCPSecretRequirement",
+    "MCPSecurityIndicator",
+    "MCPServer",
+    "MCPServerList",
+    "MCPServiceAccountRequirement",
+    "MCPTool",
+    "MCPToolParameter",
+    "MCPToolWithServer",
+    "MCPToolsList",
     "MetadataBoolValue",
     "MetadataDoubleValue",
     "MetadataIntValue",
@@ -64,6 +89,7 @@ __all__ = [
 ]
 
 # import apis into sdk package
+from catalog_openapi.api.mcp_catalog_service_api import MCPCatalogServiceApi as MCPCatalogServiceApi
 from catalog_openapi.api.model_catalog_service_api import ModelCatalogServiceApi as ModelCatalogServiceApi
 
 # import ApiClient
@@ -85,6 +111,7 @@ from catalog_openapi.models.base_resource_dates import BaseResourceDates as Base
 from catalog_openapi.models.base_resource_list import BaseResourceList as BaseResourceList
 from catalog_openapi.models.catalog_artifact import CatalogArtifact as CatalogArtifact
 from catalog_openapi.models.catalog_artifact_list import CatalogArtifactList as CatalogArtifactList
+from catalog_openapi.models.catalog_asset_type import CatalogAssetType as CatalogAssetType
 from catalog_openapi.models.catalog_label import CatalogLabel as CatalogLabel
 from catalog_openapi.models.catalog_label_list import CatalogLabelList as CatalogLabelList
 from catalog_openapi.models.catalog_metrics_artifact import CatalogMetricsArtifact as CatalogMetricsArtifact
@@ -101,6 +128,29 @@ from catalog_openapi.models.field_filter import FieldFilter as FieldFilter
 from catalog_openapi.models.filter_option import FilterOption as FilterOption
 from catalog_openapi.models.filter_option_range import FilterOptionRange as FilterOptionRange
 from catalog_openapi.models.filter_options_list import FilterOptionsList as FilterOptionsList
+from catalog_openapi.models.mcp_artifact import MCPArtifact as MCPArtifact
+from catalog_openapi.models.mcp_config_map_key import MCPConfigMapKey as MCPConfigMapKey
+from catalog_openapi.models.mcp_config_map_requirement import MCPConfigMapRequirement as MCPConfigMapRequirement
+from catalog_openapi.models.mcp_endpoints import MCPEndpoints as MCPEndpoints
+from catalog_openapi.models.mcp_env_var_metadata import MCPEnvVarMetadata as MCPEnvVarMetadata
+from catalog_openapi.models.mcp_prerequisites import MCPPrerequisites as MCPPrerequisites
+from catalog_openapi.models.mcp_resource_recommendation import MCPResourceRecommendation as MCPResourceRecommendation
+from catalog_openapi.models.mcp_resource_recommendation_high import MCPResourceRecommendationHigh as MCPResourceRecommendationHigh
+from catalog_openapi.models.mcp_resource_recommendation_minimal import MCPResourceRecommendationMinimal as MCPResourceRecommendationMinimal
+from catalog_openapi.models.mcp_resource_recommendation_recommended import MCPResourceRecommendationRecommended as MCPResourceRecommendationRecommended
+from catalog_openapi.models.mcp_runtime_metadata import MCPRuntimeMetadata as MCPRuntimeMetadata
+from catalog_openapi.models.mcp_runtime_metadata_capabilities import MCPRuntimeMetadataCapabilities as MCPRuntimeMetadataCapabilities
+from catalog_openapi.models.mcp_runtime_metadata_health_endpoints import MCPRuntimeMetadataHealthEndpoints as MCPRuntimeMetadataHealthEndpoints
+from catalog_openapi.models.mcp_secret_key import MCPSecretKey as MCPSecretKey
+from catalog_openapi.models.mcp_secret_requirement import MCPSecretRequirement as MCPSecretRequirement
+from catalog_openapi.models.mcp_security_indicator import MCPSecurityIndicator as MCPSecurityIndicator
+from catalog_openapi.models.mcp_server import MCPServer as MCPServer
+from catalog_openapi.models.mcp_server_list import MCPServerList as MCPServerList
+from catalog_openapi.models.mcp_service_account_requirement import MCPServiceAccountRequirement as MCPServiceAccountRequirement
+from catalog_openapi.models.mcp_tool import MCPTool as MCPTool
+from catalog_openapi.models.mcp_tool_parameter import MCPToolParameter as MCPToolParameter
+from catalog_openapi.models.mcp_tool_with_server import MCPToolWithServer as MCPToolWithServer
+from catalog_openapi.models.mcp_tools_list import MCPToolsList as MCPToolsList
 from catalog_openapi.models.metadata_bool_value import MetadataBoolValue as MetadataBoolValue
 from catalog_openapi.models.metadata_double_value import MetadataDoubleValue as MetadataDoubleValue
 from catalog_openapi.models.metadata_int_value import MetadataIntValue as MetadataIntValue
