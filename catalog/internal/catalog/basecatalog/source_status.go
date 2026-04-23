@@ -5,8 +5,8 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	dbmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 // CleanupOrphanedCatalogSources removes CatalogSource records for sources that are no

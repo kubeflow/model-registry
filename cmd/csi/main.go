@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/kubeflow/model-registry/cmd/csi/internal/modelregistry"
-	"github.com/kubeflow/model-registry/cmd/csi/internal/storage"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/cmd/csi/internal/modelregistry"
+	"github.com/kubeflow/hub/cmd/csi/internal/storage"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 const (

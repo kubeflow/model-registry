@@ -11,13 +11,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/repositories"
 )
 
 func setupApiTest[T any](method string, url string, body interface{}, k8Factory kubernetes.KubernetesClientFactory, requestIdentity kubernetes.RequestIdentity, namespace string) (T, *http.Response, error) {

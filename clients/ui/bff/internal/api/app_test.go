@@ -5,8 +5,8 @@ import (
 	"net/http"
 	httptest "net/http/httptest"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
+	"github.com/kubeflow/hub/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

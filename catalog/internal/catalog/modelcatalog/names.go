@@ -3,7 +3,7 @@ package modelcatalog
 import (
 	"strings"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 )
 
 // DisplayNameFromStoredName returns the model display name from the stored (namespaced) name.

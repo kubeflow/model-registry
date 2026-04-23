@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 )
 
 type ModelArtifactUpdateEnvelope Envelope[*openapi.ModelArtifactUpdate, None]

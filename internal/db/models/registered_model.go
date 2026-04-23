@@ -3,7 +3,7 @@ package models
 import (
 	"math"
 
-	"github.com/kubeflow/model-registry/internal/db/filter"
+	"github.com/kubeflow/hub/internal/db/filter"
 )
 
 type RegisteredModelListOptions struct {

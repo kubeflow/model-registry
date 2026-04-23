@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/repositories"
 )
 
 type ModelCatalogSettingsSourceConfigEnvelope Envelope[*models.CatalogSourceConfig, None]

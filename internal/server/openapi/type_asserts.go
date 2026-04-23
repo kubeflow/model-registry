@@ -13,7 +13,7 @@
 package openapi
 
 import (
-	model "github.com/kubeflow/model-registry/pkg/openapi"
+	model "github.com/kubeflow/hub/pkg/openapi"
 )
 
 // AssertArtifactConstraints checks if the values respects the defined constraints

@@ -3,7 +3,7 @@ package mcpcatalog
 import (
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

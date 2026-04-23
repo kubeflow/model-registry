@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"net/http"
 
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

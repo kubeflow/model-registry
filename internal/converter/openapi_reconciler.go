@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/kubeflow/model-registry/pkg/openapi"
+import "github.com/kubeflow/hub/pkg/openapi"
 
 // NOTE: methods must follow these patterns, otherwise tests could not find possible issues:
 // Converters patch fields entity: UpdateExisting<ENTITY>

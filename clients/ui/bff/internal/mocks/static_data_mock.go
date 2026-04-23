@@ -9,9 +9,9 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {

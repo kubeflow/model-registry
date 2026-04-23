@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

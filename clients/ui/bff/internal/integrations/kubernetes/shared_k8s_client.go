@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

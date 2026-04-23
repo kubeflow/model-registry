@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 )
 

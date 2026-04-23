@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	infrctrl "github.com/kubeflow/model-registry/pkg/inferenceservice-controller"
+	infrctrl "github.com/kubeflow/hub/pkg/inferenceservice-controller"
 )
 
 // InferenceServiceReconciler reconciles a InferenceService object

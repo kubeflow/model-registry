@@ -3,8 +3,8 @@ package modelcatalog
 import (
 	"context"
 
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 type ListModelsParams struct {

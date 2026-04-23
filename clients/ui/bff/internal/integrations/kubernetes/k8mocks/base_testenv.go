@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"

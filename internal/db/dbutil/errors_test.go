@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 func TestIsDatabaseTypeConversionError(t *testing.T) {

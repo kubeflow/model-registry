@@ -1,11 +1,11 @@
-module github.com/kubeflow/model-registry/pkg/inferenceservice-controller
+module github.com/kubeflow/hub/pkg/inferenceservice-controller
 
 go 1.25.7
 
 require (
 	github.com/go-logr/logr v1.4.3
 	github.com/kserve/kserve v0.17.0-rc1
-	github.com/kubeflow/model-registry/pkg/openapi v0.0.0
+	github.com/kubeflow/hub/pkg/openapi v0.0.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.1
 	go.uber.org/zap v1.27.1
@@ -137,4 +137,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1 // indirect
 )
 
-replace github.com/kubeflow/model-registry/pkg/openapi => ../openapi
+replace github.com/kubeflow/hub/pkg/openapi => ../openapi

@@ -1,6 +1,6 @@
 package repositories
 
-import "github.com/kubeflow/model-registry/ui/bff/internal/models"
+import "github.com/kubeflow/hub/ui/bff/internal/models"
 
 type HealthCheckRepository struct{}
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

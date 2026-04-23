@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/core"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

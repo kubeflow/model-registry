@@ -4,10 +4,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/service"
+	"github.com/kubeflow/hub/internal/defaults"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )

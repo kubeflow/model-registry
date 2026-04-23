@@ -1,3 +1,3 @@
-module github.com/kubeflow/model-registry/pkg/openapi
+module github.com/kubeflow/hub/pkg/openapi
 
 go 1.23

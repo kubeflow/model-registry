@@ -1,4 +1,4 @@
-module github.com/kubeflow/model-registry
+module github.com/kubeflow/hub
 
 go 1.25.7
 
@@ -13,8 +13,8 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/golang/glog v1.2.5
 	github.com/jackc/pgx/v5 v5.9.2
-	github.com/kubeflow/model-registry/catalog/pkg/openapi v0.0.0-00010101000000-000000000000
-	github.com/kubeflow/model-registry/pkg/openapi v0.0.0
+	github.com/kubeflow/hub/catalog/pkg/openapi v0.0.0-00010101000000-000000000000
+	github.com/kubeflow/hub/pkg/openapi v0.0.0
 	github.com/lib/pq v1.12.3
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
@@ -110,6 +110,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/kubeflow/model-registry/pkg/openapi => ./pkg/openapi
+replace github.com/kubeflow/hub/pkg/openapi => ./pkg/openapi
 
-replace github.com/kubeflow/model-registry/catalog/pkg/openapi => ./catalog/pkg/openapi
+replace github.com/kubeflow/hub/catalog/pkg/openapi => ./catalog/pkg/openapi

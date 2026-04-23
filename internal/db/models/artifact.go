@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/constants"
-	"github.com/kubeflow/model-registry/internal/db/filter"
+	"github.com/kubeflow/hub/internal/db/constants"
+	"github.com/kubeflow/hub/internal/db/filter"
 )
 
 var (

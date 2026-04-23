@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

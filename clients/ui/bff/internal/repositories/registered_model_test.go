@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

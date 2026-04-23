@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // ZeroIfNil return the zeroed value if input is a nil pointer

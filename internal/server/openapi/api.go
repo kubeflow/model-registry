@@ -14,7 +14,7 @@ import (
 	"context"
 	"net/http"
 
-	model "github.com/kubeflow/model-registry/pkg/openapi"
+	model "github.com/kubeflow/hub/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelRegistryServiceAPI

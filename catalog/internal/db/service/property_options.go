@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/schema"
+	"github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/schema"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )

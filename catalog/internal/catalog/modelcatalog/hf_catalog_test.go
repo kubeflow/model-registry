@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	catalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/db/models"
 )
 
 func TestPopulateFromHFInfo(t *testing.T) {

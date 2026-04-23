@@ -5,9 +5,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
 )
 
 func TestSourceCollection_ByLabel(t *testing.T) {

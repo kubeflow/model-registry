@@ -1,4 +1,4 @@
-module github.com/kubeflow/model-registry/gorm-gen
+module github.com/kubeflow/hub/gorm-gen
 
 go 1.25.7
 

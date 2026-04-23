@@ -15,12 +15,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/converter"
-	"github.com/kubeflow/model-registry/internal/converter/generated"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/pkg/api"
-	model "github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/converter"
+	"github.com/kubeflow/hub/internal/converter/generated"
+	"github.com/kubeflow/hub/internal/db/scopes"
+	"github.com/kubeflow/hub/pkg/api"
+	model "github.com/kubeflow/hub/pkg/openapi"
 )
 
 // ModelRegistryServiceAPIService is a service that implements the logic for the ModelRegistryServiceAPIServicer

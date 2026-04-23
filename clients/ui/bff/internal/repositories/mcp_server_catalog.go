@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 )
 
 const mcpServerPath = "/mcp_servers"

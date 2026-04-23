@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/internal/testutils"
 )
 
 func TestMain(m *testing.M) {

@@ -3,11 +3,11 @@ package mapper
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/converter"
-	"github.com/kubeflow/model-registry/internal/converter/generated"
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/converter"
+	"github.com/kubeflow/hub/internal/converter/generated"
+	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/defaults"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 type EmbedMDMapper struct {
