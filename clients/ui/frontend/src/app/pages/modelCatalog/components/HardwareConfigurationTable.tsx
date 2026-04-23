@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DashboardEmptyTableView, Table, ManageColumnsModal } from 'mod-arch-shared';
+import { DashboardEmptyTableView, Table } from 'mod-arch-shared';
 import { Button, Spinner } from '@patternfly/react-core';
 import { ColumnsIcon } from '@patternfly/react-icons';
 import { OuterScrollContainer } from '@patternfly/react-table';
@@ -10,6 +10,8 @@ import { SortOrder } from '~/concepts/modelCatalog/const';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
 import { useHardwareConfigColumns, ControlledTableSortProps } from './useHardwareConfigColumns';
+import CategorizedManageColumnsModal from './CategorizedManageColumnsModal';
+import { HARDWARE_CONFIG_COLUMN_CATEGORIES } from './HardwareConfigurationTableColumns';
 
 type HardwareConfigurationTableProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
@@ -122,8 +124,9 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
           )}
         />
       </OuterScrollContainer>
-      <ManageColumnsModal
+      <CategorizedManageColumnsModal
         manageColumnsResult={manageColumnsResult}
+        categories={HARDWARE_CONFIG_COLUMN_CATEGORIES}
         description="Manage the columns that appear in the hardware configuration table."
         dataTestId="hardware-config-manage-columns"
       />

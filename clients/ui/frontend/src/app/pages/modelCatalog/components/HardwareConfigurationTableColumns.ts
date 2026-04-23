@@ -401,3 +401,58 @@ export const TPS_COLUMN_FIELDS: HardwareConfigColumnField[] = Object.values(Late
  * Storage key for localStorage persistence of column visibility.
  */
 export const HARDWARE_CONFIG_COLUMNS_STORAGE_KEY = 'hardware-config-table-columns';
+
+/**
+ * Column category definition for grouping columns in the ManageColumnsModal.
+ */
+export type ColumnCategory = {
+  id: string;
+  label: string;
+  description?: string;
+  columnIds: HardwareConfigColumnField[];
+};
+
+/**
+ * Categories for organizing manageable columns into expandable sections.
+ * Columns not in any category will appear in an "Other" fallback section.
+ */
+export const HARDWARE_CONFIG_COLUMN_CATEGORIES: ColumnCategory[] = [
+  {
+    id: 'general',
+    label: 'General',
+    description: 'Core deployment and throughput metrics.',
+    columnIds: [
+      'replicas',
+      PerformancePropertyKey.REQUESTS_PER_SECOND,
+      'total_requests_per_second',
+      'mean_input_tokens',
+      'mean_output_tokens',
+      'framework_version',
+    ],
+  },
+  {
+    id: 'ttft-latency',
+    label: 'TTFT Latency',
+    description: 'Time to First Token — how long until the model begins generating output.',
+    columnIds: ['ttft_mean', 'ttft_p90', 'ttft_p95', 'ttft_p99'],
+  },
+  {
+    id: 'e2e-latency',
+    label: 'E2E Latency',
+    description: 'End-to-End latency — total time from request submission to complete response.',
+    columnIds: ['e2e_mean', 'e2e_p90', 'e2e_p95', 'e2e_p99'],
+  },
+  {
+    id: 'itl-latency',
+    label: 'ITL Latency',
+    description: 'Inter-Token Latency — average time between consecutive generated tokens.',
+    columnIds: ['itl_mean', 'itl_p90', 'itl_p95', 'itl_p99'],
+  },
+  {
+    id: 'tps',
+    label: 'Throughput (TPS)',
+    description:
+      'Tokens Per Second — throughput measured in generated tokens per second. Higher is better.',
+    columnIds: ['tps_mean', 'tps_p90', 'tps_p95', 'tps_p99'],
+  },
+];

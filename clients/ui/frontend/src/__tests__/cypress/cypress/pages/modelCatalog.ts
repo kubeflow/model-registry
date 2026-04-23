@@ -1,3 +1,4 @@
+import { MANAGE_COLUMNS_TEST_IDS } from '~/__tests__/cypress/cypress/support/constants';
 import { appChrome } from './appChrome';
 
 class ModelCatalogFilter {
@@ -419,6 +420,43 @@ class ModelCatalog {
 
   findAllCompressionVariants() {
     return cy.get('[data-testid^="compression-variant-"]');
+  }
+
+  // Manage Columns Modal
+  findManageColumnsButton() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.button);
+  }
+
+  findManageColumnsModal() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.modal);
+  }
+
+  findManageColumnsSearch() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.search);
+  }
+
+  findManageColumnsRestoreDefaults() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.restoreDefaults);
+  }
+
+  findManageColumnsUpdateButton() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.updateButton);
+  }
+
+  findManageColumnsCancelButton() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.cancelButton);
+  }
+
+  findManageColumnsSection(categoryId: string) {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.section(categoryId));
+  }
+
+  findManageColumnsCheckbox(columnId: string) {
+    return cy.get(`#${MANAGE_COLUMNS_TEST_IDS.checkbox(columnId)}`);
+  }
+
+  findManageColumnsSelectedCount() {
+    return cy.findByTestId(MANAGE_COLUMNS_TEST_IDS.selectedCount);
   }
 
   // Performance Empty State
