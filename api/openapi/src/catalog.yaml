@@ -1238,7 +1238,7 @@ components:
           example: info
         type:
           type: string
-          enum: [string, int, boolean, secret]
+          enum: [string, int, boolean, secret, config]
           description: Expected variable type
           default: string
         example:
