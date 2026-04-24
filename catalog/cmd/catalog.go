@@ -20,6 +20,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/leader"
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/server/middleware"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/spf13/cobra"
@@ -197,7 +198,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 
 	server := &http.Server{
 		Addr:    catalogCfg.ListenAddress,
-		Handler: openapi.NewRouter(ctrl, mcpCtrl),
+		Handler: middleware.ValidationMiddleware(openapi.NewRouter(ctrl, mcpCtrl)),
 	}
 
 	g, gctx := errgroup.WithContext(ctx)
