@@ -113,7 +113,7 @@ local_resource(
 )
 
 docker_build_with_restart(
-    "ghcr.io/kubeflow/model-registry/ui:latest",
+    "ghcr.io/kubeflow/hub/ui:latest",
     context="../../../",
     dockerfile="../../../tilt-ui.dockerfile",
     entrypoint=["/bff"],

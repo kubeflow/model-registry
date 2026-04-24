@@ -56,7 +56,7 @@ spec:
           args:
             - --listen=0.0.0.0:8080
             - --catalogs-path=/catalog/sources.yaml
-          image: ghcr.io/kubeflow/model-registry/server:latest
+          image: ghcr.io/kubeflow/hub/server:latest
           ports:
             - name: http-api
               containerPort: 8080

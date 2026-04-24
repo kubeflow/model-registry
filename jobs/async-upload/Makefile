@@ -1,7 +1,7 @@
 JOB_IMG_VERSION ?= latest # when testing locally with KinD, override default to a tag of choice and you can opt-in to BUILD_IMAGE=false below.
 JOB_IMG_REGISTRY ?= ghcr.io
 JOB_IMG_ORG ?= kubeflow
-JOB_IMG_NAME ?= model-registry/job/async-upload
+JOB_IMG_NAME ?= hub/job/async-upload
 JOB_IMG ?= $(JOB_IMG_REGISTRY)/$(JOB_IMG_ORG)/$(JOB_IMG_NAME):$(JOB_IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
 CLUSTER_NAME ?= mr-e2e
@@ -9,7 +9,7 @@ CLUSTER_NAME ?= mr-e2e
 # MR Server Params
 IMG_VERSION ?= latest
 # keep IMG consistent with root Makefile and ci/GHA:
-IMG ?= ghcr.io/kubeflow/model-registry/server
+IMG ?= ghcr.io/kubeflow/hub/server
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:

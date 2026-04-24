@@ -23,12 +23,12 @@ env:
   # Async Job
   JOB_IMG_REGISTRY: ghcr.io
   JOB_IMG_ORG: kubeflow
-  JOB_IMG_NAME: model-registry/job/async-upload
+  JOB_IMG_NAME: hub/job/async-upload
   JOB_IMG_VERSION: cicd
   # MR Server
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_REPO: model-registry/server
+  IMG_REPO: hub/server
   IMG_VERSION: cicd
   PUSH_IMAGE: false
 
