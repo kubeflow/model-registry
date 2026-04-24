@@ -496,8 +496,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) handleProperties
 		switch result.Error {
 		case nil:
 			// Update existing property
-			r.copyPropertyValues(&prop, &existingProp)
-			if err := tx.Model(&existingProp).Updates(prop).Error; err != nil {
+			if err := tx.Model(&existingProp).Select("*").Updates(prop).Error; err != nil {
 				return fmt.Errorf("error updating property %s: %w", r.getPropertyName(prop), err)
 			}
 		case gorm.ErrRecordNotFound:
@@ -555,35 +554,6 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getPropertyEntit
 		return p.ExecutionID
 	default:
 		panic(fmt.Sprintf("unsupported property type: %T", prop))
-	}
-}
-
-func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) copyPropertyValues(src, dst *TProp) {
-	switch srcProp := any(src).(type) {
-	case *schema.ArtifactProperty:
-		dstProp := any(dst).(*schema.ArtifactProperty)
-		dstProp.IntValue = srcProp.IntValue
-		dstProp.DoubleValue = srcProp.DoubleValue
-		dstProp.StringValue = srcProp.StringValue
-		dstProp.BoolValue = srcProp.BoolValue
-		dstProp.ByteValue = srcProp.ByteValue
-		dstProp.ProtoValue = srcProp.ProtoValue
-	case *schema.ContextProperty:
-		dstProp := any(dst).(*schema.ContextProperty)
-		dstProp.IntValue = srcProp.IntValue
-		dstProp.DoubleValue = srcProp.DoubleValue
-		dstProp.StringValue = srcProp.StringValue
-		dstProp.BoolValue = srcProp.BoolValue
-		dstProp.ByteValue = srcProp.ByteValue
-		dstProp.ProtoValue = srcProp.ProtoValue
-	case *schema.ExecutionProperty:
-		dstProp := any(dst).(*schema.ExecutionProperty)
-		dstProp.IntValue = srcProp.IntValue
-		dstProp.DoubleValue = srcProp.DoubleValue
-		dstProp.StringValue = srcProp.StringValue
-		dstProp.BoolValue = srcProp.BoolValue
-		dstProp.ByteValue = srcProp.ByteValue
-		dstProp.ProtoValue = srcProp.ProtoValue
 	}
 }
 

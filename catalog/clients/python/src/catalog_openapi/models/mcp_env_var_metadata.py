@@ -40,8 +40,8 @@ class MCPEnvVarMetadata(BaseModel):
         if value is None:
             return value
 
-        if value not in set(['string', 'int', 'boolean', 'secret']):
-            raise ValueError("must be one of enum values ('string', 'int', 'boolean', 'secret')")
+        if value not in set(['string', 'int', 'boolean', 'secret', 'config']):
+            raise ValueError("must be one of enum values ('string', 'int', 'boolean', 'secret', 'config')")
         return value
 
     model_config = ConfigDict(

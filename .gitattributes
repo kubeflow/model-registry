@@ -35,8 +35,11 @@ catalog/clients/python/src/catalog_openapi/models/filter_option.py linguist-gene
 catalog/clients/python/src/catalog_openapi/models/filter_option_range.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/filter_options_list.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_artifact.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_config_map_key.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_config_map_requirement.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_endpoints.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_env_var_metadata.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_prerequisites.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_high.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_minimal.py linguist-generated=true
@@ -44,9 +47,12 @@ catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_re
 catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata_capabilities.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata_health_endpoints.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_secret_key.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_secret_requirement.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_security_indicator.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_server.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_server_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_service_account_requirement.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_tool.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_tool_parameter.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/mcp_tool_with_server.py linguist-generated=true

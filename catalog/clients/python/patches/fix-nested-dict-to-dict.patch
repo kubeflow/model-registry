@@ -1,0 +1,14 @@
+--- a/catalog/clients/python/src/catalog_openapi/models/filter_options_list.py
++++ b/catalog/clients/python/src/catalog_openapi/models/filter_options_list.py
+@@ -81,7 +81,10 @@
+         # override the default output from pydantic by calling `to_dict()` of each value in named_queries (dict)
+         _field_dict = {}
+         if self.named_queries:
+             for _key_named_queries in self.named_queries:
+                 if self.named_queries[_key_named_queries]:
+-                    _field_dict[_key_named_queries] = self.named_queries[_key_named_queries].to_dict()
++                    _field_dict[_key_named_queries] = {
++                        _ik: _iv.to_dict() if hasattr(_iv, 'to_dict') else _iv
++                        for _ik, _iv in self.named_queries[_key_named_queries].items()
++                    }
+             _dict['namedQueries'] = _field_dict
