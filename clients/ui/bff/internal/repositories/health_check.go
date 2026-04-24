@@ -1,6 +1,6 @@
 package repositories
 
-import "github.com/kubeflow/model-registry/ui/bff/internal/models"
+import "github.com/kubeflow/model-registry/ui/bff/internal/models/healthcheck"
 
 type HealthCheckRepository struct{}
 
@@ -8,13 +8,11 @@ func NewHealthCheckRepository() *HealthCheckRepository {
 	return &HealthCheckRepository{}
 }
 
-func (r *HealthCheckRepository) HealthCheck(version string) (models.HealthCheckModel, error) {
-	var res = models.HealthCheckModel{
+func (r *HealthCheckRepository) HealthCheck(version string) (healthcheck.HealthCheckModel, error) {
+	return healthcheck.HealthCheckModel{
 		Status: "available",
-		SystemInfo: models.SystemInfo{
+		SystemInfo: healthcheck.SystemInfo{
 			Version: version,
 		},
-	}
-
-	return res, nil
+	}, nil
 }
