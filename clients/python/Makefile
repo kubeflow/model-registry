@@ -67,7 +67,7 @@ test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
 	cd ../../ && ./scripts/cleanup.sh && cd clients/python; \
 	echo "Running stateful fuzz tests sequentially"; \
 	set -a; . ../../scripts/manifests/minio/.env; set +a; \
-	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateful.py --fuzz -v --hypothesis-show-statistics; \
+	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateful.py tests/fuzz_api/model_catalog/test_catalog_stateful.py --fuzz -v --hypothesis-show-statistics; \
 	STATEFUL=$$?; \
 	rm -f ../../scripts/manifests/minio/.env; \
 	$(MAKE) test-e2e-cleanup; \

@@ -1,6 +1,6 @@
-import base64
 import contextlib
 import os
+import secrets
 import subprocess
 from collections.abc import Generator
 from typing import Any
@@ -62,6 +62,13 @@ _STRING_FIELDS = {
     "serviceAccountName", "owner", "registeredModelId", "servingEnvironmentId",
     "modelVersionId", "experimentId", "experimentRunId", "startTimeSinceEpoch",
     "endTimeSinceEpoch", "state", "status", "desiredState", "lastKnownState",
+    "timestamp",
+}
+
+_NUMERIC_STRING_FIELDS = {
+    "registeredModelId", "servingEnvironmentId", "modelVersionId",
+    "experimentId", "experimentRunId", "startTimeSinceEpoch",
+    "endTimeSinceEpoch", "timestamp",
 }
 
 
@@ -81,6 +88,14 @@ def map_body(context: Any, body: Any) -> Any:
         for field in _STRING_FIELDS:
             if field in body and not isinstance(body[field], str):
                 del body[field]
+        for field in _NUMERIC_STRING_FIELDS:
+            if field in body and isinstance(body[field], str):
+                try:
+                    int(body[field])
+                except ValueError:
+                    body[field] = str(secrets.randbelow(999999999))
+        if "name" in body and body["name"] == "":
+            body["name"] = f"fuzz-{secrets.randbelow(1000000)}"
         if "customProperties" in body:
             body["customProperties"] = _sanitize_custom_properties(body["customProperties"])
         if "artifactType" in body and body["artifactType"] not in _ARTIFACT_TYPES:
@@ -127,9 +142,16 @@ def map_query(context: Any, query: dict[str, Any] | None) -> dict[str, Any] | No
 @schemathesis.hook
 def map_case(context: Any, case: Case) -> Case:
     """Fix parameter constraints the OpenAPI spec cannot express."""
-    if case.method and case.method.upper() == "POST":
-        if case.path and case.path.endswith("/artifacts") and isinstance(case.body, dict):
-            case.body["artifactType"] = "doc-artifact"
+    if case.path and _is_generic_artifact_path(case.path) and isinstance(case.body, dict):
+        method = case.method.upper() if case.method else ""
+        if method == "POST":
+            if "artifactType" not in case.body or case.body["artifactType"] not in _ARTIFACT_TYPES:
+                case.body["artifactType"] = secrets.choice(_ARTIFACT_TYPES)
+            _ensure_artifact_required_fields(case.body)
+        elif method == "PATCH":
+            existing_type = _get_artifact_type(case)
+            if existing_type:
+                case.body["artifactType"] = existing_type
     if case.method and case.method.upper() != "GET":
         return case
     if case.path not in SINGLETON_GET_PATHS:
@@ -147,15 +169,64 @@ def map_case(context: Any, case: Case) -> Case:
     return case
 
 
-_SAFE_STRUCT_VALUE = base64.b64encode(b'{"test": true}').decode()
+_GENERIC_ARTIFACT_PATHS = {
+    "/api/model_registry/v1alpha3/artifacts",
+    "/api/model_registry/v1alpha3/artifacts/{id}",
+    "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts",
+    "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts",
+}
+
+
+def _is_generic_artifact_path(path: str) -> bool:
+    """Check if path is a generic /artifacts endpoint that accepts any artifact type."""
+    return path in _GENERIC_ARTIFACT_PATHS
+
+
+def _get_artifact_type(case: Case) -> str | None:
+    """GET the existing artifact to find its immutable artifactType."""
+    try:
+        url = f"{REGISTRY_URL}{case.formatted_path}"
+        resp = requests.get(url, timeout=5)
+        if resp.ok:
+            return resp.json().get("artifactType")
+    except Exception:
+        pass
+    return None
+
+
+def _ensure_artifact_required_fields(body: dict) -> None:
+    """Ensure the body has required fields and correct types for the chosen artifact type.
+
+    The `value` field has different types per artifact: number for metric, string for
+    parameter, and invalid for other types. The `step` field is int64 (JSON number)
+    while `timestamp` is string — an inconsistency in the Go struct.
+    """
+    art_type = body.get("artifactType", "")
+    if art_type == "metric":
+        if "value" not in body or isinstance(body["value"], str):
+            body["value"] = round(secrets.randbelow(10000) / 100.0, 2)
+        body.setdefault("name", f"metric-{secrets.randbelow(100000)}")
+        body.setdefault("step", secrets.randbelow(1000))
+        body.setdefault("timestamp", str(secrets.randbelow(2000000000000)))
+    elif art_type == "parameter":
+        if "value" in body and not isinstance(body["value"], str):
+            body["value"] = str(body["value"])
+    else:
+        body.pop("value", None)
+        body.pop("step", None)
+        body.pop("timestamp", None)
+        body.pop("parameterType", None)
 
 
 def _sanitize_custom_properties(props: Any) -> Any:
     """Sanitize customProperties keys and values for server compatibility.
 
-    The server's EmbedMD converter supports Bool, Int, Double, String, and Struct
-    metadata types but NOT Proto. MetadataProtoValue values are replaced with
-    MetadataStringValue to avoid server-side 400 errors.
+    The server's EmbedMD converter supports Bool, Int, Double, String metadata
+    types without issues. Proto and Struct types are replaced with StringValue:
+    - MetadataProtoValue: no case in EmbedMD converter switch (server returns 400)
+    - MetadataStructValue: server base64-decodes on write but doesn't re-encode on
+      read, so any subsequent PATCH fails with "illegal base64 data" when the server
+      tries to re-process the stored (decoded) value through the write converter
     """
     if not isinstance(props, dict):
         return props
@@ -166,10 +237,8 @@ def _sanitize_custom_properties(props: Any) -> Any:
             safe_key = "prop"
         if isinstance(val, dict):
             meta_type = val.get("metadataType", "")
-            if meta_type == "MetadataStructValue":
-                val["struct_value"] = _SAFE_STRUCT_VALUE
-            elif meta_type == "MetadataProtoValue":
-                val = {"metadataType": "MetadataStringValue", "string_value": "proto_placeholder"}
+            if meta_type in ("MetadataStructValue", "MetadataProtoValue"):
+                val = {"metadataType": "MetadataStringValue", "string_value": "placeholder"}
         sanitized[safe_key] = val
     return sanitized
 

@@ -3,11 +3,11 @@ from hypothesis import HealthCheck, settings
 
 
 @pytest.mark.fuzz
-class TestRestAPIStateful:
-    @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+class TestCatalogAPIStateful:
+    @pytest.mark.parametrize("generated_schema", ["catalog.yaml"], indirect=True)
     @pytest.mark.flaky(reruns=2)
-    def test_mr_api_stateful(self, state_machine):
-        """Launches stateful tests against the Model Registry API endpoints defined in its openAPI yaml spec file"""
+    def test_catalog_api_stateful(self, state_machine):
+        """Launches stateful tests against the Model Catalog API endpoints defined in its openAPI yaml spec file"""
         state_machine.run(settings=settings(
             max_examples=20,
             deadline=10000, #10 seconds
