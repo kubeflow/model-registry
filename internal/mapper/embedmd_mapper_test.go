@@ -3,11 +3,11 @@ package mapper_test
 import (
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/internal/mapper"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/defaults"
+	"github.com/kubeflow/hub/internal/mapper"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

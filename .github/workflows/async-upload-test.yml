@@ -23,12 +23,12 @@ env:
   # Async Job
   JOB_IMG_REGISTRY: ghcr.io
   JOB_IMG_ORG: kubeflow
-  JOB_IMG_NAME: model-registry/job/async-upload
+  JOB_IMG_NAME: hub/job/async-upload
   JOB_IMG_VERSION: cicd
   # MR Server
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_REPO: model-registry/server
+  IMG_REPO: hub/server
   IMG_VERSION: cicd
   PUSH_IMAGE: false
 
@@ -53,9 +53,9 @@ jobs:
       - name: Run tests
         run: |
           make test
-      - name: Run E2E tests
+      - name: Run integration tests
         run: |
-          make test-e2e
+          make test-integration
   job-test:
     runs-on: ubuntu-latest
     defaults:
@@ -72,7 +72,7 @@ jobs:
           pipx install poetry
       - name: Execute Sample Job E2E test
         run: |
-          make test-integration
+          make test-e2e
   check-autogen:
     name: Check generated code or files are in sync
     runs-on: ubuntu-latest

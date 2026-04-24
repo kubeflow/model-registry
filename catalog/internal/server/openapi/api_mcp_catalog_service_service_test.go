@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -114,7 +114,7 @@ func (m *mockMCPProvider) ListMCPServers(ctx context.Context, params catalog.Lis
 	}, nil
 }
 
-func (m *mockMCPProvider) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (*model.MCPServer, error) {
+func (m *mockMCPProvider) GetMCPServer(ctx context.Context, serverID string, includeTools bool, toolLimit int32) (*model.MCPServer, error) {
 	if m.shouldErrorOnGetServer {
 		return nil, fmt.Errorf("mock error in GetMCPServer")
 	}
@@ -518,7 +518,7 @@ func TestGetMCPServer(t *testing.T) {
 			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
-			result, err := service.GetMCPServer(ctx, tc.serverID, tc.includeTools)
+			result, err := service.GetMCPServer(ctx, tc.serverID, tc.includeTools, 0)
 
 			assert.Equal(t, tc.expectedStatus, result.Code)
 

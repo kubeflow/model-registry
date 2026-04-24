@@ -393,12 +393,9 @@ or
         if auth_file is not None:
             params["authfile"] = auth_file.name
         backend_def.pull(base_image, local_image_path, **params)
-        # Pass top-level entries (dir/*) instead of individual leaf files (dir/**/*).
-        # olot's tarball_from_file preserves subdirectory structure when given a
-        # directory, but flattens everything to basename when given individual files.
-        model_path = Path(model_files_path)
-        files = [model_path] if model_path.is_file() else sorted(model_path.iterdir())
-        oci_layers_on_top(local_image_path, files, modelcard)
+        # Extract the absolute path from the files found in the path
+        files = [file[0] for file in _get_files_from_path(model_files_path)]  # type: ignore[arg-type]
+        oci_layers_on_top(local_image_path, files, modelcard, root_dir=model_files_path)
         backend_def.push(local_image_path, oci_ref, **params)
 
     # Return the OCI URI

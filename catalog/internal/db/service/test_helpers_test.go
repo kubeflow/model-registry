@@ -3,8 +3,8 @@ package service_test
 import (
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	"github.com/kubeflow/hub/internal/db/schema"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )

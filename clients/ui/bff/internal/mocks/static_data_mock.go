@@ -9,9 +9,9 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -362,7 +362,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		Description:      stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 		Provider:         stringToPointer("provider1"),
 		Tasks:            []string{"text-generation", "image-to-text"},
-		License:          stringToPointer("apache-2.0"),
+		License:          stringToPointer("Apache 2.0"),
 		LicenseLink:      stringToPointer("https://www.apache.org/licenses/LICENSE-2.0.txt"),
 		Maturity:         stringToPointer("Technology preview"),
 		Language:         []string{"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"},
@@ -716,7 +716,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Description:      stringToPointer("Granite 8B Code Instruct - INT4 quantized variant for efficient inference"),
 		Provider:         stringToPointer("Provider one"),
 		Tasks:            []string{"text-generation", "image-text-to-text"},
-		License:          stringToPointer("apache-2.0"),
+		License:          stringToPointer("Apache 2.0"),
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
 		SourceId:         stringToPointer("sample-source"),
@@ -729,7 +729,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Description:      stringToPointer("Granite 8B Code Instruct - INT8 quantized variant for balanced performance"),
 		Provider:         stringToPointer("IBM"),
 		Tasks:            []string{"audio-to-text", "text-to-text", "video-to-text"},
-		License:          stringToPointer("mit"),
+		License:          stringToPointer("MIT"),
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
 		SourceId:         stringToPointer("sample-source"),
@@ -742,7 +742,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Description:      stringToPointer("Granite 8B Code Instruct - BF16 variant for high precision"),
 		Provider:         stringToPointer("IBM"),
 		Tasks:            []string{"text-generation", "code-generation"},
-		License:          stringToPointer("apache-2.0"),
+		License:          stringToPointer("Apache 2.0"),
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
 		SourceId:         stringToPointer("sample-source"),
@@ -755,7 +755,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
 		Provider:    stringToPointer("Google"),
 		Tasks:       []string{"audio-to-text", "text-to-text"},
-		License:     stringToPointer("apache-2.0"),
+		License:     stringToPointer("Apache 2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("huggingface"),
@@ -796,7 +796,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
 		Provider:    stringToPointer("provider3"),
 		Tasks:       []string{"video-to-text"},
-		License:     stringToPointer("mit"),
+		License:     stringToPointer("MIT"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("huggingface"),
@@ -808,7 +808,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 		Description: stringToPointer("DistilBERT base model (uncased) - A smaller, faster version of BERT"),
 		Provider:    stringToPointer("Hugging Face"),
 		Tasks:       []string{"fill-mask", "text-classification"},
-		License:     stringToPointer("apache-2.0"),
+		License:     stringToPointer("Apache 2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("huggingface"),
@@ -820,7 +820,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
 		Tasks:       []string{"code-generation", "instruction-following"},
-		License:     stringToPointer("apache-2.0"),
+		License:     stringToPointer("Apache 2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("adminModel2"),
@@ -831,7 +831,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 2"),
 		Tasks:       []string{"text-generation", "conversational"},
-		License:     stringToPointer("apache-2.0"),
+		License:     stringToPointer("Apache 2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("adminModel1"),
@@ -842,7 +842,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 		Description: stringToPointer("Model without performance data"),
 		Provider:    stringToPointer("Test Provider"),
 		Tasks:       []string{"text-generation"},
-		License:     stringToPointer("apache-2.0"),
+		License:     stringToPointer("Apache 2.0"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("no-perf-source"),
 	}
@@ -855,7 +855,7 @@ python -c "from transformers import pipeline; nlp = pipeline('fill-mask', model=
 			Description:              stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 			Provider:                 stringToPointer("provider1"),
 			Tasks:                    []string{"text-generation"},
-			License:                  stringToPointer("apache-2.0"),
+			License:                  stringToPointer("Apache 2.0"),
 			LicenseLink:              stringToPointer("https://www.apache.org/licenses/LICENSE-2.0.txt"),
 			Maturity:                 stringToPointer("Technology preview"),
 			Language:                 []string{"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh"},
@@ -1711,7 +1711,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		Values: []interface{}{
 			"Apache 2.0", "Gemma License", "Llama 3.1 Community License",
 			"Llama 3.3 Community License", "Llama 4 Community License", "MIT",
-			"NVIDIA Open Model License", "modified-mit",
+			"NVIDIA Open Model License", "Modified MIT",
 		},
 	}
 
@@ -2399,6 +2399,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("0.9.2"),
 		License:     stringToPointer("Apache 2.0"),
 		LicenseLink: stringToPointer("https://www.apache.org/licenses/LICENSE-2.0"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/cncf/artwork/main/projects/prometheus/icon/color/prometheus-icon-color.svg"),
 		Tags:        []string{"metrics", "monitoring", "alerting"},
 		ToolCount:   15,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
@@ -2447,6 +2448,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("1.2.0"),
 		License:     stringToPointer("Apache 2.0"),
 		LicenseLink: stringToPointer("https://www.apache.org/licenses/LICENSE-2.0"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.svg"),
 		Tags:        []string{"kubernetes", "containers", "orchestration"},
 		ToolCount:   23,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP, models.McpTransportTypeSSE},
@@ -2533,6 +2535,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("1.1.0"),
 		License:     stringToPointer("AGPL-3.0"),
 		LicenseLink: stringToPointer("https://www.gnu.org/licenses/agpl-3.0.html"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg"),
 		Tags:        []string{"dashboards", "visualization", "monitoring"},
 		ToolCount:   12,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
@@ -2544,6 +2547,9 @@ func GetMcpServerMocks() []models.McpServer {
 			VerifiedSource: &trueVal,
 			SecureEndpoint: &trueVal,
 			ReadOnlyTools:  &trueVal,
+		},
+		Endpoints: &models.McpEndpoints{
+			HTTP: stringToPointer("https://api.mcpservers.org/grafana-mcp/v1"),
 		},
 	}
 
@@ -2599,6 +2605,7 @@ func GetMcpServerMocks() []models.McpServer {
 		Version:     stringToPointer("0.8.1"),
 		License:     stringToPointer("BSD-3-Clause"),
 		LicenseLink: stringToPointer("https://opensource.org/licenses/BSD-3-Clause"),
+		Logo:        stringToPointer("https://raw.githubusercontent.com/redis/redis-io/master/public/images/redis-white.png"),
 		Tags:        []string{"cache", "database", "messaging"},
 		ToolCount:   14,
 		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP, models.McpTransportTypeSSE},

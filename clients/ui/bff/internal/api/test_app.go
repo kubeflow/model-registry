@@ -4,9 +4,9 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/repositories"
 )
 
 // NewTestApp exposes a minimal constructor that allows tests and downstream

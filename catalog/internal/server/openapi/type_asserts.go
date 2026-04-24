@@ -15,7 +15,7 @@ package openapi
 import (
 	"errors"
 
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 // AssertArtifactTypeQueryParamConstraints checks if the values respects the defined constraints

@@ -1,4 +1,5 @@
 approvers:
+  - adysenrothman
   - Al-Pragliola
   - andreyvelich  # noqa(kubeflow-hub-team)
   - ederign

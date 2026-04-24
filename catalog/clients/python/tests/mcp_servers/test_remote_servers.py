@@ -81,12 +81,13 @@ class TestRemoteServerFiltering:
         self: Self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
+        kind_cluster: bool,
         filter_query: str,
         expected_names: set[str],
         excluded_names: set[str],
     ):
         """Verify filter returns correct servers."""
-        response = api_client.get_mcp_servers(filter_query=filter_query)
+        response = api_client.get_mcp_servers(filter_query=filter_query, page_size=None if kind_cluster else 100)
         items = response.get("items", [])
         names = {server["name"] for server in items}
         assert expected_names <= names, f"Missing expected servers: {expected_names - names}"

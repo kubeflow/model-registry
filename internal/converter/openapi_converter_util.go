@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 type OpenAPIModel interface {

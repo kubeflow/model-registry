@@ -26,6 +26,7 @@ import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import McpServerToolsSection from '~/app/pages/mcpCatalog/screens/McpServerToolsSection';
+import { getMcpServerPrimaryEndpoint } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 
 type McpServerDetailsViewProps = {
   server: McpServer;
@@ -63,6 +64,7 @@ const getTransportTypeLabel = (transports?: string[]): string => {
 const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) => {
   const deploymentModeLabel = getDeploymentModeLabel(server.deploymentMode);
   const transportTypeLabel = getTransportTypeLabel(server.transports);
+  const primaryEndpoint = getMcpServerPrimaryEndpoint(server.endpoints);
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
@@ -125,6 +127,21 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
             </CardHeader>
             <CardBody>
               <DescriptionList>
+                {primaryEndpoint && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Endpoint</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <ClipboardCopy
+                        hoverTip="Copy"
+                        clickTip="Copied"
+                        isReadOnly
+                        data-testid="mcp-server-endpoint-copy"
+                      >
+                        {primaryEndpoint}
+                      </ClipboardCopy>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
                 {server.tags && server.tags.length > 0 && (
                   <DescriptionListGroup>
                     <DescriptionListTerm>Labels</DescriptionListTerm>
@@ -188,7 +205,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                 )}
                 {(server.sourceCode || server.repositoryUrl) && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>Source Code</DescriptionListTerm>
+                    <DescriptionListTerm>Source code</DescriptionListTerm>
                     <DescriptionListDescription>
                       {server.repositoryUrl ? (
                         <ExternalLink

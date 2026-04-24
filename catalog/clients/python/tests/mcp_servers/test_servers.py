@@ -23,14 +23,17 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that all expected MCP servers are loaded with required fields."""
-        response = api_client.get_mcp_servers()
+        response = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
         items = response.get("items", [])
         actual_names = {server["name"] for server in items}
         expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_names == expected_names
-
+        if kind_cluster:
+            assert actual_names == expected_names
+        else:
+            assert set(expected_names).issubset(set(actual_names))
         for server in items:
             missing = MCP_SERVER_REQUIRED_FIELDS - server.keys()
             assert not missing, f"Server '{server.get('name')}' missing fields: {missing}"
@@ -40,20 +43,25 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that MCP server providers match expected values."""
-        response = api_client.get_mcp_servers()
-        actual_providers = {s["name"]: s["provider"] for s in response["items"]}
-        expected_providers = {s["name"]: s["provider"] for s in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_providers == expected_providers
+        response = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
+        actual_providers = {server["name"]: server["provider"] for server in response["items"]}
+        expected_providers = {server["name"]: server["provider"] for server in test_mcp_catalog_data["mcp_servers"]}
+        if kind_cluster:
+            assert actual_providers == expected_providers
+        else:
+            assert set(expected_providers.items()).issubset(set(actual_providers.items()))
 
     def test_mcp_server_get_by_id(
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
+        kind_cluster: bool,
     ):
         """Test that an MCP server can be retrieved by ID with all required fields."""
-        response = api_client.get_mcp_servers()
+        response = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
         assert response.get("items"), "No MCP servers found"
         server = random.choice(response["items"])
         single = api_client.get_mcp_server(server_id=server["id"])
@@ -67,13 +75,16 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test pagination by iterating all servers with pageSize=1."""
         expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         collected_names: set[str] = set()
         next_token = None
 
-        for _ in range(len(expected_names) + 1):
+        # Use a safe upper bound: on non-KinD environments there may be more servers
+        max_pages = len(expected_names) + 1 if kind_cluster else 100
+        for _ in range(max_pages):
             response = api_client.get_mcp_servers(page_size=1, next_page_token=next_token)
             items = response.get("items", [])
             assert len(items) == 1, f"Expected exactly 1 item per page, got {len(items)}"
@@ -86,7 +97,10 @@ class TestMCPServerBasics:
             if not next_token:
                 break
 
-        assert collected_names == expected_names
+        if kind_cluster:
+            assert collected_names == expected_names
+        else:
+            assert expected_names.issubset(collected_names)
 
     def test_filter_by_name(
         self,
@@ -108,9 +122,10 @@ class TestMCPServerTools:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that toolCount reflects actual tools even without includeTools."""
-        response = api_client.get_mcp_servers()
+        response = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
         expected_counts = {
             s["name"]: len(s.get("tools", [])) for s in test_mcp_catalog_data["mcp_servers"]
         }
@@ -126,9 +141,10 @@ class TestMCPServerTools:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that tools are returned when include_tools=True."""
-        response = api_client.get_mcp_servers(include_tools=True)
+        response = api_client.get_mcp_servers(include_tools=True, page_size=None if kind_cluster else 100)
         expected_tools = {
             s["name"]: [t["name"] for t in s.get("tools", [])] for s in test_mcp_catalog_data["mcp_servers"]
         }
@@ -146,9 +162,10 @@ class TestMCPServerCustomProperties:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that customProperties are correctly loaded from YAML."""
-        response = api_client.get_mcp_servers()
+        response = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
         servers_by_name = {s["name"]: s for s in response.get("items", [])}
 
         for yaml_server in test_mcp_catalog_data["mcp_servers"]:

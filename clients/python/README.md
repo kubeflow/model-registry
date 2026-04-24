@@ -30,7 +30,7 @@ By [installing an extra variant](https://packaging.python.org/en/latest/tutorial
 the additional dependencies will be managed for you automatically, for instance with:
 
 ```
-pip install "model-registry[hf]"
+pip install 'model-registry[hf]'
 ```
 
 This step is not required if you already installed the additional dependencies already, for instance with:
@@ -40,13 +40,16 @@ pip install huggingface-hub
 ```
 #### Extras that can be installed
 ```
-pip install model-registry[hf]
+pip install 'model-registry[hf]'
 ```
 ```
-pip install model-registry[s3]
+pip install 'model-registry[s3]'
 ```
 ```
-pip install model_registry[olot]
+pip install 'model-registry[olot]'
+```
+```
+pip install 'model-registry[signing]'
 ```
 
 ## Basic usage
@@ -303,6 +306,92 @@ oci_upload_params = OCIParams(
     oci_ref="registry.example.com/acme_org/hello_world_model:0.0.1",
     custom_oci_backend=custom_oci_backend,
 )
+```
+
+### Signing and Verifying Models
+
+The Model Registry Python client supports signing and verifying both model artifacts and container images using [Sigstore](https://www.sigstore.dev/).
+
+To use signing features, install the signing extra:
+
+```
+pip install 'model-registry[signing]'
+```
+
+#### Quickstart
+
+Set the following environment variables to configure Sigstore:
+
+| Environment Variable | Description |
+|---|---|
+| `SIGSTORE_TUF_URL` | TUF server URL |
+| `SIGSTORE_FULCIO_URL` | Fulcio server URL |
+| `SIGSTORE_REKOR_URL` | Rekor server URL |
+| `SIGSTORE_TSA_URL` | TSA server URL |
+
+When running on Kubernetes, the identity token is automatically read from the service account token at `/var/run/secrets/kubernetes.io/serviceaccount/token`. Other values such as `oidc_issuer`, `client_id`, and `certificate_identity` are extracted from the token when not explicitly provided.
+
+With the environment configured, signing and verifying is straightforward:
+
+```python
+from model_registry.signing import Signer
+
+signer = Signer()
+
+# Sign and verify a model directory
+signer.sign_model("/path/to/model")
+signer.verify_model("/path/to/model")
+
+# Sign and verify a container image (requires digest reference)
+signer.sign_image("quay.io/user/image@sha256:abc123...")
+signer.verify_image("quay.io/user/image@sha256:abc123...")
+```
+
+#### Explicit Configuration
+
+Instead of environment variables, you can pass configuration directly:
+
+```python
+signer = Signer(
+    tuf_url="https://tuf.example.com",
+    fulcio_url="https://fulcio.example.com",
+    rekor_url="https://rekor.example.com",
+    identity_token_path="/path/to/token.jwt",
+    certificate_identity="user@example.com",
+    oidc_issuer="https://accounts.example.com",
+)
+```
+
+#### Model Signing Options
+
+By default, the signature is written to `model.sig` inside the model directory. You can customize the output path and exclude files from signing:
+
+```python
+signer.sign_model(
+    "/path/to/model",
+    signature_path="/custom/path/model.sig",
+    ignore_paths=[".cache", "__pycache__"],
+)
+```
+
+#### Pre-downloading Trust Metadata
+
+Trust metadata is downloaded automatically when needed. If you want to pre-cache the trust config or ensure ahead of time that this step won't fail, call `initialize()` explicitly:
+
+```python
+signer.initialize()
+```
+
+#### Logging
+
+You can control the log level for signing operations:
+
+```python
+import logging
+
+signer = Signer(log_level=logging.DEBUG)
+# Or change it later
+signer.set_log_level(logging.WARNING)
 ```
 
 ### Running ModelRegistry on Ray or Uvloop

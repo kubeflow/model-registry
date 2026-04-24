@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/converter"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	openapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/converter"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	openapi "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // NamedQueryResolver resolves a named query name to its field filters.
@@ -107,8 +107,12 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 	orderBy := strings.ToUpper(string(params.OrderBy))
 	sortOrder := strings.ToUpper(string(params.SortOrder))
 	listOptions.Pagination.PageSize = &params.PageSize
-	listOptions.Pagination.OrderBy = &orderBy
-	listOptions.Pagination.SortOrder = &sortOrder
+	if orderBy != "" {
+		listOptions.Pagination.OrderBy = &orderBy
+	}
+	if sortOrder != "" {
+		listOptions.Pagination.SortOrder = &sortOrder
+	}
 	if params.NextPageToken != nil {
 		listOptions.Pagination.NextPageToken = params.NextPageToken
 	}
@@ -148,7 +152,7 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 				return openapi.MCPServerList{}, fmt.Errorf("error loading tools for server %d: %w", *dbServer.GetID(), err)
 			}
 
-			apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+			apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools.Items)
 		} else {
 			apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 		}
@@ -179,7 +183,7 @@ func mergeFilterQueries(a, b string) string {
 	}
 }
 
-func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (*openapi.MCPServer, error) {
+func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, includeTools bool, toolLimit int32) (*openapi.MCPServer, error) {
 	id, err := apiutils.ValidateIDAsInt32(serverID, "server")
 	if err != nil {
 		return nil, fmt.Errorf("invalid server ID '%s': %w", serverID, api.ErrBadRequest)
@@ -202,11 +206,14 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 		toolOptions := models.MCPServerToolListOptions{
 			ParentID: *dbServer.GetID(),
 		}
+		if toolLimit > 0 {
+			toolOptions.Pagination.PageSize = &toolLimit
+		}
 		tools, err := d.mcpServerToolRepo.List(toolOptions)
 		if err != nil {
 			return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 		}
-		apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools.Items)
 	} else {
 		apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 	}
@@ -254,7 +261,7 @@ func (d *dbMCPCatalogImpl) ListMCPServerTools(ctx context.Context, serverID stri
 
 	// Convert to OpenAPI models
 	apiTools := make([]openapi.MCPTool, 0) // Initialize as empty slice, not nil
-	for _, dbTool := range tools {
+	for _, dbTool := range tools.Items {
 		apiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		if apiTool != nil {
 			apiTools = append(apiTools, *apiTool)
@@ -265,7 +272,7 @@ func (d *dbMCPCatalogImpl) ListMCPServerTools(ctx context.Context, serverID stri
 		Items:         apiTools,
 		Size:          int32(len(apiTools)),
 		PageSize:      params.PageSize,
-		NextPageToken: "", // TODO: Implement pagination token for tools
+		NextPageToken: tools.NextPageToken,
 	}, nil
 }
 
@@ -281,27 +288,21 @@ func (d *dbMCPCatalogImpl) GetMCPServerTool(ctx context.Context, serverID string
 		return nil, fmt.Errorf("server not found with ID %s: %w", serverID, api.ErrNotFound)
 	}
 
-	// List all tools for the server and find the one with matching name
+	// Filter by name at the DB level. The DB stores qualified names (serverName@version:toolName)
+	// but the API exposes only the unqualified name, so we match by suffix using LIKE.
 	toolOptions := models.MCPServerToolListOptions{
 		ParentID: id,
+		ToolName: &toolName,
 	}
 	tools, err := d.mcpServerToolRepo.List(toolOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 	}
 
-	// Find tool by name. DB stores tools with a qualified prefix (serverName@version:toolName)
-	// for uniqueness, but the API exposes only the unqualified tool name.
-	for _, tool := range tools {
-		attrs := tool.GetAttributes()
-		if attrs == nil || attrs.Name == nil {
-			continue
-		}
-		if converter.UnqualifyToolName(*attrs.Name) == toolName {
-			apiTool := converter.ConvertDbMCPToolToOpenapi(tool)
-			return apiTool, nil
-		}
+	if len(tools.Items) == 0 {
+		return nil, fmt.Errorf("tool '%s' not found in server %s: %w", toolName, serverID, api.ErrNotFound)
 	}
 
-	return nil, fmt.Errorf("tool '%s' not found in server %s: %w", toolName, serverID, api.ErrNotFound)
+	apiTool := converter.ConvertDbMCPToolToOpenapi(tools.Items[0])
+	return apiTool, nil
 }

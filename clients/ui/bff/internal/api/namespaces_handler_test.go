@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
-	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes/k8mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

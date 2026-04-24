@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/service"
+	"github.com/kubeflow/hub/internal/db/utils"
 	"gorm.io/gorm"
 )
 

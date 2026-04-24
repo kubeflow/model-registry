@@ -90,32 +90,32 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
     <>
       <FormGroup label={nameLabel} isRequired fieldId={`${dataTestId}-name`}>
         <FormFieldset component={nameInput} field="Name" />
-      </FormGroup>
-      {nameHelperText || (!showK8sField && !k8sName.state.immutable) ? (
-        <HelperText>
-          {nameHelperText && <HelperTextItem>{nameHelperText}</HelperTextItem>}
-          {!showK8sField && !k8sName.state.immutable && (
-            <>
-              {k8sName.value && (
+        {nameHelperText || (!showK8sField && !k8sName.state.immutable) ? (
+          <HelperText>
+            {nameHelperText && <HelperTextItem>{nameHelperText}</HelperTextItem>}
+            {!showK8sField && !k8sName.state.immutable && (
+              <>
+                {k8sName.value && (
+                  <HelperTextItem>
+                    The resource name will be <b>{k8sName.value}</b>.
+                  </HelperTextItem>
+                )}
                 <HelperTextItem>
-                  The resource name will be <b>{k8sName.value}</b>.
+                  <Button
+                    data-testid={`${dataTestId}-editResourceLink`}
+                    variant="link"
+                    isInline
+                    onClick={() => setShowK8sField(true)}
+                  >
+                    Edit resource name
+                  </Button>{' '}
+                  <ResourceNameDefinitionTooltip />
                 </HelperTextItem>
-              )}
-              <HelperTextItem>
-                <Button
-                  data-testid={`${dataTestId}-editResourceLink`}
-                  variant="link"
-                  isInline
-                  onClick={() => setShowK8sField(true)}
-                >
-                  Edit resource name
-                </Button>{' '}
-                <ResourceNameDefinitionTooltip />
-              </HelperTextItem>
-            </>
-          )}
-        </HelperText>
-      ) : null}
+              </>
+            )}
+          </HelperText>
+        ) : null}
+      </FormGroup>
 
       <ResourceNameField
         allowEdit={showK8sField}

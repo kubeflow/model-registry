@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	helper "github.com/kubeflow/hub/ui/bff/internal/helpers"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 )
 
 type ModelRegistryRepository struct{}

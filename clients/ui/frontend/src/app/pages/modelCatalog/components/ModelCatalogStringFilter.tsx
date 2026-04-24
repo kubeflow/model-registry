@@ -15,14 +15,14 @@ function isFilterMappingKey<K extends string>(obj: Partial<Record<K, string>>, s
 type ModelCatalogStringFilterProps<K extends ModelCatalogStringFilterKey> = {
   title: string;
   filterKey: K;
-  filterToNameMapping: Partial<Record<ModelCatalogStringFilterValueType[K], string>>;
+  filterToNameMapping?: Partial<Record<ModelCatalogStringFilterValueType[K], string>>;
   filters: ModelCatalogStringFilterOptions[K];
 };
 
 const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
   title,
   filterKey,
-  filterToNameMapping,
+  filterToNameMapping = {},
   filters,
 }: ModelCatalogStringFilterProps<K>): JSX.Element => {
   const { filterData } = React.useContext(ModelCatalogContext);

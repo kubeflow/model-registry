@@ -66,10 +66,11 @@ class TestMCPServerSearch:
         search_term: str | None,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
+        kind_cluster: bool,
     ):
         """Test that empty or None q parameter returns all servers."""
-        response_q = api_client.get_mcp_servers(q=search_term)
-        response_all = api_client.get_mcp_servers()
+        response_q = api_client.get_mcp_servers(q=search_term, page_size=None if kind_cluster else 100)
+        response_all = api_client.get_mcp_servers(page_size=None if kind_cluster else 100)
 
         names_q = {s["name"] for s in response_q.get("items", [])}
         names_all = {s["name"] for s in response_all.get("items", [])}

@@ -41,6 +41,7 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
             data-testid={dataTestId}
             style={{
               ...style,
+              width: '100%',
               paddingBlockStart: 'var(--pf-t--global--spacer--control--vertical--default)',
               paddingBlockEnd: 'var(--pf-t--global--spacer--control--vertical--default)',
             }}

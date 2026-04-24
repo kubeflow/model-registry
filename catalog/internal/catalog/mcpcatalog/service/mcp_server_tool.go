@@ -3,13 +3,14 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/db/filter"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/service"
+	"github.com/kubeflow/hub/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -51,64 +52,27 @@ func (r *MCPServerToolRepositoryImpl) GetByID(id int32) (models.MCPServerTool, e
 	return r.GenericRepository.GetByID(id)
 }
 
-// List retrieves all tools for a given parent MCP server with optional filterQuery support.
-func (r *MCPServerToolRepositoryImpl) List(listOptions models.MCPServerToolListOptions) ([]models.MCPServerTool, error) {
-	config := r.GetConfig()
-
-	// 1. Build base query with Association join
-	var executions []schema.Execution
-	associationTable := utils.GetTableName(config.DB, &schema.Association{})
-	executionTable := utils.GetTableName(config.DB, &schema.Execution{})
-
-	query := config.DB.Table(executionTable).
-		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
-			associationTable, associationTable, executionTable)).
-		Where(fmt.Sprintf("%s.context_id = ? AND %s.type_id = ?",
-			associationTable, executionTable), listOptions.ParentID, config.TypeID)
-
-	// 2. Apply filterQuery
-	query, err := service.ApplyFilterQuery(query, &listOptions, filter.NewCatalogEntityMappings())
-	if err != nil {
-		return nil, fmt.Errorf("error applying filter query: %w", err)
-	}
-
-	// 3. Apply pagination limit
-	if listOptions.Pagination.PageSize != nil {
-		query = query.Limit(int(*listOptions.Pagination.PageSize))
-	}
-
-	// 4. Execute query
-	err = query.Find(&executions).Error
-	if err != nil {
-		return nil, fmt.Errorf("error listing %s by parent: %w", config.EntityName, err)
-	}
-
-	// 5. Load properties for each execution
-	var tools []models.MCPServerTool
-	for _, exec := range executions {
-		var properties []schema.ExecutionProperty
-		if err := config.DB.Where("execution_id = ?", exec.ID).Find(&properties).Error; err != nil {
-			return nil, fmt.Errorf("error getting properties for %s: %w", config.EntityName, err)
-		}
-
-		tool := config.SchemaToEntity(exec, properties)
-		tools = append(tools, tool)
-	}
-
-	return tools, nil
+// List retrieves all tools for a given parent MCP server with optional filterQuery and pagination support.
+func (r *MCPServerToolRepositoryImpl) List(listOptions models.MCPServerToolListOptions) (*dbmodels.ListWrapper[models.MCPServerTool], error) {
+	return r.GenericRepository.List(&listOptions)
 }
 
-// applyMCPServerToolListFilters applies list filters to the query for MCP server tools.
+// applyMCPServerToolListFilters adds the Association join and parent ID filter so that
+// GenericRepository.List() returns only the tools belonging to a specific MCP server.
+// Note: type_id filtering is already applied by buildBaseQuery().
 func applyMCPServerToolListFilters(query *gorm.DB, listOptions *models.MCPServerToolListOptions) *gorm.DB {
+	associationTable := utils.GetTableName(query.Statement.DB, &schema.Association{})
 	executionTable := utils.GetTableName(query.Statement.DB, &schema.Execution{})
 
-	// Filter by parent ID (this should already be handled by the join, but we can add it here for completeness)
-	// Note: For MCPServerTool, filtering is primarily done through the Association join,
-	// but we can add property-based filters here if needed
+	query = query.
+		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
+			associationTable, associationTable, executionTable)).
+		Where(fmt.Sprintf("%s.context_id = ?", associationTable), listOptions.ParentID)
 
-	// Example: Add text search in tool properties if Query field is added to ListOptions in the future
-	// This is a placeholder for future expansion
-	_ = executionTable // Prevent unused variable warning
+	if listOptions.ToolName != nil {
+		escaped := strings.NewReplacer("%", "\\%", "_", "\\_").Replace(*listOptions.ToolName)
+		query = query.Where(fmt.Sprintf("%s.name LIKE ?", executionTable), fmt.Sprintf("%%:%s", escaped))
+	}
 
 	return query
 }

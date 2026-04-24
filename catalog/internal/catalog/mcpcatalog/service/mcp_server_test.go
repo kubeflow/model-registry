@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/converter"
-	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/converter"
+	"github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

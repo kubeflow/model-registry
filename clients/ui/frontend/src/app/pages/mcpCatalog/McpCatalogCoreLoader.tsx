@@ -24,7 +24,7 @@ const McpCatalogCoreLoader: React.FC = () => {
     return (
       <ApplicationsPage
         title={
-          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
+          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.mcpCatalog} />
         }
         description={MCP_CATALOG_DESCRIPTION}
         headerContent={null}
@@ -45,7 +45,7 @@ const McpCatalogCoreLoader: React.FC = () => {
     return (
       <ApplicationsPage
         title={
-          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
+          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.mcpCatalog} />
         }
         description={MCP_CATALOG_DESCRIPTION}
         headerContent={null}
@@ -60,7 +60,7 @@ const McpCatalogCoreLoader: React.FC = () => {
     return (
       <ApplicationsPage
         title={
-          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
+          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.mcpCatalog} />
         }
         description={MCP_CATALOG_DESCRIPTION}
         empty

@@ -73,9 +73,6 @@ def pytest_report_teststatus(report, config):
             print(f"\nTEST: {test_name} STATUS: \033[0;31mFAILED\033[0m")
 
 
-start_time = time.time()
-
-
 @pytest.fixture(scope="session")
 def root(request) -> Path:
     return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
@@ -103,13 +100,14 @@ def verify_ssl() -> bool:
 
 
 def poll_for_ready(user_token, verify_ssl):
+    poll_start = time.time()
     params = {
         "url": REGISTRY_URL,
         "headers": {"Authorization": f"Bearer {user_token}", } if user_token else None,
         "verify": verify_ssl
     }
     while True:
-        elapsed_time = time.time() - start_time
+        elapsed_time = time.time() - poll_start
         if elapsed_time >= MAX_POLL_TIME:
             print("Polling timed out.")
             break
@@ -279,6 +277,52 @@ def get_temp_dir_with_nested_models():
             os.remove(file)
     os.rmdir(nested_dir)
     os.rmdir(temp_dir)
+
+
+@pytest.fixture
+def get_temp_dir_with_deeply_nested_models():
+    """Model directory with multiple levels of nesting to verify structure preservation.
+
+    Creates:
+        my-model/
+        ├── README.md
+        ├── onnx/
+        │   ├── model.onnx
+        │   └── weights/
+        │       └── quantized.bin
+        └── tokenizer/
+            ├── config.json
+            └── vocab.txt
+    """
+    temp_dir = tempfile.mkdtemp()
+    model_dir = os.path.join(temp_dir, "my-model")
+    os.makedirs(model_dir)
+
+    dirs = [
+        os.path.join(model_dir, "onnx"),
+        os.path.join(model_dir, "onnx", "weights"),
+        os.path.join(model_dir, "tokenizer"),
+    ]
+    for d in dirs:
+        os.makedirs(d)
+
+    file_entries = [
+        ("README.md", b"# My Model"),
+        ("onnx/model.onnx", b"fake-onnx-data"),
+        ("onnx/weights/quantized.bin", b"fake-weights-data"),
+        ("tokenizer/config.json", b'{"key": "value"}'),
+        ("tokenizer/vocab.txt", b"hello\nworld"),
+    ]
+    file_paths = []
+    for rel_path, content in file_entries:
+        full_path = os.path.join(model_dir, rel_path)
+        with open(full_path, "wb") as f:
+            f.write(content)
+        file_paths.append(full_path)
+
+    yield model_dir, file_paths
+
+    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture

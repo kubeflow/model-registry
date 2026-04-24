@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"

@@ -9,11 +9,11 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 // PartiallyAvailableError indicates that a source loaded some models successfully
@@ -222,9 +222,12 @@ func (l *ModelLoader) updateSources(path string, config *basecatalog.SourceConfi
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
 
-	// Use MergeWithNamedQueries if named queries exist, otherwise use regular Merge
+	// Use MergeWithNamedQueries for named queries scoped to models; skip others.
 	if config.NamedQueries != nil {
-		return l.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+		filtered := basecatalog.FilterNamedQueriesByAssetType(config.NamedQueries, basecatalog.AssetTypeModels)
+		if len(filtered) > 0 {
+			return l.Sources.MergeWithNamedQueries(path, sources, filtered)
+		}
 	}
 	return l.Sources.Merge(path, sources)
 }

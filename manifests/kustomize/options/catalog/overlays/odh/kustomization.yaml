@@ -5,10 +5,10 @@ resources:
 - ../../base
 
 configMapGenerator:
-- behavior: add
+- behavior: create
   files:
   - sources.yaml=default-sources.yaml
-  name: model-catalog-default-sources
+  name: default-catalog-sources
   options:
     disableNameSuffixHash: true
 
@@ -34,7 +34,7 @@ patches:
       value:
         name: default-sources
         configMap:
-          name: model-catalog-default-sources
+          name: default-catalog-sources
     - op: add
       path: /spec/template/spec/containers/0/volumeMounts/1
       value:
@@ -57,6 +57,8 @@ patches:
               mountPath: /shared-data
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
             capabilities:
               drop:
                 - ALL

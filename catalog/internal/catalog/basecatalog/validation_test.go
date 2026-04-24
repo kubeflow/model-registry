@@ -10,25 +10,66 @@ import (
 func TestValidateNamedQueries(t *testing.T) {
 	tests := []struct {
 		name          string
-		namedQueries  map[string]map[string]FieldFilter
+		namedQueries  map[string]NamedQuery
 		expectError   bool
 		errorContains string
 	}{
 		{
-			name: "valid named queries",
-			namedQueries: map[string]map[string]FieldFilter{
+			name: "valid named queries without assetType (defaults to models)",
+			namedQueries: map[string]NamedQuery{
 				"test-query": {
-					"name":     {Operator: "=", Value: "my-server"},
-					"provider": {Operator: "=", Value: "Anthropic"},
+					Filters: map[string]FieldFilter{
+						"name":     {Operator: "=", Value: "my-server"},
+						"provider": {Operator: "=", Value: "Anthropic"},
+					},
 				},
 			},
 			expectError: false,
 		},
 		{
-			name: "invalid operator",
-			namedQueries: map[string]map[string]FieldFilter{
+			name: "valid named queries with assetType models",
+			namedQueries: map[string]NamedQuery{
 				"test-query": {
-					"name": {Operator: "INVALID", Value: "value"},
+					AssetType: AssetTypeModels,
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "=", Value: "my-model"},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid named queries with assetType mcp_servers",
+			namedQueries: map[string]NamedQuery{
+				"test-query": {
+					AssetType: AssetTypeMCPServers,
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "=", Value: "my-server"},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid assetType",
+			namedQueries: map[string]NamedQuery{
+				"test-query": {
+					AssetType: "invalid_type",
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "=", Value: "value"},
+					},
+				},
+			},
+			expectError:   true,
+			errorContains: "invalid assetType 'invalid_type'",
+		},
+		{
+			name: "invalid operator",
+			namedQueries: map[string]NamedQuery{
+				"test-query": {
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "INVALID", Value: "value"},
+					},
 				},
 			},
 			expectError:   true,
@@ -36,9 +77,11 @@ func TestValidateNamedQueries(t *testing.T) {
 		},
 		{
 			name: "empty operator",
-			namedQueries: map[string]map[string]FieldFilter{
+			namedQueries: map[string]NamedQuery{
 				"test-query": {
-					"name": {Operator: "", Value: "value"},
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "", Value: "value"},
+					},
 				},
 			},
 			expectError:   true,
@@ -46,9 +89,11 @@ func TestValidateNamedQueries(t *testing.T) {
 		},
 		{
 			name: "nil value",
-			namedQueries: map[string]map[string]FieldFilter{
+			namedQueries: map[string]NamedQuery{
 				"test-query": {
-					"name": {Operator: "=", Value: nil},
+					Filters: map[string]FieldFilter{
+						"name": {Operator: "=", Value: nil},
+					},
 				},
 			},
 			expectError:   true,
@@ -76,9 +121,11 @@ func TestLoaderValidationIntegration(t *testing.T) {
 	// Test with a valid config
 	validConfig := &SourceConfig{
 		Catalogs: []ModelSource{},
-		NamedQueries: map[string]map[string]FieldFilter{
+		NamedQueries: map[string]NamedQuery{
 			"valid-query": {
-				"name": {Operator: "=", Value: "my-server"},
+				Filters: map[string]FieldFilter{
+					"name": {Operator: "=", Value: "my-server"},
+				},
 			},
 		},
 	}
@@ -90,9 +137,11 @@ func TestLoaderValidationIntegration(t *testing.T) {
 	// Test with an invalid config
 	invalidConfig := &SourceConfig{
 		Catalogs: []ModelSource{},
-		NamedQueries: map[string]map[string]FieldFilter{
+		NamedQueries: map[string]NamedQuery{
 			"invalid-query": {
-				"name": {Operator: "INVALID_OP", Value: "value"},
+				Filters: map[string]FieldFilter{
+					"name": {Operator: "INVALID_OP", Value: "value"},
+				},
 			},
 		},
 	}

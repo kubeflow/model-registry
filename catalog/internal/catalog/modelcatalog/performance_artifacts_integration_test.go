@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	modelservice "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/service"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	"github.com/kubeflow/hub/catalog/internal/testhelpers"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,10 +22,10 @@ func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
 	defer cleanup()
 
 	// Get type IDs
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -280,10 +281,10 @@ func TestIntegration_ServiceLayerBehavior(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
@@ -444,10 +445,10 @@ func TestIntegration_ConfigurableProperties(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
-	catalogModelTypeID := GetCatalogModelTypeIDForDBTest(t, sharedDB)
-	metricsArtifactTypeID := GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
-	modelArtifactTypeID := GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
-	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
+	catalogModelTypeID := testhelpers.GetCatalogModelTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := testhelpers.GetCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := testhelpers.GetCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := testhelpers.GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{

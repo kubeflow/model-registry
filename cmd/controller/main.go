@@ -10,7 +10,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
-	"github.com/kubeflow/model-registry/cmd/controller/internal/controllers"
+	"github.com/kubeflow/hub/cmd/controller/internal/controllers"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
-	infrctrl "github.com/kubeflow/model-registry/pkg/inferenceservice-controller"
+	infrctrl "github.com/kubeflow/hub/pkg/inferenceservice-controller"
 	// +kubebuilder:scaffold:imports
 )
 

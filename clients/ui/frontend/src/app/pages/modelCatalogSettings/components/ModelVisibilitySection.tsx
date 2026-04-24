@@ -2,20 +2,19 @@ import * as React from 'react';
 import {
   FormFieldGroupExpandable,
   FormFieldGroupHeader,
-  FormGroup,
   TextArea,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
-import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import {
   FORM_LABELS,
   PLACEHOLDERS,
-  DESCRIPTIONS,
+  DESCRIPTION_TEXT,
   getFilterInfoWithOrg,
   getAllowedModelsHelp,
   getExcludedModelsHelp,
@@ -41,18 +40,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
   const sectionDescription =
     isHuggingFaceMode && organization
       ? getFilterInfoWithOrg(organization)
-      : DESCRIPTIONS.FILTER_INFO_GENERIC;
-
-  const allowedModelsHelp = getAllowedModelsHelp(organization);
-  const excludedModelsHelp = getExcludedModelsHelp(organization);
-
-  const allowedModelsPlaceholder = isHuggingFaceMode
-    ? PLACEHOLDERS.ALLOWED_MODELS_HF
-    : PLACEHOLDERS.ALLOWED_MODELS_GENERIC;
-
-  const excludedModelsPlaceholder = isHuggingFaceMode
-    ? PLACEHOLDERS.EXCLUDED_MODELS_HF
-    : PLACEHOLDERS.EXCLUDED_MODELS_GENERIC;
+      : DESCRIPTION_TEXT.FILTER_INFO_GENERIC;
 
   const allowedModelsInput = (
     <TextArea
@@ -63,8 +51,24 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
       onChange={(_event, value) => setData('allowedModels', value)}
       rows={3}
       resizeOrientation="vertical"
-      placeholder={allowedModelsPlaceholder}
+      placeholder={PLACEHOLDERS.ALLOWED_MODELS}
     />
+  );
+
+  const allowedModelsDescriptionTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{getAllowedModelsHelp(organization)}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
+
+  const allowedModelsHelperTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{getIncludedModelsFieldHelperText}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
   );
 
   const excludedModelsInput = (
@@ -76,8 +80,24 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
       onChange={(_event, value) => setData('excludedModels', value)}
       rows={3}
       resizeOrientation="vertical"
-      placeholder={excludedModelsPlaceholder}
+      placeholder={PLACEHOLDERS.EXCLUDED_MODELS}
     />
+  );
+
+  const excludedModelsDescriptionTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{getExcludedModelsHelp(organization)}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
+
+  const excludedModelsHelperTxtNode = (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem>{getExcludedModelsFieldHelperText}</HelperTextItem>
+      </HelperText>
+    </FormHelperText>
   );
 
   return (
@@ -93,33 +113,23 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
         isExpanded={isDefaultExpanded}
         data-testid="model-visibility-section"
       >
-        <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">
-          <FormFieldset component={allowedModelsInput} field="Allowed models" />
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>{allowedModelsHelp}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>{getIncludedModelsFieldHelperText}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        </FormGroup>
+        <ThemeAwareFormGroupWrapper
+          label={FORM_LABELS.ALLOWED_MODELS}
+          fieldId="allowed-models"
+          descriptionTextNode={allowedModelsDescriptionTxtNode}
+          helperTextNode={allowedModelsHelperTxtNode}
+        >
+          {allowedModelsInput}
+        </ThemeAwareFormGroupWrapper>
 
-        <FormGroup label={FORM_LABELS.EXCLUDED_MODELS} fieldId="excluded-models">
-          <FormFieldset component={excludedModelsInput} field="Excluded models" />
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>{excludedModelsHelp}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>{getExcludedModelsFieldHelperText}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        </FormGroup>
+        <ThemeAwareFormGroupWrapper
+          label={FORM_LABELS.EXCLUDED_MODELS}
+          fieldId="excluded-models"
+          descriptionTextNode={excludedModelsDescriptionTxtNode}
+          helperTextNode={excludedModelsHelperTxtNode}
+        >
+          {excludedModelsInput}
+        </ThemeAwareFormGroupWrapper>
       </FormFieldGroupExpandable>
     </FormSection>
   );

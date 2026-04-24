@@ -1,7 +1,10 @@
 package basecatalog
 
 import (
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"encoding/json"
+	"fmt"
+
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 // Source status constants matching the OpenAPI enum values.
@@ -10,6 +13,12 @@ const (
 	SourceStatusPartiallyAvailable = "partially-available"
 	SourceStatusError              = "error"
 	SourceStatusDisabled           = "disabled"
+)
+
+// Asset type constants for named query scoping.
+const (
+	AssetTypeModels     = "models"
+	AssetTypeMCPServers = "mcp_servers"
 )
 
 // CommonSourceFields holds the fields shared between ModelSource and MCPSource
@@ -58,6 +67,81 @@ func MergeCommonSourceFields(base, override CommonSourceFields) CommonSourceFiel
 type FieldFilter struct {
 	Operator string `json:"operator" yaml:"operator"`
 	Value    any    `json:"value" yaml:"value"`
+}
+
+// NamedQuery represents a named query with an optional asset type and its field filters.
+// The AssetType field scopes the query to a specific entity type (AssetTypeModels or AssetTypeMCPServers).
+// If AssetType is empty, it defaults to AssetTypeModels.
+//
+// Both the legacy format (flat map of field name → filter) and the new format
+// (explicit "assetType" and "filters" keys) are supported during deserialization.
+type NamedQuery struct {
+	AssetType string                 `json:"assetType,omitempty" yaml:"assetType,omitempty"`
+	Filters   map[string]FieldFilter `json:"filters" yaml:"filters"`
+}
+
+// UnmarshalJSON supports both the legacy flat format and the new structured format.
+//
+// Legacy format (field names as keys, defaults to assetType "models"):
+//
+//	{"fieldName": {"operator": "=", "value": "x"}}
+//
+// New format (explicit assetType and filters):
+//
+//	{"assetType": "models", "filters": {"fieldName": {"operator": "=", "value": "x"}}}
+//
+// Note: format detection uses the presence of a "filters" key. A legacy-format query
+// with a field literally named "filters" would be interpreted as the new structured
+// format. This is an intentional trade-off since "filters" is not a valid model
+// metadata field name in practice.
+func (nq *NamedQuery) UnmarshalJSON(data []byte) error {
+	// Try to detect the new format by checking for a "filters" key.
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if filtersRaw, hasFilters := raw["filters"]; hasFilters {
+		// New format: parse assetType and filters explicitly.
+		if assetTypeRaw, ok := raw["assetType"]; ok {
+			if err := json.Unmarshal(assetTypeRaw, &nq.AssetType); err != nil {
+				return fmt.Errorf("invalid assetType: %w", err)
+			}
+		}
+		if err := json.Unmarshal(filtersRaw, &nq.Filters); err != nil {
+			return fmt.Errorf("invalid filters: %w", err)
+		}
+		return nil
+	}
+
+	// Legacy format: treat all keys as field name → FieldFilter.
+	filters := make(map[string]FieldFilter, len(raw))
+	for key, val := range raw {
+		var ff FieldFilter
+		if err := json.Unmarshal(val, &ff); err != nil {
+			return fmt.Errorf("invalid filter for field %q: %w", key, err)
+		}
+		filters[key] = ff
+	}
+	nq.Filters = filters
+	return nil
+}
+
+// FilterNamedQueriesByAssetType returns only the named queries that match the given
+// target asset type, stripping the NamedQuery wrapper to return the raw filter maps.
+// Queries with an empty AssetType default to AssetTypeModels.
+func FilterNamedQueriesByAssetType(queries map[string]NamedQuery, target string) map[string]map[string]FieldFilter {
+	result := make(map[string]map[string]FieldFilter)
+	for name, nq := range queries {
+		effectiveType := nq.AssetType
+		if effectiveType == "" {
+			effectiveType = AssetTypeModels
+		}
+		if effectiveType == target {
+			result[name] = nq.Filters
+		}
+	}
+	return result
 }
 
 // ModelSource is a single entry from the catalog sources YAML file.

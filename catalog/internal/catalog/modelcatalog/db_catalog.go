@@ -10,16 +10,16 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/converter"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/pkg/api"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/converter"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/pkg/api"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 type dbCatalogImpl struct {
@@ -190,10 +190,15 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 }
 
 func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
-	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, 0)
+	catalogModelTypeID := d.catalogModelRepository.GetTypeID()
+
+	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, catalogModelTypeID)
 	if err != nil {
 		return nil, err
 	}
+	// Artifact type filtering uses 0 (all types) intentionally: models have multiple
+	// artifact types (kf.CatalogModelArtifact, kf.CatalogMetricsArtifact) so a single
+	// type ID cannot scope them. MCP servers have no artifact types, so no cross-contamination.
 	artifactProperties, err := d.propertyOptionsRepository.List(sharedmodels.ArtifactPropertyOptionType, 0)
 	if err != nil {
 		return nil, err

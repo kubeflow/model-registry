@@ -10,13 +10,13 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -699,6 +699,7 @@ type MockCatalogModelRepository struct {
 	mu          sync.RWMutex
 	SavedModels []models.CatalogModel
 	NextID      int32
+	TypeID      int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *MockCatalogModelRepository) GetByID(id int32) (models.CatalogModel, error) {
@@ -772,6 +773,10 @@ func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
 	defer m.mu.RUnlock()
 	// Mock implementation - return empty list by default
 	return []string{}, nil
+}
+
+func (m *MockCatalogModelRepository) GetTypeID() int32 {
+	return m.TypeID
 }
 
 // GetSavedModels returns a copy of the saved models slice in a thread-safe manner.

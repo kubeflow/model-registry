@@ -1,7 +1,7 @@
 JOB_IMG_VERSION ?= latest # when testing locally with KinD, override default to a tag of choice and you can opt-in to BUILD_IMAGE=false below.
 JOB_IMG_REGISTRY ?= ghcr.io
 JOB_IMG_ORG ?= kubeflow
-JOB_IMG_NAME ?= model-registry/job/async-upload
+JOB_IMG_NAME ?= hub/job/async-upload
 JOB_IMG ?= $(JOB_IMG_REGISTRY)/$(JOB_IMG_ORG)/$(JOB_IMG_NAME):$(JOB_IMG_VERSION)
 BUILD_IMAGE ?= true # whether to build the MR server image
 CLUSTER_NAME ?= mr-e2e
@@ -9,7 +9,7 @@ CLUSTER_NAME ?= mr-e2e
 # MR Server Params
 IMG_VERSION ?= latest
 # keep IMG consistent with root Makefile and ci/GHA:
-IMG ?= ghcr.io/kubeflow/model-registry/server
+IMG ?= ghcr.io/kubeflow/hub/server
 
 .PHONY: deploy-latest-mr
 deploy-latest-mr:
@@ -46,7 +46,7 @@ test-with-cov:
 	poetry run pytest --cov=job --cov-report=term-missing tests/
 
 .PHONY: test-e2e
-test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
+test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
 	@echo "Starting test-e2e"
 	@set -e; \
 	$(MAKE) test-e2e-run || TEST_STATUS=$$?; \
@@ -60,9 +60,9 @@ test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 .PHONY: test-e2e-run
 test-e2e-run:
 	@echo "Ensuring all extras are installed..."
-	poetry install --all-extras
-	@echo "Running tests..."
-	poetry run pytest --e2e -s -x -rA
+	poetry install --all-extras --with integration
+	@echo "Running e2e tests..."
+	CONTAINER_IMAGE_URI=$(JOB_IMG) poetry run pytest --e2e tests/integration/ -vs
 
 .PHONY: test-e2e-cleanup
 test-e2e-cleanup:
@@ -73,7 +73,7 @@ test-e2e-cleanup:
 	fi
 
 .PHONY: test-integration
-test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio dev-load-image
+test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio
 	@echo "Starting test-integration"
 	@set -e; \
 	$(MAKE) test-integration-run || TEST_STATUS=$$?; \
@@ -87,9 +87,9 @@ test-integration: deploy-latest-mr deploy-local-registry deploy-test-minio dev-l
 .PHONY: test-integration-run
 test-integration-run:
 	@echo "Ensuring all extras are installed..."
-	poetry install --all-extras --with integration
+	poetry install --all-extras
 	@echo "Running integration tests..."
-	CONTAINER_IMAGE_URI=$(JOB_IMG) poetry run pytest --integration tests/integration/ -vs
+	poetry run pytest --integration -s -x -rA
 
 .PHONY: install
 install: install-poetry-export

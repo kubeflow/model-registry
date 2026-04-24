@@ -6,10 +6,10 @@ import (
 	"math"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -23,6 +23,7 @@ type mockPerfArtifactRepo struct {
 // mockPerfModelRepo is a testify mock implementation of CatalogModelRepository for performance tests
 type mockPerfModelRepo struct {
 	mock.Mock
+	TypeID int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *mockPerfModelRepo) GetByName(name string) (models.CatalogModel, error) {
@@ -52,6 +53,10 @@ func (m *mockPerfModelRepo) DeleteByID(id int32) error {
 
 func (m *mockPerfModelRepo) GetDistinctSourceIDs() ([]string, error) {
 	return nil, nil
+}
+
+func (m *mockPerfModelRepo) GetTypeID() int32 {
+	return m.TypeID
 }
 
 func (m *mockPerfArtifactRepo) GetByID(id int32) (sharedmodels.CatalogArtifact, error) {

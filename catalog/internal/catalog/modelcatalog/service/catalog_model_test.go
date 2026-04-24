@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1948,4 +1948,14 @@ func TestSortingFilteringEdgeCases(t *testing.T) {
 		// Both models have artifacts with accuracy > 0.6, so both should be included
 		assert.Equal(t, int32(2), result.Size)
 	})
+}
+
+func TestCatalogModelRepository_GetTypeID(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
+	defer cleanup()
+
+	typeID := getCatalogModelTypeID(t, sharedDB)
+	repo := NewCatalogModelRepository(sharedDB, typeID)
+
+	assert.Equal(t, typeID, repo.GetTypeID())
 }

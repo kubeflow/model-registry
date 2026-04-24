@@ -2,6 +2,8 @@
 /* eslint-disable camelcase */
 import {
   CatalogFilterOptionsList,
+  CatalogLabel,
+  CatalogLabelList,
   CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
@@ -11,7 +13,6 @@ import {
 } from '~/app/modelCatalogTypes';
 import {
   AllLanguageCode,
-  ModelCatalogLicense,
   ModelCatalogNumberFilterKey,
   ModelCatalogProvider,
   ModelCatalogStringFilterKey,
@@ -36,6 +37,7 @@ import {
   getArchitecturesFromArtifacts,
   getModelName,
   getCatalogModelTypePropertyForRegistration,
+  getActiveSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockCatalogModelArtifact } from '~/__mocks__/mockCatalogModelArtifactList';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -55,7 +57,7 @@ describe('filtersToFilterQuery', () => {
     ttft_mean = undefined,
   }: {
     tasks?: ModelCatalogTask[];
-    license?: ModelCatalogLicense[];
+    license?: string[];
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
@@ -110,16 +112,7 @@ describe('filtersToFilterQuery', () => {
       },
       [ModelCatalogStringFilterKey.LICENSE]: {
         type: 'string',
-        values: [
-          ModelCatalogLicense.APACHE_2_0,
-          ModelCatalogLicense.GEMMA,
-          ModelCatalogLicense.LLLAMA_3_3,
-          ModelCatalogLicense.LLLAMA_3_1,
-          ModelCatalogLicense.LLLAMA_3_3_ALTERNATE,
-          ModelCatalogLicense.LLLAMA_4,
-          ModelCatalogLicense.MIT,
-          ModelCatalogLicense.MODIFIED_MIT,
-        ],
+        values: ['Apache 2.0', 'Gemma', 'Llama 3.3', 'Llama 3.1', 'Llama 4', 'MIT', 'Modified MIT'],
       },
       [ModelCatalogStringFilterKey.LANGUAGE]: {
         type: 'string',
@@ -236,11 +229,8 @@ describe('filtersToFilterQuery', () => {
         ),
       ).toBe("provider='Google'");
       expect(
-        filtersToFilterQuery(
-          mockFormData({ license: [ModelCatalogLicense.APACHE_2_0] }),
-          mockFilterOptions,
-        ),
-      ).toBe("license='apache-2.0'");
+        filtersToFilterQuery(mockFormData({ license: ['Apache 2.0'] }), mockFilterOptions),
+      ).toBe("license='Apache 2.0'");
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
       ).toBe("language='ca'");
@@ -263,11 +253,11 @@ describe('filtersToFilterQuery', () => {
         filtersToFilterQuery(
           mockFormData({
             tasks: [ModelCatalogTask.TEXT_TO_TEXT],
-            license: [ModelCatalogLicense.APACHE_2_0],
+            license: ['Apache 2.0'],
           }),
           mockFilterOptions,
         ),
-      ).toBe("tasks='text-to-text' AND license='apache-2.0'");
+      ).toBe("tasks='text-to-text' AND license='Apache 2.0'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE], language: [AllLanguageCode.CA] }),
@@ -290,11 +280,8 @@ describe('filtersToFilterQuery', () => {
         ),
       ).toBe("provider IN ('Google','DeepSeek')");
       expect(
-        filtersToFilterQuery(
-          mockFormData({ license: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT] }),
-          mockFilterOptions,
-        ),
-      ).toBe("license IN ('apache-2.0','mit')");
+        filtersToFilterQuery(mockFormData({ license: ['Apache 2.0', 'MIT'] }), mockFilterOptions),
+      ).toBe("license IN ('Apache 2.0','MIT')");
       expect(
         filtersToFilterQuery(
           mockFormData({ language: [AllLanguageCode.CA, AllLanguageCode.PT] }),
@@ -333,7 +320,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({
             tasks: [ModelCatalogTask.TEXT_TO_TEXT, ModelCatalogTask.IMAGE_TO_TEXT],
             provider: [ModelCatalogProvider.GOOGLE],
-            license: [ModelCatalogLicense.MIT],
+            license: ['MIT'],
             language: [
               AllLanguageCode.CA,
               AllLanguageCode.PT,
@@ -344,7 +331,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe(
-        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='mit' AND language IN ('ca','pt','vi','zsm')",
+        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='MIT' AND language IN ('ca','pt','vi','zsm')",
       );
     });
 
@@ -388,13 +375,13 @@ describe('filtersToFilterQuery', () => {
   //           mockFormData({
   //             ttft_mean: 100,
   //             tasks: [ModelCatalogTask.TEXT_TO_TEXT],
-  //             license: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT],
+  //             license: ['Apache 2.0', 'MIT'],
   //             rps_mean: 3,
   //           }),
   //           mockFilterOptions,
   //         ),
   //       ).toBe(
-  //         "tasks='text-to-text' AND license IN ('apache-2.0','mit') AND ttft_mean < 100 AND rps_mean > 3",
+  //         "tasks='text-to-text' AND license IN ('Apache 2.0','MIT') AND ttft_mean < 100 AND rps_mean > 3",
   //       );
   //     });
   //   });
@@ -818,7 +805,7 @@ describe('hasFiltersApplied', () => {
     ttft_mean = undefined,
   }: {
     tasks?: ModelCatalogTask[];
-    license?: ModelCatalogLicense[];
+    license?: string[];
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
@@ -873,7 +860,7 @@ describe('hasFiltersApplied', () => {
       expect(hasFiltersApplied(mockFormData({ provider: [ModelCatalogProvider.GOOGLE] }))).toBe(
         true,
       );
-      expect(hasFiltersApplied(mockFormData({ license: [ModelCatalogLicense.MIT] }))).toBe(true);
+      expect(hasFiltersApplied(mockFormData({ license: ['MIT'] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ language: [AllLanguageCode.EN] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ hardware_type: ['GPU'] }))).toBe(true);
       expect(hasFiltersApplied(mockFormData({ use_case: [UseCaseOptionValue.CHATBOT] }))).toBe(
@@ -1431,5 +1418,228 @@ describe('getCatalogModelTypePropertyForRegistration', () => {
         },
       }),
     ).toEqual({});
+describe('getActiveSourceLabels', () => {
+  const createSource = (overrides: Partial<CatalogSource> = {}): CatalogSource => ({
+    id: 'source-1',
+    name: 'Test Source',
+    labels: ['Red Hat'],
+    enabled: true,
+    status: CatalogSourceStatus.AVAILABLE,
+    ...overrides,
+  });
+
+  const createSourceList = (items: CatalogSource[] = []): CatalogSourceList => ({
+    items,
+    size: items.length,
+    pageSize: 10,
+    nextPageToken: '',
+  });
+
+  it('returns empty array when catalogSources is null', () => {
+    expect(getActiveSourceLabels(null, null)).toEqual([]);
+  });
+
+  it('returns empty array when no sources are enabled or available', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        enabled: false,
+        status: CatalogSourceStatus.DISABLED,
+      }),
+      createSource({
+        id: '2',
+        enabled: true,
+        status: CatalogSourceStatus.ERROR,
+      }),
+    ]);
+    expect(getActiveSourceLabels(sources, null)).toEqual([]);
+  });
+
+  it('returns a single label when only one category exists', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    expect(getActiveSourceLabels(sources, null)).toEqual(['Red Hat']);
+  });
+
+  it('returns multiple labels when multiple categories exist', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Community'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toHaveLength(2);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('Community');
+  });
+
+  it('includes "null" label for sources without labels', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('null');
+  });
+
+  it('excludes disabled sources from active categories', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Excluded'],
+        enabled: false,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('excludes sources with error status', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Error Source'],
+        enabled: true,
+        status: CatalogSourceStatus.ERROR,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('includes partially-available sources', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Partial'],
+        enabled: true,
+        status: CatalogSourceStatus.PARTIALLY_AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toHaveLength(2);
+    expect(result).toContain('Red Hat');
+    expect(result).toContain('Partial');
+  });
+
+  it('deduplicates labels from multiple sources with the same label', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['Red Hat']);
+  });
+
+  it('returns only "null" label when all sources have no labels', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: [],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+    const result = getActiveSourceLabels(sources, null);
+    expect(result).toEqual(['null']);
+  });
+
+  it('orders labels by catalogLabels priority when catalogLabels is provided', () => {
+    const sources = createSourceList([
+      createSource({
+        id: '1',
+        labels: ['Community'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '2',
+        labels: ['Red Hat'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+      createSource({
+        id: '3',
+        labels: ['Partner'],
+        enabled: true,
+        status: CatalogSourceStatus.AVAILABLE,
+      }),
+    ]);
+
+    const createLabel = (name: string | null): CatalogLabel => ({
+      name,
+      displayName: name ?? undefined,
+    });
+
+    const catalogLabels: CatalogLabelList = {
+      items: [createLabel('Red Hat'), createLabel('Partner'), createLabel('Community')],
+      size: 3,
+      pageSize: 10,
+      nextPageToken: '',
+    };
+
+    const result = getActiveSourceLabels(sources, catalogLabels);
+    expect(result).toEqual(['Red Hat', 'Partner', 'Community']);
   });
 });

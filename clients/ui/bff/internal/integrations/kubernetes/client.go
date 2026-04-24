@@ -12,7 +12,7 @@ const ComponentLabelValue = "model-registry"
 const ComponentLabelValueCatalog = "model-catalog"
 
 const CatalogSourceKey = "sources.yaml"
-const CatalogSourceDefaultConfigMapName = "model-catalog-default-sources"
+const CatalogSourceDefaultConfigMapName = "default-catalog-sources"
 const CatalogSourceUserConfigMapName = "model-catalog-sources"
 
 type KubernetesClientInterface interface {

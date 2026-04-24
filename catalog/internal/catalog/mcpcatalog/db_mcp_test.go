@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	internalmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	internalmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -66,6 +66,7 @@ type mockMCPServerRepo struct {
 	getErr     error
 	// capturedOptions stores the last MCPServerListOptions passed to List.
 	capturedOptions models.MCPServerListOptions
+	TypeID          int32 // Set to a non-zero value when testing GetFilterOptions scoping
 }
 
 func (m *mockMCPServerRepo) List(opts models.MCPServerListOptions) (*internalmodels.ListWrapper[models.MCPServer], error) {
@@ -93,11 +94,11 @@ func (m *mockMCPServerRepo) DeleteByID(_ int32) error      { return errors.New("
 func (m *mockMCPServerRepo) GetDistinctSourceIDs() ([]string, error) {
 	return nil, errors.New("not implemented")
 }
-func (m *mockMCPServerRepo) GetTypeID() int32 { return 0 }
+func (m *mockMCPServerRepo) GetTypeID() int32 { return m.TypeID }
 
 // mockMCPServerToolRepo is a configurable MCPServerToolRepository for unit testing.
 type mockMCPServerToolRepo struct {
-	listResult  []models.MCPServerTool
+	listResult  *internalmodels.ListWrapper[models.MCPServerTool]
 	listErr     error
 	countResult int32
 	countErr    error
@@ -108,7 +109,7 @@ type mockMCPServerToolRepo struct {
 	capturedListOptions *models.MCPServerToolListOptions
 }
 
-func (m *mockMCPServerToolRepo) List(opts models.MCPServerToolListOptions) ([]models.MCPServerTool, error) {
+func (m *mockMCPServerToolRepo) List(opts models.MCPServerToolListOptions) (*internalmodels.ListWrapper[models.MCPServerTool], error) {
 	m.capturedListOptions = &opts
 	return m.listResult, m.listErr
 }
@@ -185,6 +186,10 @@ func makeTool(name string) models.MCPServerTool {
 	return &models.MCPServerToolImpl{
 		Attributes: &models.MCPServerToolAttributes{Name: serverName(name)},
 	}
+}
+
+func toolList(tools ...models.MCPServerTool) *internalmodels.ListWrapper[models.MCPServerTool] {
+	return &internalmodels.ListWrapper[models.MCPServerTool]{Items: tools}
 }
 
 func TestListMCPServers_NoNamedQuery(t *testing.T) {
@@ -380,7 +385,7 @@ func TestGetMCPServer_ToolCountWithoutIncludeTools(t *testing.T) {
 	toolRepo := &mockMCPServerToolRepo{countResult: 7}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	result, err := cat.GetMCPServer(context.Background(), "1", false)
+	result, err := cat.GetMCPServer(context.Background(), "1", false, 0)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, int32(7), result.ToolCount)
@@ -396,7 +401,7 @@ func TestGetMCPServer_CountByParentIDError(t *testing.T) {
 	toolRepo := &mockMCPServerToolRepo{countErr: errors.New("db count error")}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	_, err := cat.GetMCPServer(context.Background(), "1", false)
+	_, err := cat.GetMCPServer(context.Background(), "1", false, 0)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "error counting tools")
 }
@@ -442,7 +447,7 @@ func TestListMCPServers_IncludeToolsUsesAccurateCount(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1"), makeTool("tool-2")},
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -461,7 +466,7 @@ func TestListMCPServers_ToolLimitPassedAsPageSize(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1")},
+		listResult:  toolList(makeTool("tool-1")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -479,7 +484,7 @@ func TestListMCPServers_ZeroToolLimitDoesNotSetPageSize(t *testing.T) {
 	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 5,
-		listResult:  []models.MCPServerTool{makeTool("tool-1"), makeTool("tool-2")},
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -492,6 +497,43 @@ func TestListMCPServers_ZeroToolLimitDoesNotSetPageSize(t *testing.T) {
 	assert.Nil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be nil when ToolLimit is 0")
 }
 
+func TestGetMCPServer_ToolLimitSetsPageSize(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 5,
+		listResult:  toolList(makeTool("tool-1")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServer(context.Background(), "1", true, 3)
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called on tool repo")
+	require.NotNil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be set when toolLimit > 0")
+	assert.Equal(t, int32(3), *toolRepo.capturedListOptions.PageSize)
+}
+
+func TestGetMCPServer_ZeroToolLimitOmitsPageSize(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 5,
+		listResult:  toolList(makeTool("tool-1"), makeTool("tool-2")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServer(context.Background(), "1", true, 0)
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called on tool repo")
+	assert.Nil(t, toolRepo.capturedListOptions.PageSize, "PageSize should be nil when toolLimit is 0")
+}
+
 func TestGetMCPServerTool_StripsQualifiedPrefix(t *testing.T) {
 	serverEntity := &models.MCPServerImpl{
 		ID:         serverID(88),
@@ -499,7 +541,7 @@ func TestGetMCPServerTool_StripsQualifiedPrefix(t *testing.T) {
 	}
 	repo := &mockMCPServerRepo{getResult: serverEntity}
 	toolRepo := &mockMCPServerToolRepo{
-		listResult: []models.MCPServerTool{makeTool("dynatrace-mcp@1.6.1:list_problems")},
+		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
@@ -515,14 +557,130 @@ func TestGetMCPServerTool_NotFound(t *testing.T) {
 		Attributes: &models.MCPServerAttributes{Name: serverName("dynatrace-mcp")},
 	}
 	repo := &mockMCPServerRepo{getResult: serverEntity}
+	// DB-level filter returns empty when tool name doesn't match.
 	toolRepo := &mockMCPServerToolRepo{
-		listResult: []models.MCPServerTool{makeTool("dynatrace-mcp@1.6.1:list_problems")},
+		listResult: toolList(),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
 	_, err := cat.GetMCPServerTool(context.Background(), "88", "nonexistent_tool")
 	require.Error(t, err)
 	assert.ErrorIs(t, err, api.ErrNotFound)
+}
+
+func TestGetMCPServerTool_PassesToolNameFilter(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(88),
+		Attributes: &models.MCPServerAttributes{Name: serverName("dynatrace-mcp")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		listResult: toolList(makeTool("dynatrace-mcp@1.6.1:list_problems")),
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServerTool(context.Background(), "88", "list_problems")
+	require.NoError(t, err)
+	require.NotNil(t, toolRepo.capturedListOptions, "List should have been called")
+	require.NotNil(t, toolRepo.capturedListOptions.ToolName, "ToolName should be set on list options")
+	assert.Equal(t, "list_problems", *toolRepo.capturedListOptions.ToolName)
+}
+
+// --- Pagination default tests ---
+
+func TestListMCPServers_EmptyOrderByUsesDefault(t *testing.T) {
+	// When OrderBy and SortOrder are not specified (empty strings from the API layer),
+	// the pagination must still apply default ordering ("id" / "ASC") so that
+	// cursor-based pagination works correctly on subsequent pages.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    10,
+		// OrderBy and SortOrder are zero values (empty strings)
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+	// The pagination must resolve to the defaults ("id" / "ASC").
+	// Either OrderBy is nil (so GetOrderBy falls through to DefaultOrderBy),
+	// or it is set to the explicit default value — but it must NOT be a
+	// pointer to an empty string, which would skip the ORDER BY clause.
+	orderBy := pagination.GetOrderBy()
+	sortOrder := pagination.GetSortOrder()
+	assert.Equal(t, "id", orderBy, "expected default orderBy 'id' when param is empty")
+	assert.Equal(t, "ASC", sortOrder, "expected default sortOrder 'ASC' when param is empty")
+}
+
+func TestListMCPServers_EmptyOrderByPaginationNotNilEmptyString(t *testing.T) {
+	// Regression: when OrderBy/SortOrder are empty, they must NOT be set as
+	// pointers to empty strings. The downstream paginator skips ORDER BY when
+	// both are empty, but still applies the cursor WHERE clause, causing
+	// non-deterministic results and empty second pages.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    1,
+		// OrderBy and SortOrder deliberately left as zero values
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+
+	// If OrderBy is non-nil, it must not point to an empty string.
+	if pagination.OrderBy != nil {
+		assert.NotEmpty(t, *pagination.OrderBy, "OrderBy must not be a pointer to an empty string")
+	}
+	// If SortOrder is non-nil, it must not point to an empty string.
+	if pagination.SortOrder != nil {
+		assert.NotEmpty(t, *pagination.SortOrder, "SortOrder must not be a pointer to an empty string")
+	}
+}
+
+func TestListMCPServers_ExplicitOrderByIsPreserved(t *testing.T) {
+	// When OrderBy/SortOrder are explicitly provided, they should be passed through.
+	repo := &mockMCPServerRepo{listResult: emptyList()}
+	cat := newTestCatalog(repo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		FilterQuery: "license='Apache 2.0'",
+		PageSize:    10,
+		OrderBy:     "CREATE_TIME",
+		SortOrder:   "DESC",
+	})
+	require.NoError(t, err)
+
+	pagination := repo.capturedOptions.Pagination
+	assert.Equal(t, "CREATE_TIME", pagination.GetOrderBy())
+	assert.Equal(t, "DESC", pagination.GetSortOrder())
+}
+
+func TestListMCPServerTools_EmptyOrderByUsesDefault(t *testing.T) {
+	// Same bug applies to ListMCPServerTools — empty OrderBy/SortOrder must
+	// resolve to defaults for correct cursor-based pagination.
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{listResult: toolList()}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.ListMCPServerTools(context.Background(), "1", ListMCPServerToolsParams{
+		PageSize: 10,
+		// OrderBy and SortOrder are zero values (empty strings)
+	})
+	require.NoError(t, err)
+
+	require.NotNil(t, toolRepo.capturedListOptions)
+	pagination := toolRepo.capturedListOptions.Pagination
+	orderBy := pagination.GetOrderBy()
+	sortOrder := pagination.GetSortOrder()
+	assert.Equal(t, "id", orderBy, "expected default orderBy 'id' when param is empty")
+	assert.Equal(t, "ASC", sortOrder, "expected default sortOrder 'ASC' when param is empty")
 }
 
 func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
@@ -533,11 +691,11 @@ func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
 	repo := &mockMCPServerRepo{getResult: serverEntity}
 	toolRepo := &mockMCPServerToolRepo{
 		countResult: 10,
-		listResult:  []models.MCPServerTool{makeTool("tool-1")},
+		listResult:  toolList(makeTool("tool-1")),
 	}
 	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
 
-	result, err := cat.GetMCPServer(context.Background(), "1", true)
+	result, err := cat.GetMCPServer(context.Background(), "1", true, 0)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// toolCount should reflect total (10), not len(returned tools) (1)

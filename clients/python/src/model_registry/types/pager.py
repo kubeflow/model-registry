@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
+import inspect
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar, cast
@@ -25,7 +25,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
 
     def __post_init__(self):
         self.restart()
-        if asyncio.iscoroutinefunction(self.page_fn):
+        if inspect.iscoroutinefunction(self.page_fn):
             self.__next__ = NotImplemented  # type: ignore[method-assign]
             self.next_page = self._anext_page
             self.next_item = self._anext_item

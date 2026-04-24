@@ -10,10 +10,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 // MCPPartiallyAvailableError indicates that a source loaded some MCP servers successfully
@@ -167,7 +167,10 @@ func (ml *MCPLoader) updateSources(path string, config *basecatalog.SourceConfig
 	}
 
 	if config.NamedQueries != nil {
-		return ml.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+		filtered := basecatalog.FilterNamedQueriesByAssetType(config.NamedQueries, basecatalog.AssetTypeMCPServers)
+		if len(filtered) > 0 {
+			return ml.Sources.MergeWithNamedQueries(path, sources, filtered)
+		}
 	}
 	return ml.Sources.Merge(path, sources)
 }

@@ -40,20 +40,20 @@ The following environment variables are used to configure the deployment and dev
 ### `IMG_UI`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF).
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui:latest`
-* **Example**: `IMG_UI=ghcr.io/kubeflow/model-registry/ui:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui:latest`
+* **Example**: `IMG_UI=ghcr.io/kubeflow/hub/ui:latest`
 
 ### `IMG_UI_STANDALONE`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF) in **standalone mode**, used for local kind deployment.
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-standalone:latest`
-* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-standalone:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui-standalone:latest`
+* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/hub/ui-standalone:latest`
 
 ### `IMG_UI_FEDERATED`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF) in **federated mode**, used for federated mode outside kubeflow.
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-federated:latest`
-* **Example**: `IMG_UI_FEDERATED=ghcr.io/kubeflow/model-registry/ui-federated:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui-federated:latest`
+* **Example**: `IMG_UI_FEDERATED=ghcr.io/kubeflow/hub/ui-federated:latest`
 
 ### `PLATFORM`
 

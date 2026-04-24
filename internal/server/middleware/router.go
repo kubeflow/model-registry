@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/kubeflow/model-registry/internal/server/openapi"
+	"github.com/kubeflow/hub/internal/server/openapi"
 )
 
 // WrapWithValidation wraps the auto-generated router with custom validation middleware

@@ -3,7 +3,6 @@ import { CatalogFilterOptionsList, NamedQuery, FilterOperator } from '~/app/mode
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  ModelCatalogLicense,
   ModelCatalogProvider,
   ModelCatalogTask,
   AllLanguageCode,
@@ -70,7 +69,7 @@ export const mockCatalogFilterOptionsList = (
     },
     [ModelCatalogStringFilterKey.LICENSE]: {
       type: 'string',
-      values: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT],
+      values: ['Apache 2.0', 'MIT'],
     },
     [ModelCatalogStringFilterKey.TASK]: {
       type: 'string',

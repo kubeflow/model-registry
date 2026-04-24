@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
-	_tls "github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/postgres"
+	_tls "github.com/kubeflow/hub/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"

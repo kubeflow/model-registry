@@ -297,6 +297,7 @@ paths:
         in: path
         required: true
       - $ref: "#/components/parameters/includeTools"
+      - $ref: "#/components/parameters/toolLimit"
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools:
     description: >-
       The REST endpoint/path used to list zero or more `MCPTool` entities for an `MCPServer`.
@@ -1237,7 +1238,7 @@ components:
           example: info
         type:
           type: string
-          enum: [string, int, boolean, secret]
+          enum: [string, int, boolean, secret, config]
           description: Expected variable type
           default: string
         example:
@@ -2014,6 +2015,7 @@ components:
         type: integer
         format: int32
         default: 10
+        minimum: 0
         maximum: 100
       in: query
       required: false

@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	catpagination "github.com/kubeflow/model-registry/catalog/internal/db/pagination"
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
-	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/db/filter"
+	catpagination "github.com/kubeflow/hub/catalog/internal/db/pagination"
+	"github.com/kubeflow/hub/internal/db/dbutil"
+	dbfilter "github.com/kubeflow/hub/internal/db/filter"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/scopes"
+	"github.com/kubeflow/hub/internal/db/service"
+	"github.com/kubeflow/hub/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -304,6 +304,10 @@ func (r *CatalogModelRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
 	}
 
 	return sourceIDs, nil
+}
+
+func (r *CatalogModelRepositoryImpl) GetTypeID() int32 {
+	return r.GetConfig().TypeID
 }
 
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/golang/glog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 

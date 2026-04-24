@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/schema"
 	"gorm.io/gorm"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	"gopkg.in/yaml.v3"
 )
 

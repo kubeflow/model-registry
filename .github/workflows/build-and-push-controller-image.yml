@@ -17,7 +17,7 @@ permissions: read-all
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_REPO: model-registry/controller
+  IMG_REPO: hub/controller
   PUSH_IMAGE: true
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +57,7 @@ jobs:
           echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       # docker login
       - name: Log in to the Container registry
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ${{ env.IMG_REGISTRY }}
           username: ${{ env.DOCKER_USER }}
@@ -73,7 +73,7 @@ jobs:
             type=raw,value=main,enable=${{ env.BUILD_CONTEXT == 'main' }}
       - name: Build and push Docker image
         id: build-push
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
           context: .
           file: ./cmd/controller/Dockerfile.controller

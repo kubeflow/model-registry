@@ -15,8 +15,8 @@ import (
 	"time"
 
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
-	inferenceservicecontroller "github.com/kubeflow/model-registry/pkg/inferenceservice-controller"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	inferenceservicecontroller "github.com/kubeflow/hub/pkg/inferenceservice-controller"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
 	authv1 "k8s.io/api/rbac/v1"

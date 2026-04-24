@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
 )
 
 // ─── STATIC FACTORY (INTERNAL) ──────────────────────────────────────────

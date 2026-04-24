@@ -1,12 +1,13 @@
 package api
 
 import (
+	"net/http"
+
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"net/http"
 )
 
 var _ = Describe("TestGetModelVersionHandler", func() {

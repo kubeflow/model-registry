@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	dbmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/db/models"
 )
 
 // metadataJSON represents the minimal structure needed from metadata.json files

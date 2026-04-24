@@ -11,11 +11,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	catalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/db/models"
 )
 
 const (

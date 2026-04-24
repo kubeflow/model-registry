@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes/k8mocks"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
+	"github.com/kubeflow/hub/ui/bff/internal/mocks"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 

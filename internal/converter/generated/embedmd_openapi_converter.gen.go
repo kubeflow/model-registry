@@ -5,9 +5,9 @@ package generated
 
 import (
 	"fmt"
-	converter "github.com/kubeflow/model-registry/internal/converter"
-	models "github.com/kubeflow/model-registry/internal/db/models"
-	openapi "github.com/kubeflow/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/hub/internal/converter"
+	models "github.com/kubeflow/hub/internal/db/models"
+	openapi "github.com/kubeflow/hub/pkg/openapi"
 )
 
 type EmbedMDToOpenAPIConverterImpl struct{}

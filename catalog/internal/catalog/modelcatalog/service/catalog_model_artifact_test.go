@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	"github.com/kubeflow/hub/internal/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

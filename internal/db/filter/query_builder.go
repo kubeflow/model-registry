@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kubeflow/model-registry/internal/db/constants"
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
+	"github.com/kubeflow/hub/internal/db/constants"
+	"github.com/kubeflow/hub/internal/db/dbutil"
 	"gorm.io/gorm"
 )
 

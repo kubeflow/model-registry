@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 )
 
