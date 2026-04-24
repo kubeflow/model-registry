@@ -9,8 +9,8 @@ import (
 	"github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/kubeflow/hub/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type ArtifactListEnvelope Envelope[*openapi.ArtifactList, None]

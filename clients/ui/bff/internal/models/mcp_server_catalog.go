@@ -1,6 +1,6 @@
 package models
 
-import "github.com/kubeflow/model-registry/pkg/openapi"
+import "github.com/kubeflow/hub/pkg/openapi"
 
 type McpDeploymentMode string
 
