@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/kubeflow/model-registry/internal/datastore"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/hub/internal/datastore"
+	"github.com/kubeflow/hub/internal/defaults"
 )
 
 func DatastoreSpec() *datastore.Spec {

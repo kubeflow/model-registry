@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/kubeflow/model-registry/catalog/cmd"
+	"github.com/kubeflow/hub/catalog/cmd"
 )
 
 func init() {

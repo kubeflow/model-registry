@@ -1,10 +1,10 @@
-module github.com/kubeflow/model-registry/cmd/csi
+module github.com/kubeflow/hub/cmd/csi
 
 go 1.25.7
 
 require (
 	github.com/kserve/kserve v0.17.0-rc1
-	github.com/kubeflow/model-registry/pkg/openapi v0.0.0
+	github.com/kubeflow/hub/pkg/openapi v0.0.0
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -97,4 +97,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1 // indirect
 )
 
-replace github.com/kubeflow/model-registry/pkg/openapi => ../../pkg/openapi
+replace github.com/kubeflow/hub/pkg/openapi => ../../pkg/openapi

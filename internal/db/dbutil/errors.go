@@ -8,7 +8,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // isDatabaseTypeConversionError checks if a database error is caused by type conversion issues

@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 

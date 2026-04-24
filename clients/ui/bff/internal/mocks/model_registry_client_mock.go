@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/url"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/mock"

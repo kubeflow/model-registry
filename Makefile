@@ -58,7 +58,7 @@ endif
 model-registry: build
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
+	${GOVERTER} gen github.com/kubeflow/hub/internal/converter/
 
 .PHONY: gen/converter
 gen/converter: internal/converter/generated/converter.go
@@ -237,7 +237,7 @@ build/prepare: gen vet lint
 # WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
 .PHONY: build/compile
 build/compile:
-	${GO} build -buildvcs=false
+	${GO} build -buildvcs=false -o model-registry
 
 # WARNING: DO NOT EDIT THIS TARGET DIRECTLY!!!
 # Use build/prepare to add build prerequisites

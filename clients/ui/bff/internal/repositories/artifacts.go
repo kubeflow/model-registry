@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/url"
+
+	"github.com/kubeflow/hub/ui/bff/internal/integrations/httpclient"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )

@@ -7,20 +7,20 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
-	mcpcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	mcpservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
-	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	"github.com/kubeflow/model-registry/catalog/internal/testhelpers"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	mr_models "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/testutils"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog"
+	mcpcatalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	mcpservice "github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/service"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
+	modelservice "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/service"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
+	"github.com/kubeflow/hub/catalog/internal/testhelpers"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
+	mr_models "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/testutils"
+	"github.com/kubeflow/hub/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -221,7 +221,7 @@ func TestDBCatalog(t *testing.T) {
 		model1 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("query-test-source:BERT-base-model"),
+				Name:       apiutils.Of("query-test-source:BERT-base-model"),
 				ExternalID: apiutils.Of("bert-base-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -235,7 +235,7 @@ func TestDBCatalog(t *testing.T) {
 		model2 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("query-test-source:GPT-3.5-turbo"),
+				Name:       apiutils.Of("query-test-source:GPT-3.5-turbo"),
 				ExternalID: apiutils.Of("gpt-35-turbo-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -249,7 +249,7 @@ func TestDBCatalog(t *testing.T) {
 		model3 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("query-test-source:ResNet-50-image"),
+				Name:       apiutils.Of("query-test-source:ResNet-50-image"),
 				ExternalID: apiutils.Of("resnet-50-1"),
 			},
 			Properties: &[]mr_models.Properties{

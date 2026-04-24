@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // MCPCatalogServiceAPIService is a service that implements the logic for the MCPCatalogServiceAPIServicer

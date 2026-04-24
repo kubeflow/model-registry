@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
+	"github.com/kubeflow/hub/catalog/internal/server/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -1,6 +1,6 @@
 package models
 
-import "github.com/kubeflow/model-registry/internal/db/filter"
+import "github.com/kubeflow/hub/internal/db/filter"
 
 const MetricHistoryType = "metric-history"
 

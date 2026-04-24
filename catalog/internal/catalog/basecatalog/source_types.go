@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 // Source status constants matching the OpenAPI enum values.

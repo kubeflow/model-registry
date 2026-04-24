@@ -65,7 +65,7 @@ if __name__ == "__main__":
 package openapi
 
 import (
-    model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+    model "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
     """)

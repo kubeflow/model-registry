@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore"
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/scopes"
-	"github.com/kubeflow/model-registry/internal/db/utils"
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/pkg/api"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/datastore"
+	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/scopes"
+	"github.com/kubeflow/hub/internal/db/utils"
+	"github.com/kubeflow/hub/internal/defaults"
+	"github.com/kubeflow/hub/pkg/api"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"gorm.io/gorm"
 )
 

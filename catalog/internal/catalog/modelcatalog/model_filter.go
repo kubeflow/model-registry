@@ -3,7 +3,7 @@ package modelcatalog
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 )
 
 // ModelFilter encapsulates include/exclude pattern matching for model names.

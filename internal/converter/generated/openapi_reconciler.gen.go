@@ -5,8 +5,8 @@ package generated
 
 import (
 	"fmt"
-	converter "github.com/kubeflow/model-registry/internal/converter"
-	openapi "github.com/kubeflow/model-registry/pkg/openapi"
+	converter "github.com/kubeflow/hub/internal/converter"
+	openapi "github.com/kubeflow/hub/pkg/openapi"
 )
 
 type OpenAPIReconcilerImpl struct{}

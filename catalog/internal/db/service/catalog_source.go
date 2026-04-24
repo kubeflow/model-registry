@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/dbutil"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/db/service"
 	"gorm.io/gorm"
 )
 

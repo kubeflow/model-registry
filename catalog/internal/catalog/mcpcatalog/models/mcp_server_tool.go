@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/filter"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 // MCPServerToolListOptions holds the options for listing MCP server tools.

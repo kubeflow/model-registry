@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	_tls "github.com/kubeflow/model-registry/internal/tls"
+	_tls "github.com/kubeflow/hub/internal/tls"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

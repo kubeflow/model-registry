@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 // goverter:converter

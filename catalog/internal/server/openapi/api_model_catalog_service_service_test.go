@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

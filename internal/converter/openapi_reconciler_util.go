@@ -3,7 +3,7 @@ package converter
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 // getArtifactTypeName returns the type name of an artifact.

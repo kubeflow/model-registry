@@ -1,4 +1,4 @@
-module github.com/kubeflow/model-registry/ui/bff
+module github.com/kubeflow/hub/ui/bff
 
 go 1.25.7
 

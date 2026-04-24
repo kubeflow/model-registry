@@ -1,7 +1,7 @@
 package converter
 
 import (
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 // NOTE: methods must follow these patterns, otherwise tests could not find possible issues:

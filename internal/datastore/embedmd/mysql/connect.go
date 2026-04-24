@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
-	_tls "github.com/kubeflow/model-registry/internal/tls"
+	_tls "github.com/kubeflow/hub/internal/tls"
 	gorm_mysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

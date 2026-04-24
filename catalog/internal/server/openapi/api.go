@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"os"
 
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 // MCPCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the MCPCatalogServiceAPI

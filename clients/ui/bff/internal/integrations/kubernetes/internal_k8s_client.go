@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
+	helper "github.com/kubeflow/hub/ui/bff/internal/helpers"
 	authv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

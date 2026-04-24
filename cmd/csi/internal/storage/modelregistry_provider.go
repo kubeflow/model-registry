@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	kserve "github.com/kserve/kserve/pkg/agent/storage"
-	"github.com/kubeflow/model-registry/cmd/csi/internal/constants"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/cmd/csi/internal/constants"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 var (

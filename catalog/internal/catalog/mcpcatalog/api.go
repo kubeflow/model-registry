@@ -3,7 +3,7 @@ package mcpcatalog
 import (
 	"context"
 
-	openapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	openapi "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 type ListMCPServersParams struct {

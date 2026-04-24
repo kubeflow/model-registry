@@ -12,10 +12,10 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -118,7 +118,7 @@ type yamlMCPServer struct {
 	PublishedDate            *string                             `yaml:"publishedDate,omitempty"`
 	Transports               []string                            `yaml:"transports,omitempty"`
 	Tools                    []*yamlMCPTool                      `yaml:"tools,omitempty"`
-	Artifacts                []apimodels.MCPArtifact              `yaml:"artifacts,omitempty"`
+	Artifacts                []apimodels.MCPArtifact             `yaml:"artifacts,omitempty"`
 	DeploymentMode           *string                             `yaml:"deploymentMode,omitempty"`
 	Endpoints                *yamlMCPEndpoints                   `yaml:"endpoints,omitempty"`
 	RuntimeMetadata          *apimodels.MCPRuntimeMetadata       `yaml:"runtimeMetadata,omitempty"`

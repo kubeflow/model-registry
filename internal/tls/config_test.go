@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	tlsconfig "github.com/kubeflow/model-registry/internal/tls"
+	tlsconfig "github.com/kubeflow/hub/internal/tls"
 )
 
 const (

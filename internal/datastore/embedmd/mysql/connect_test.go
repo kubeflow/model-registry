@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	"github.com/kubeflow/model-registry/internal/testutils"
-	_tls "github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/hub/internal/testutils"
+	_tls "github.com/kubeflow/hub/internal/tls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"

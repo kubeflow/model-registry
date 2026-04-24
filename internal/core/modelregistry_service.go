@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/mapper"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/mapper"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // Compile-time assertion to ensure ModelRegistryService implements ModelRegistryApi
