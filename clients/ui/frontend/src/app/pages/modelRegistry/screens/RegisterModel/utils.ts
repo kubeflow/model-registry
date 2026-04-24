@@ -25,6 +25,7 @@ import {
   RegistrationCommonFormData,
 } from './useRegisterModelData';
 import { RegistrationErrorType, MR_CHARACTER_LIMIT } from './const';
+import { getModelTypeStoredValueFromCustomProperties } from './registerModelTypeUtils';
 
 export type RegisterModelCreatedResources = RegisterVersionCreatedResources & {
   registeredModel?: RegisteredModel;
@@ -195,16 +196,24 @@ const isSubmitDisabledForCommonFields = (
   );
 };
 
+/** Submit disabled check for register-model flow. Pass `{ requireModelType: true }` when the UI collects model type. */
 export const isRegisterModelSubmitDisabled = (
   formData: RegisterModelFormData,
   registeredModels: RegisteredModelList,
   namespaceHasAccess?: boolean,
   isNamespaceAccessLoading?: boolean,
-): boolean =>
-  !formData.modelName ||
-  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||
-  !isNameValid(formData.modelName) ||
-  isModelNameExisting(formData.modelName, registeredModels);
+  options?: { requireModelType?: boolean },
+): boolean => {
+  const requireModelType = options?.requireModelType ?? false;
+  return (
+    !formData.modelName ||
+    isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||
+    !isNameValid(formData.modelName) ||
+    isModelNameExisting(formData.modelName, registeredModels) ||
+    (requireModelType &&
+      !getModelTypeStoredValueFromCustomProperties(formData.modelCustomProperties))
+  );
+};
 
 export const isRegisterVersionSubmitDisabled = (
   formData: RegisterVersionFormData,
@@ -225,6 +234,7 @@ export const isRegisterCatalogModelSubmitDisabled = (
     registeredModels,
     namespaceHasAccess,
     isNamespaceAccessLoading,
+    { requireModelType: false },
   ) || !formData.modelRegistry;
 
 export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTER_LIMIT;

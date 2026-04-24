@@ -105,6 +105,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             refresh={refresh}
             isArchiveModel={isArchiveVersion}
             isExpandable
+            modelTypeFallbackCustomProperties={mv.customProperties}
           />
         </StackItem>
       )}
