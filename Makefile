@@ -144,7 +144,7 @@ endif
 .PHONY: vet
 vet:
 	@echo "Running go vet on all packages..."
-	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/hub/internal/db/filter) && \
 	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
 	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 
@@ -308,7 +308,7 @@ image/build:
 	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) $(ARGS)
 
 # build docker image using buildx
-# PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
+# PLATFORMS defines the target platforms for the image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx). To use this option you need to:
 # - be able to use docker buildx. More info: https://docs.docker.com/build/buildx/
 # - have enabled BuildKit. More info: https://docs.docker.com/develop/develop-images/build_enhancements/

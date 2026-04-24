@@ -1,5 +1,5 @@
 ###############################################################################
-#  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
+#  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/hub/issues/1108)
 ###############################################################################
 
 FROM quay.io/securesign/cli-cosign@sha256:a8289d488491991d454a32784de19476f2c984917eb7a33b4544e55512f2747c AS cosign
@@ -30,7 +30,7 @@ RUN python -m pip install -r requirements.txt \
     && echo "Installation completed" \
     && echo "Python path:" && python -c "import sys; print('\\n'.join(sys.path))" \
     && echo "Installed packages:" \
-    && python -m pip list 
+    && python -m pip list
 
 # Copy application source
 COPY . .
@@ -57,11 +57,11 @@ LABEL org.opencontainers.image.created=$BUILD_DATE \
     org.opencontainers.image.revision=$VCS_REF \
     org.opencontainers.image.title="Kubeflow Model Registry Async-Upload Job" \
     org.opencontainers.image.description="K8s Job image that copies a model between storage back-ends and registers it in Kubeflow Model Registry." \
-    org.opencontainers.image.url="https://github.com/kubeflow/model-registry" \
-    org.opencontainers.image.source="https://github.com/kubeflow/model-registry/tree/main/jobs/async-upload" \
+    org.opencontainers.image.url="https://github.com/kubeflow/hub" \
+    org.opencontainers.image.source="https://github.com/kubeflow/hub/tree/main/jobs/async-upload" \
     org.opencontainers.image.version="0.1.0" \
     org.opencontainers.image.licenses="Apache-2.0" \
-    org.opencontainers.image.authors="Kubeflow Model Registry maintainers"
+    org.opencontainers.image.authors="Kubeflow Hub maintainers"
 
 # The Job controller will pass CLI flags/ENV-vars described in issue #1108.
 ENTRYPOINT ["python", "-m", "job.entrypoint"]

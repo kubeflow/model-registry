@@ -1,6 +1,6 @@
 # Environment Variables
 
-The following environment variables are used to configure the deployment and development environment for the Model Registry UI. These variables should be defined in a `.env.local` file in the `clients/ui` directory of the project. **These values will affect the build and push commands**.
+The following environment variables are used to configure the deployment and development environment for the Kubeflow Hub UI. These variables should be defined in a `.env.local` file in the `clients/ui` directory of the project. **These values will affect the build and push commands**.
 
 - `LOGO=logo-light-theme.svg`
   - The file name for the logo used in the light theme.

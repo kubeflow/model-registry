@@ -5,14 +5,14 @@ description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-homepage = "https://github.com/kubeflow/model-registry"
+homepage = "https://github.com/kubeflow/hub"
 packages = [
     { include = "model_registry", from = "src" },
     { include = "mr_openapi", from = "src" },
 ]
 
 [tool.poetry.urls]
-"Issues" = "https://github.com/kubeflow/model-registry/issues"
+"Issues" = "https://github.com/kubeflow/hub/issues"
 
 [tool.poetry.dependencies]
 python = ">= 3.10, < 4.0"

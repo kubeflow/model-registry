@@ -13,7 +13,7 @@ This project requires the following tools to be installed on your system:
 1. Clone the repository
 
       ``` bash
-      git clone https://github.com/kubeflow/model-registry
+      git clone https://github.com/kubeflow/hub
       ```
 
 2. Within the repo context, install project dependencies

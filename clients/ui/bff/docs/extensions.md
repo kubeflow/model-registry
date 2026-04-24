@@ -67,7 +67,7 @@ import (
     // ... other imports ...
 
     // Import downstream handlers to register overrides via init()
-    _ "github.com/kubeflow/model-registry/ui/bff/internal/redhat/handlers"
+    _ "github.com/kubeflow/hub/ui/bff/internal/redhat/handlers"
 )
 ```
 
@@ -98,8 +98,8 @@ import (
 
     "github.com/julienschmidt/httprouter"
 
-    "github.com/kubeflow/model-registry/ui/bff/internal/api"
-    "github.com/kubeflow/model-registry/ui/bff/internal/constants"
+    "github.com/kubeflow/hub/ui/bff/internal/api"
+    "github.com/kubeflow/hub/ui/bff/internal/constants"
 )
 
 // Mirror the upstream handler ID string
@@ -180,8 +180,8 @@ import (
     "net/http"
 
     "github.com/julienschmidt/httprouter"
-    "github.com/kubeflow/model-registry/ui/bff/internal/api"
-    "github.com/kubeflow/model-registry/ui/bff/internal/constants"
+    "github.com/kubeflow/hub/ui/bff/internal/api"
+    "github.com/kubeflow/hub/ui/bff/internal/constants"
 )
 
 const kubernetesServicesListHandlerID = api.HandlerID("kubernetes:services:list")
@@ -252,14 +252,14 @@ func myHandler(app *api.App) httprouter.Handle {
         // Use the client to interact with Kubernetes
         // The client interface is defined in internal/integrations/kubernetes
         namespace := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
-        
+
         // Example: Get service details
         services, err := client.GetServiceDetails(r.Context(), namespace)
         if err != nil {
             app.ServerError(w, r, err)
             return
         }
-        
+
         // Process services...
     })
 }
@@ -276,23 +276,23 @@ When building downstream handlers, you'll commonly import these packages:
 ```go
 import (
     // Core API types and App
-    "github.com/kubeflow/model-registry/ui/bff/internal/api"
-    
+    "github.com/kubeflow/hub/ui/bff/internal/api"
+
     // Configuration types
-    "github.com/kubeflow/model-registry/ui/bff/internal/config"
-    
+    "github.com/kubeflow/hub/ui/bff/internal/config"
+
     // Context keys for namespace, identity, etc.
-    "github.com/kubeflow/model-registry/ui/bff/internal/constants"
-    
+    "github.com/kubeflow/hub/ui/bff/internal/constants"
+
     // Kubernetes client interface
-    k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-    
+    k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+
     // Data models
-    "github.com/kubeflow/model-registry/ui/bff/internal/models"
-    
+    "github.com/kubeflow/hub/ui/bff/internal/models"
+
     // Upstream repositories (if needed)
-    "github.com/kubeflow/model-registry/ui/bff/internal/repositories"
-    
+    "github.com/kubeflow/hub/ui/bff/internal/repositories"
+
     // Router
     "github.com/julienschmidt/httprouter"
 )
@@ -322,7 +322,7 @@ func TestMyHandler_MockMode(t *testing.T) {
     cfg := config.EnvConfig{
         MockK8Client: true,
     }
-    
+
     // Your handler factory should return buildDefault() or mock behavior
     // when app.Config().MockK8Client is true
 }
@@ -344,7 +344,7 @@ func myOverrideFactory(app *api.App, buildDefault func() httprouter.Handle) http
     if !shouldUseDownstreamOverrides(app) {
         return buildDefault()
     }
-    
+
     // Real implementation
     return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
         // ...

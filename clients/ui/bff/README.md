@@ -1,6 +1,6 @@
-# Kubeflow Model Registry UI BFF
+# Kubeflow Hub UI BFF
 
-The Kubeflow Model Registry UI BFF is the _backend for frontend_ (BFF) used by the Kubeflow Model Registry UI.
+The Kubeflow Hub UI BFF is the _backend for frontend_ (BFF) used by the Kubeflow Hub UI.
 
 ## Pre-requisites:
 
@@ -14,7 +14,7 @@ To be operational, our BFF needs the Model Registry backend running.
 
 > **NOTE:** Docker compose must be installed in your environment.
 
-There are two `docker-compose` files located at the [root](https://github.com/kubeflow/model-registry) of Model Registry repository that make the startup of both model registry easier by simply running:
+There are two `docker-compose` files located at the [root](https://github.com/kubeflow/hub) of Model Registry repository that make the startup of both model registry easier by simply running:
 
 ```shell
 docker compose -f docker-compose[-local].yaml up
@@ -567,7 +567,7 @@ labels:
 #...
 ```
 
-You can view the complete Model Registry service manifest [here](https://github.com/kubeflow/model-registry/blob/main/manifests/kustomize/base/model-registry-service.yaml#L10).
+You can view the complete Model Registry service manifest [here](https://github.com/kubeflow/hub/blob/main/manifests/kustomize/base/model-registry-service.yaml#L10).
 
 #### 2. What is the structure of the mock Kubernetes environment?
 

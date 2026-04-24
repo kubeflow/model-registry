@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - [Kubeflow repo](https://github.com/kubeflow/kubeflow/tree/master/components/centraldashboard#development)
-- [Model Registry repo](../README.md)
+- [Hub repo](../README.md)
 
 ## Setup
 
@@ -32,7 +32,7 @@
 npm run dev
 ```
 
-### Model Registry repo
+### Hub repo
 
 1. Just run the repo in kubeflow dev mode
 
@@ -42,7 +42,7 @@ make dev-start-kubeflow
 
 ### Access the cluster
 
-You need to have a kubeflow cluster up and running, to get the Model Registry working you'll need to port-forward these two services:
+You need to have a kubeflow cluster up and running, to get the Hub working you'll need to port-forward these two services:
 
 ```shell
 kubectl port-forward service/model-registry-service 8085:8080 -n <targeted-namespace-of-the-mr-service>
@@ -52,6 +52,6 @@ kubectl port-forward service/model-registry-service 8085:8080 -n <targeted-names
 kubectl port-forward svc/profiles-kfam 8081:8081 -n kubeflow
 ```
 
-After setting up port forwarding, you can access the UI by navigating to:  
+After setting up port forwarding, you can access the UI by navigating to:
 
 http://localhost:8080

@@ -1,4 +1,4 @@
-# AGENTS.md — Model Registry
+# AGENTS.md — Kubeflow Hub
 
 ## Who This Is For
 
@@ -312,7 +312,7 @@ The following directories contain auto-generated code. Modify the sources and re
 - Do not push secrets, credentials, or modify git config
 - Run `go mod tidy` if you changed dependencies
 - Keep commit messages brief
-- Follow the Conventional Commit specification (e.g. `feat(catalog): <description>`, `fix: some bug`)  
+- Follow the Conventional Commit specification (e.g. `feat(catalog): <description>`, `fix: some bug`)
 
 ## Core Development Principles
 

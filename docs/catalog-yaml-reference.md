@@ -1,6 +1,6 @@
 # Catalog YAML Reference
 
-This document describes the YAML configuration formats for the Kubeflow Model Registry catalog component. It covers two distinct layers:
+This document describes the YAML configuration formats for the Kubeflow Hub catalog component. It covers two distinct layers:
 
 1. **Sources configuration** — how to register catalog sources (YAML files, Hugging Face Hub, etc.)
 2. **Catalog data files** — the YAML format for defining model and MCP server entries

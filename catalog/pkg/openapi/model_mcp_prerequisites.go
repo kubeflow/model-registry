@@ -1,7 +1,7 @@
 /*
-Model Catalog REST API
+Catalog REST API
 
-REST API for Model Registry to create and manage ML model metadata
+REST API for Kubeflow Hub Catalog
 
 API version: v1alpha1
 */

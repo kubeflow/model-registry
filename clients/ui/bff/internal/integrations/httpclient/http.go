@@ -102,7 +102,7 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 		}
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
-		//see https://github.com/kubeflow/model-registry/issues/95
+		//see https://github.com/kubeflow/hub/issues/95
 		if httpError.Code == "" {
 			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
@@ -163,7 +163,7 @@ func (c *HTTPClient) POSTWithContentType(url string, body io.Reader, contentType
 		}
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
-		//see https://github.com/kubeflow/model-registry/issues/95
+		//see https://github.com/kubeflow/hub/issues/95
 		if httpError.Code == "" {
 			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
@@ -220,7 +220,7 @@ func (c *HTTPClient) PATCH(url string, body io.Reader) ([]byte, error) {
 		}
 		//Sometimes the code comes empty from model registry API
 		//also not all error codes are correctly implemented
-		//see https://github.com/kubeflow/model-registry/issues/95
+		//see https://github.com/kubeflow/hub/issues/95
 		if httpError.Code == "" {
 			httpError.Code = strconv.Itoa(response.StatusCode)
 		}
