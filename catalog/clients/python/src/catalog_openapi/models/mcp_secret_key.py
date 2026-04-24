@@ -17,18 +17,21 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
+from typing import Any, ClassVar, Dict, List, Optional
+from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
 
-class MetadataStructValue(BaseModel):
+class MCPSecretKey(BaseModel):
     """
-    A struct property value.
+    Individual key within a Kubernetes Secret
     """ # noqa: E501
-    struct_value: StrictStr = Field(description="Base64 encoded bytes for struct value")
-    metadata_type: StrictStr = Field(alias="metadataType")
-    __properties: ClassVar[List[str]] = ["struct_value", "metadataType"]
+    key: Annotated[str, Field(strict=True, max_length=253)] = Field(description="Secret key name")
+    description: Annotated[str, Field(strict=True, max_length=500)] = Field(description="What this key should contain (never actual values)")
+    env_var_name: Optional[Annotated[str, Field(strict=True, max_length=253)]] = Field(default=None, description="Environment variable name to map this key to", alias="envVarName")
+    required: Optional[StrictBool] = Field(default=False, description="Whether this key must be present in the Secret")
+    __properties: ClassVar[List[str]] = ["key", "description", "envVarName", "required"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -48,7 +51,7 @@ class MetadataStructValue(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of MetadataStructValue from a JSON string"""
+        """Create an instance of MCPSecretKey from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,7 +76,7 @@ class MetadataStructValue(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of MetadataStructValue from a dict"""
+        """Create an instance of MCPSecretKey from a dict"""
         if obj is None:
             return None
 
@@ -81,8 +84,10 @@ class MetadataStructValue(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "struct_value": obj.get("struct_value"),
-            "metadataType": obj.get("metadataType") if obj.get("metadataType") is not None else 'MetadataStructValue'
+            "key": obj.get("key"),
+            "description": obj.get("description"),
+            "envVarName": obj.get("envVarName"),
+            "required": obj.get("required") if obj.get("required") is not None else False
         })
         return _obj
 
