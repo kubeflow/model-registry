@@ -1418,6 +1418,9 @@ describe('getCatalogModelTypePropertyForRegistration', () => {
         },
       }),
     ).toEqual({});
+  });
+});
+
 describe('getActiveSourceLabels', () => {
   const createSource = (overrides: Partial<CatalogSource> = {}): CatalogSource => ({
     id: 'source-1',
