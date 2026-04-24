@@ -1,6 +1,6 @@
 # Kubeflow Contributor Guide
 
-Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and
+Welcome to the Kubeflow Hub project! We'd love to accept your patches and
 contributions to this project. Please read the
 [contributor's guide in our docs](https://www.kubeflow.org/docs/about/contributing/).
 
@@ -18,11 +18,11 @@ The [Kubeflow Community calendar](https://www.kubeflow.org/docs/about/community/
 
 <hr/>
 
-The remainder of this document focuses on technical aspects while contributing to the Model Registry project specifically.
+The remainder of this document focuses on technical aspects while contributing to the Hub project specifically.
 
-The [Model Registry documentation](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
+The [Kubeflow Hub documentation](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
 
-# Contributing to Model Registry using Apple-silicon/ARM-based computers
+# Contributing to Hub using Apple-silicon/ARM-based computers
 
 Some limitations apply when developing on this project, specifically using Apple-silicon and Mac OSX.
 The content from this guide might also be applicable in part for general ARM-based developers/users, beyond Mac OSX.
@@ -72,9 +72,9 @@ to your PATH from your bashrc like:
 
 and now you can substitute `gmake` every time the make command is mentioned in guides (or perform the path management per the caveat).
 
-## Local kubernetes deployment of Model Registry
+## Local kubernetes deployment of Hub
 
-To test the Model Registry locally without mocking the k8s calls, the Model Registry backend can be deployed using Kind.
+To test the Hub locally without mocking the k8s calls, the backend can be deployed using Kind.
 
 ### Prerequisites
 
@@ -94,11 +94,11 @@ Create a Kind cluster with the following command:
 kind create cluster
 ```
 
-and then follow the steps from the [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) on the Kubeflow website, to set up the port-forwarding and deploy the Model Registry on the cluster.
+and then follow the steps from the [Installation guide](https://www.kubeflow.org/docs/components/model-registry/installation/#standalone-installation) on the Kubeflow website, to set up the port-forwarding and deploy Hub on the cluster.
 
 ### Ingress guide
 
-Follow the [Ingress guide](docs/mr_kind_deploy_ingress.md) to set up the Ingress controller and deploy the Model Registry on the cluster.
+Follow the [Ingress guide](docs/mr_kind_deploy_ingress.md) to set up the Ingress controller and deploy Hub on the cluster.
 
 ## Docker engine
 

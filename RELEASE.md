@@ -1,21 +1,21 @@
 # Release Process
 
-This document describes the Release process followed by this Kubeflow Model Registry component project, enacted by its Maintainers.
+This document describes the Release process followed by this Kubeflow Hub component project, enacted by its Maintainers.
 
 # Principles
 
-The Kubeflow Model Registry follows the [Github Release Workflow](https://github.com/kubeflow/hub/releases), and performs periodic releases in accordance with the Kubeflow Platform WG recommendations.
+The Kubeflow Hub follows the [Github Release Workflow](https://github.com/kubeflow/hub/releases), and performs periodic releases in accordance with the Kubeflow Platform WG recommendations.
 
-The Kubeflow Model Registry follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
+The Kubeflow Hub follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-The Kubeflow Model Registry per governance of the Kubeflow Community, Kubeflow Platform WG, and KSC, releases as Alpha version, including the following statement:
+The Kubeflow Hub per governance of the Kubeflow Community, Kubeflow Platform WG, and KSC, releases as Alpha version, including the following statement:
 
 ```md
 > **Alpha**
 > This Kubeflow component has alpha status with limited support. See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status). The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/hub/issues/new/choose) about the usability of the feature.
 ```
 
-The Release of the Kubeflow Model Registry provides:
+The Release of the Kubeflow Hub provides:
 - a container image for the Backend; known as the "KF MR Go REST server"
 - a Python client to be used in a Jupyter notebook, programmatically, or that can be integrated in the Kubeflow SDK; known as the "MR py client"
 - an optional Model Registry Custom Storage Initializer container image for KServe; the "Model Registry CSI"

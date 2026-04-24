@@ -1,6 +1,6 @@
 # Local Deployment Guide
 
-## Local kubernetes deployment of Model Registry
+## Local kubernetes deployment of Kubeflow Hub
 
 To test the BFF locally without mocking the k8s calls the Model Registry backend can be deployed locally using kind.
 

@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-Kubeflow Model Registry versions are expressed as `vX.Y.Z`, where X is the major version,
+Kubeflow Hub versions are expressed as `vX.Y.Z`, where X is the major version,
 Y is the minor version, and Z is the patch version, following the
 [Semantic Versioning](https://semver.org/) terminology.
 
-The Kubeflow Model Registry project maintains release branches for the most recent two minor releases.
+The Kubeflow Hub project maintains release branches for the most recent two minor releases.
 Applicable fixes, including security fixes, may be backported to those two release branches,
 depending on severity and feasibility.
 
@@ -20,7 +20,7 @@ Kubeflow Open Source Community. All reports are thoroughly investigated by Kubef
 
 You can use the following ways to report security vulnerabilities privately:
 
-- Using the Kubeflow Model Registry repository [GitHub Security Advisory](https://github.com/kubeflow/hub/security/advisories/new).
+- Using the Kubeflow Hub repository [GitHub Security Advisory](https://github.com/kubeflow/hub/security/advisories/new).
 - Using our private Kubeflow Steering Committee mailing list: ksc@kubeflow.org.
 
 Please provide detailed information to help us understand and address the issue promptly.
@@ -42,7 +42,7 @@ release notes and communicated through appropriate channels.
 
 ## Prevention Mechanisms
 
-Kubeflow Model Registry employs several measures to prevent security issues:
+Kubeflow Hub employs several measures to prevent security issues:
 
 **Code Reviews**: All code changes are reviewed by maintainers to ensure code quality and security.
 

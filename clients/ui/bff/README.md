@@ -1,6 +1,6 @@
-# Kubeflow Model Registry UI BFF
+# Kubeflow Hub UI BFF
 
-The Kubeflow Model Registry UI BFF is the _backend for frontend_ (BFF) used by the Kubeflow Model Registry UI.
+The Kubeflow Hub UI BFF is the _backend for frontend_ (BFF) used by the Kubeflow Hub UI.
 
 ## Pre-requisites:
 

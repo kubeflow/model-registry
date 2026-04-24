@@ -1,8 +1,8 @@
-# Kubeflow Model Registry Roadmap
+# Kubeflow Hub Roadmap
 
 ## Overview
 
-The Kubeflow Model Registry project roadmap is tracked using [GitHub Milestones](https://github.com/kubeflow/hub/milestones), following the Kubeflow Release Team's request: this approach has been recommended in order to maintain a detailed view of all the items intended for upcoming Kubeflow releases, organized by "themes". The roadmap is continuously updated as we make progress towards a Kubeflow Release.
+The Kubeflow Hub project roadmap is tracked using [GitHub Milestones](https://github.com/kubeflow/hub/milestones), following the Kubeflow Release Team's request: this approach has been recommended in order to maintain a detailed view of all the items intended for upcoming Kubeflow releases, organized by "themes". The roadmap is continuously updated as we make progress towards a Kubeflow Release.
 
 ## Current Roadmap
 

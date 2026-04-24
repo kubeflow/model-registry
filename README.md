@@ -1,4 +1,4 @@
-# Model Registry
+# Kubeflow Hub
 
 ![build checks status](https://github.com/kubeflow/hub/actions/workflows/build.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/github/kubeflow/hub/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/hub)
@@ -6,7 +6,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9937/badge)](https://www.bestpractices.dev/projects/9937)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kubeflow/hub/badge)](https://scorecard.dev/viewer/?uri=github.com/kubeflow/hub)
 
-Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata.
+Kubeflow Hub (formerly known as Model Registry) provides a central repository for model developers to store and manage models, versions, and artifacts metadata.
 
 ## Red Hat's Pledge
 - Red Hat drives the project's development through Open Source principles, ensuring transparency, sustainability, and community ownership.
@@ -54,7 +54,7 @@ Model registry provides a central repository for model developers to store and m
 
 ## OpenAPI Proxy Server
 
-The model registry proxy server implementation follows a contract-first approach, where the contract is identified by [model-registry.yaml](api/openapi/model-registry.yaml) OpenAPI specification.
+The Hub backend server follows a contract-first approach, where the contract is identified by [model-registry.yaml](api/openapi/model-registry.yaml) OpenAPI specification.
 
 You can also easily display the latest OpenAPI contract for model-registry in a Swagger-like editor directly from the documentation site, [here](https://www.kubeflow.org/docs/components/model-registry/reference/rest-api/#swagger-ui).
 ### Starting the OpenAPI Proxy Server
@@ -63,7 +63,7 @@ Run the following command to start the OpenAPI proxy server from source:
 ```shell
 make run/proxy
 ```
-The proxy service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API.
+The backend service implements the OpenAPI defined in [model-registry.yaml](api/openapi/model-registry.yaml) to create a Model Registry specific REST API.
 
 ### Model registry logical model
 
@@ -152,14 +152,14 @@ Where, `<uid>`, `<gid>`, and `<host-path>` are the same as in the migrate comman
 And `<hostname>` and `<port>` are the local ip and port to use to expose the container's default `8080` listening port.
 The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allows the server port to be exposed.
 
-#### Running model registry
+#### Running Kubeflow Hub
 
 > **NOTE:** Docker Compose or Podman Compose must be installed in your environment.
 
 There are two `docker-compose` files that make the startup easier:
 
 - `docker-compose.yaml` - Uses pre-built images from registry
-- `docker-compose-local.yaml` - Builds model registry from source
+- `docker-compose-local.yaml` - Builds Hub from source
 
 Both files support MySQL and PostgreSQL databases using profiles.
 
@@ -206,7 +206,7 @@ The Makefile automatically detects whether to use `docker-compose`, `podman-comp
 
 ### Testing architecture
 
-The following diagram illustrates testing strategy for the several components in Model Registry project:
+The following diagram illustrates testing strategy for the several components in the Hub project:
 
 ![](/docs/Model%20Registry%20Testing%20areas.drawio.png)
 
@@ -259,7 +259,7 @@ If you cannot access the CNCF Service Desk, ask one of your fellow Approvers for
 ## Tips
 ### Pull image rate limiting
 
-Occasionally you may encounter an 'ImagePullBackOff' error when deploying the Model Registry manifests. See example below for the `model-registry-db` container.
+Occasionally you may encounter an 'ImagePullBackOff' error when deploying the Hub project's manifests. See example below for the `model-registry-db` container.
 
 ```
 Failed to pull image “mysql:8.3.0”: rpc error: code = Unknown desc = fetching target platform image selected from image index: reading manifest sha256:f9097d95a4ba5451fff79f4110ea6d750ac17ca08840f1190a73320b84ca4c62 in docker.io/library/mysql: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit

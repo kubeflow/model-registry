@@ -61,7 +61,7 @@ LABEL org.opencontainers.image.created=$BUILD_DATE \
     org.opencontainers.image.source="https://github.com/kubeflow/hub/tree/main/jobs/async-upload" \
     org.opencontainers.image.version="0.1.0" \
     org.opencontainers.image.licenses="Apache-2.0" \
-    org.opencontainers.image.authors="Kubeflow Model Registry maintainers"
+    org.opencontainers.image.authors="Kubeflow Hub maintainers"
 
 # The Job controller will pass CLI flags/ENV-vars described in issue #1108.
 ENTRYPOINT ["python", "-m", "job.entrypoint"]

@@ -540,4 +540,4 @@ The catalog service is designed to complement the main Model Registry service by
 - Unified metadata aggregation
 - Read-only access to distributed model catalogs
 
-For complete Model Registry documentation, see the [main README](../README.md).
+For complete Kubeflow Hub documentation, see the [main README](../README.md).

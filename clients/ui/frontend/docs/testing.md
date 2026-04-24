@@ -1,4 +1,4 @@
-# Model Registry UI Testing
+# Kubeflow Hub UI Testing
 
 ## Cypress Tests
 

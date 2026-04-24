@@ -3,9 +3,9 @@
 [Testing]: testing.md
 [Environment Variables]: env-variables.md
 
-# Model Registry UI Documentation
+# Kubeflow Hub UI Documentation
 
-This is the general documentation of the Model Registry UI.
+This is the general documentation of the Kubeflow Hub UI.
 
 ## Developer Readmes
 

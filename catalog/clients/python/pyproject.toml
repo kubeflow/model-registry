@@ -2,7 +2,7 @@
 name = "model-catalog"
 version = "0.1.0"
 description = "Client for Kubeflow Model Catalog"
-authors = ["Kubeflow Model Registry Team"]
+authors = ["Kubeflow Hub Team"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/kubeflow/hub"

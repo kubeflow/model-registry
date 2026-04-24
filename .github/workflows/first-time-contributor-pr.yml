@@ -55,7 +55,7 @@ jobs:
         continue-on-error: true
         with:
           issue_message: |
-            🎉 **Welcome to the Kubeflow Model Registry!** 🎉
+            🎉 **Welcome to the Kubeflow Hub!** 🎉
             Thanks for opening your first issue! We're happy to have you as part of our community 🚀
 
             **Here's what happens next:**
@@ -69,7 +69,7 @@ jobs:
             Feel free to ask questions in the comments if you need any help or clarification!
             Thanks again for contributing to Kubeflow! 🙏
           pr_message: |
-            🎉 **Welcome to the Kubeflow Model Registry!** 🎉
+            🎉 **Welcome to the Kubeflow Hub!** 🎉
             Thanks for opening your first PR! We're happy to have you as part of our community 🚀
 
             **Here's what happens next:**
