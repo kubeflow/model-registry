@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kubeflow/model-registry/cmd/csi/internal/constants"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/cmd/csi/internal/constants"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 func NewAPIClient(cfg *openapi.Configuration, storageUri string, serviceName string, clusterDomain string) *openapi.APIClient {

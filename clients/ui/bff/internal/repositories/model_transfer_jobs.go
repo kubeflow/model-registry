@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	helper "github.com/kubeflow/hub/ui/bff/internal/helpers"
+	k8s "github.com/kubeflow/hub/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -24,7 +24,7 @@ import (
 
 const (
 	// DefaultAsyncUploadImage is the default container image for async-upload jobs.
-	DefaultAsyncUploadImage  = "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
+	DefaultAsyncUploadImage  = "ghcr.io/kubeflow/hub/job/async-upload:latest"
 	asyncUploadConfigMapName = "model-registry-ui-config"
 	asyncUploadConfigMapKey  = "images-jobs-async-upload"
 )

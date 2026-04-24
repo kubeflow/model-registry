@@ -3,9 +3,9 @@ package basecatalog
 import (
 	"sort"
 
-	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
 )
 
 // DbPropToAPIOption converts a database PropertyOption to an API FilterOption.

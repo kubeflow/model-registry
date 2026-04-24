@@ -47,7 +47,7 @@ kubectl patch deployment -n ingress-nginx ingress-nginx-controller   --type='jso
 
 `kubectl create namespace kubeflow`
 
-`kubectl apply -k "https://github.com/kubeflow/model-registry/manifests/kustomize/overlays/db"`
+`kubectl apply -k "https://github.com/kubeflow/hub/manifests/kustomize/overlays/db"`
 
 `kubectl wait --for=condition=available -n kubeflow deployment/model-registry-deployment --timeout=1m`
 

@@ -1,26 +1,26 @@
 [frontend requirements]: ./frontend/docs/dev-setup.md#requirements
 [BFF requirements]: ./bff/README.md#pre-requisites
-[Model registry UI]: ./docs/README.md
+[Kubeflow Hub UI]: ./docs/README.md
 [contributing guidelines]: ./CONTRIBUTING.md
 
-# Model Registry UI
+# Kubeflow Hub UI
 
 ## Overview
 
-The Model Registry UI is a standalone web app for Kubeflow Model Registry. In this repository, you will find the frontend and backend for the Model Registry UI.
+The Kubeflow Hub UI is a standalone web app for Kubeflow Kubeflow Hub. In this repository, you will find the frontend and backend for the Kubeflow Hub UI.
 
 ## Contributing
 
-You can check the [contributing guidelines] for more information on how to contribute to the Model Registry UI.
+You can check the [contributing guidelines] for more information on how to contribute to the Kubeflow Hub UI.
 
 ## OpenAPI Specification
 
-You can find the OpenAPI specification for the Model Registry UI in the [openapi](./api/openapi) directory.
-A live version of the OpenAPI specification can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/clients/ui/api/openapi/mod-arch.yaml).
+You can find the OpenAPI specification for the Kubeflow Hub UI in the [openapi](./api/openapi) directory.
+A live version of the OpenAPI specification can be found [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/hub/main/clients/ui/api/openapi/mod-arch.yaml).
 
 ## Targeted environments
 
-There's two main environments that the Model Registry UI is targeted for:
+There's two main environments that the Kubeflow Hub UI is targeted for:
 
 1. **Standalone**: This is the default environment for local development. The UI is served by the BFF and the BFF is responsible for serving the API requests. The BFF exposes a `/namespace` endpoint that returns all the namespaces in the cluster and the UI sends a user header `kubeflow-user` to authenticate the calls.
 
@@ -28,7 +28,7 @@ There's two main environments that the Model Registry UI is targeted for:
 
 ## Environment Variables
 
-The following environment variables are used to configure the deployment and development environment for the Model Registry UI. These variables should be defined in a `.env.local` file in the `clients/ui` directory of the project. **This values will affect the build and push commands**.
+The following environment variables are used to configure the deployment and development environment for the Kubeflow Hub UI. These variables should be defined in a `.env.local` file in the `clients/ui` directory of the project. **This values will affect the build and push commands**.
 
 ### `CONTAINER_TOOL`
 
@@ -40,20 +40,20 @@ The following environment variables are used to configure the deployment and dev
 ### `IMG_UI`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF).
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui:latest`
-* **Example**: `IMG_UI=ghcr.io/kubeflow/model-registry/ui:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui:latest`
+* **Example**: `IMG_UI=ghcr.io/kubeflow/hub/ui:latest`
 
 ### `IMG_UI_STANDALONE`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF) in **standalone mode**, used for local kind deployment.
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-standalone:latest`
-* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/model-registry/ui-standalone:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui-standalone:latest`
+* **Example**: `IMG_UI_STANDALONE=ghcr.io/kubeflow/hub/ui-standalone:latest`
 
 ### `IMG_UI_FEDERATED`
 
 * **Description**: Specifies the image name and tag for the UI (with BFF) in **federated mode**, used for federated mode outside kubeflow.
-* **Default Value**: `ghcr.io/kubeflow/model-registry/ui-federated:latest`
-* **Example**: `IMG_UI_FEDERATED=ghcr.io/kubeflow/model-registry/ui-federated:latest`
+* **Default Value**: `ghcr.io/kubeflow/hub/ui-federated:latest`
+* **Example**: `IMG_UI_FEDERATED=ghcr.io/kubeflow/hub/ui-federated:latest`
 
 ### `PLATFORM`
 
@@ -130,4 +130,4 @@ The standalone image includes K8s test binaries to support the `--mock-k8s-clien
 
 ## Deployments
 
-For more information on how to deploy the Model Registry UI, please refer to the [Model registry UI] documentation.
+For more information on how to deploy the Kubeflow Hub UI, please refer to the [Kubeflow Hub UI] documentation.

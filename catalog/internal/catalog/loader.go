@@ -7,10 +7,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
+	"github.com/kubeflow/hub/catalog/internal/db/service"
 )
 
 // Loader is the unified catalog loader that handles both model catalogs

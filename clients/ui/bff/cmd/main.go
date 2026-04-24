@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/api"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/hub/ui/bff/internal/api"
+	"github.com/kubeflow/hub/ui/bff/internal/config"
 
 	"log/slog"
 	"net/http"

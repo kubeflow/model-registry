@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kubeflow/model-registry/internal/db"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/internal/db"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 const (

@@ -16,11 +16,11 @@ jobs:
     strategy:
       matrix:
         IMAGE: [
-          'ghcr.io/kubeflow/model-registry/server:latest',
-          'ghcr.io/kubeflow/model-registry/ui:latest',
-          'ghcr.io/kubeflow/model-registry/job/async-upload:latest',
-          'ghcr.io/kubeflow/model-registry/storage-initializer:latest',
-          'ghcr.io/kubeflow/model-registry/ui-standalone:latest'
+          'ghcr.io/kubeflow/hub/server:latest',
+          'ghcr.io/kubeflow/hub/ui:latest',
+          'ghcr.io/kubeflow/hub/job/async-upload:latest',
+          'ghcr.io/kubeflow/hub/storage-initializer:latest',
+          'ghcr.io/kubeflow/hub/ui-standalone:latest'
         ]
     steps:
       - name: Checkout code

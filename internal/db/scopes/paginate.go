@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/dbutil"
+	"github.com/kubeflow/hub/internal/db/models"
 	"gorm.io/gorm"
 )
 

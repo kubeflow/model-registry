@@ -1,6 +1,6 @@
 # Model Registry Python Client
 
-[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10%7C3.11%7C3.12-blue)](https://github.com/kubeflow/model-registry)
+[![Python](https://img.shields.io/badge/python%20-3.9%7C3.10%7C3.11%7C3.12-blue)](https://github.com/kubeflow/hub)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../../LICENSE)
 [![Read the Docs](https://img.shields.io/readthedocs/model-registry)](https://model-registry.readthedocs.io/en/latest/)
 [![Tutorial Website](https://img.shields.io/badge/Website-green?style=plastic&label=Tutorial&labelColor=blue)](https://www.kubeflow.org/docs/components/model-registry/getting-started/)
@@ -11,7 +11,7 @@ This library provides a high level interface for interacting with a model regist
 >
 > This Kubeflow component has **alpha** status with limited support.
 > See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status).
-> The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/model-registry) about the usability of the feature.
+> The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/hub) about the usability of the feature.
 
 ## Installation
 
@@ -176,7 +176,7 @@ for version in registry.get_model_versions("my-model"):
     ... # your logic using `version` loop variable here
 ```
 
-<!-- see https://github.com/kubeflow/model-registry/issues/358 until fixed, the below is just easier not to mention in the doc.
+<!-- see https://github.com/kubeflow/hub/issues/358 until fixed, the below is just easier not to mention in the doc.
 
 You can also use `order_by_creation_time`, `order_by_update_time`, or `order_by_id` to change the sorting order
 
@@ -507,7 +507,7 @@ To run the e2e tests you will need [kind](https://kind.sigs.k8s.io/) to be insta
 
 ### Running Locally on Mac M1 or M2 (arm64 architecture)
 
-Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
+Check out our [recommendations on setting up your docker engine](https://github.com/kubeflow/hub/blob/main/CONTRIBUTING.md#docker-engine) on an ARM processor.
 
 
 ### Troubleshooting

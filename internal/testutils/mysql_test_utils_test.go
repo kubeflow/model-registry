@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/hub/internal/db/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

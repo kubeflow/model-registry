@@ -17,7 +17,7 @@ permissions: read-all
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  IMG_UI_REPO: model-registry/ui-standalone # this image is intended for local development, not production
+  IMG_UI_REPO: hub/ui-standalone # this image is intended for local development, not production
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
   PLATFORMS: linux/arm64,linux/amd64

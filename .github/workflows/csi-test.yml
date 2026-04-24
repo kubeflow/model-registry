@@ -25,8 +25,8 @@ permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule Token
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
-  MODEL_REGISTRY_IMG: model-registry/server
-  MODEL_REGISTRY_CSI_IMG: model-registry/storage-initializer
+  MODEL_REGISTRY_IMG: hub/server
+  MODEL_REGISTRY_CSI_IMG: hub/storage-initializer
   PUSH_IMAGE: false
   BRANCH: ${{ github.base_ref }}
 jobs:

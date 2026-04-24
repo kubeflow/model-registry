@@ -3,7 +3,7 @@ package mcpcatalog
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 )
 
 // ServerFilter encapsulates include/exclude pattern matching for MCP server names.

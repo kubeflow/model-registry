@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
-	"github.com/kubeflow/model-registry/internal/db/types"
-	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/hub/internal/db/types"
+	"github.com/kubeflow/hub/internal/tls"
 	"gorm.io/gorm"
 )
 

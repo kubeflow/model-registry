@@ -1,7 +1,7 @@
 package openapi
 
 import (
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 )
 
 // AssertCatalogArtifactRequired checks if the required fields are not zero-ed

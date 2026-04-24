@@ -11,7 +11,7 @@ from .conftest import REGISTRY_HOST, REGISTRY_PORT
 def test_create_tagged_version(register_model_with_version):
     """Test regression for creating tagged versions.
 
-    Reported on: https://github.com/kubeflow/model-registry/issues/255
+    Reported on: https://github.com/kubeflow/hub/issues/255
     """
     name = "test_model"
     version = "model:latest"
@@ -26,7 +26,7 @@ def test_get_model_without_user_token(
 ):
     """Test regression for using client methods without an user_token in the init arguments.
 
-    Reported on: https://github.com/kubeflow/model-registry/issues/340
+    Reported on: https://github.com/kubeflow/hub/issues/340
     """
     assert setup_env_user_token != ""
     name = "test_model"
@@ -45,7 +45,7 @@ def test_get_model_without_user_token(
 def test_get_few_registered_models(client: ModelRegistry):
     """Test regression for paging without next page token.
 
-    Reported on: https://github.com/kubeflow/model-registry/issues/348
+    Reported on: https://github.com/kubeflow/hub/issues/348
     """
     models = 9
 
@@ -71,7 +71,7 @@ def test_get_few_registered_models(client: ModelRegistry):
 async def test_create_standalone_model_artifact(client: ModelRegistry, register_model_with_version):
     """Test regression for creating standalone model artifact.
 
-    Reported on: https://github.com/kubeflow/model-registry/issues/231"""
+    Reported on: https://github.com/kubeflow/hub/issues/231"""
     ma = ModelArtifact(uri="s3")
     async with client._api.get_client() as api:
         new_raw_ma = await api.create_model_artifact(ma.create())

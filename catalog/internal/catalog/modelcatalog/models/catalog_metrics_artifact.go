@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/filter"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/filter"
+	dbmodels "github.com/kubeflow/hub/internal/db/models"
 )
 
 type MetricsType string

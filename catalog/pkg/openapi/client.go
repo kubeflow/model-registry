@@ -1,7 +1,7 @@
 /*
-Model Catalog REST API
+Catalog REST API
 
-REST API for Model Registry to create and manage ML model metadata
+REST API for Kubeflow Hub Catalog
 
 API version: v1alpha1
 */
@@ -40,7 +40,7 @@ var (
 	queryDescape    = strings.NewReplacer("%5B", "[", "%5D", "]")
 )
 
-// APIClient manages communication with the Model Catalog REST API API vv1alpha1
+// APIClient manages communication with the Catalog REST API API vv1alpha1
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *Configuration

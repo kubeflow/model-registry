@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/cmd"
+	"github.com/kubeflow/hub/cmd"
 )
 
 func main() {
@@ -16,4 +16,3 @@ func main() {
 
 	cmd.Execute()
 }
-

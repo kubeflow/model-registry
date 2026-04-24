@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

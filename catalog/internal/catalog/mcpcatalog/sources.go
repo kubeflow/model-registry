@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/internal/apiutils"
 )
 
 // mcpOriginEntry holds MCP sources from a single origin (config file).

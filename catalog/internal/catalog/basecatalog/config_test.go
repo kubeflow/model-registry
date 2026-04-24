@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

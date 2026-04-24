@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/hub/ui/bff/internal/constants"
+	helper "github.com/kubeflow/hub/ui/bff/internal/helpers"
+	"github.com/kubeflow/hub/ui/bff/internal/models"
 )
 
 type ModelRegistrySettingsListEnvelope Envelope[[]models.ModelRegistryKind, None]

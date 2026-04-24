@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Model Catalog REST API
+  title: Catalog REST API
+  description: REST API for Kubeflow Hub Catalog
   version: v1alpha1
-  description: REST API for Model Registry to create and manage ML model metadata
   license:
     name: Apache 2.0
     url: "https://www.apache.org/licenses/LICENSE-2.0"

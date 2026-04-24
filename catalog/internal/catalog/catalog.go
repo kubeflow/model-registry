@@ -1,9 +1,9 @@
 package catalog
 
 import (
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
 )
 
 type (

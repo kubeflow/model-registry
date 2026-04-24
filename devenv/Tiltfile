@@ -88,7 +88,7 @@ local_resource(
 )
 
 docker_build_with_restart(
-    "ghcr.io/kubeflow/model-registry/server:latest",
+    "ghcr.io/kubeflow/hub/server:latest",
     context="../",
     dockerfile="../tilt.dockerfile",
     entrypoint=["/model-registry"],

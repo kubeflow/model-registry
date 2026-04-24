@@ -3361,7 +3361,7 @@ components:
         message:
           type: string
           description: Human-readable description of the event.
-          example: "Successfully pulled image \"ghcr.io/kubeflow/model-registry/job/async-upload:latest\""
+          example: "Successfully pulled image \"ghcr.io/kubeflow/hub/job/async-upload:latest\""
     ModelTransferJobList:
       description: List of ModelTransferJob entities.
       type: object

@@ -1,6 +1,6 @@
 # Local Deployment Guide
 
-## Local kubernetes deployment of Model Registry
+## Local kubernetes deployment of Kubeflow Hub
 
 To test the BFF locally without mocking the k8s calls the Model Registry backend can be deployed locally using kind.
 
@@ -24,7 +24,7 @@ Create a local cluster for running the MR backend using the following command:
 kind create cluster
 ```
 
-Kind will start creating a new local cluster for you to deploy, once it has completed verify you can access the cluster 
+Kind will start creating a new local cluster for you to deploy, once it has completed verify you can access the cluster
 using kubectl by running:
 
 ```shell
@@ -58,7 +58,7 @@ You can now deploy the MR backend to your newly created cluster using the kustom
 running:
 
 ```shell
-kubectl apply -k "https://github.com/kubeflow/model-registry/manifests/kustomize/overlays/db"
+kubectl apply -k "https://github.com/kubeflow/hub/manifests/kustomize/overlays/db"
 ```
 
 Wait for the model registry deployment to spin up, alternatively run:
@@ -77,7 +77,7 @@ Two pods should be listed, `model-registry-db-xxx` and `model-registry-deploymen
 
 ##### NOTE: Issues running on arm64 architecture
 
-There is currently an issue deploying to an arm64 device such as a Mac with an M-series chip. This is because the MySql 
+There is currently an issue deploying to an arm64 device such as a Mac with an M-series chip. This is because the MySql
 image tag deployed by the manifests does not have an arm64 compatible image. To work around this you can use a modified
 manifest deployed in a fork of the repo - you can use this by running the below command instead of the first command in
 section 3 of this guide.
@@ -88,7 +88,7 @@ kubectl apply -k "https://github.com/alexcreasy/model-registry/manifests/kustomi
 
 Note: an issue has been filed regarding this ticket here:
 
-* [#266 Cannot deploy to k8s on AArch64 nodes using manifests in repo](https://github.com/kubeflow/model-registry/issues/266)
+* [#266 Cannot deploy to k8s on AArch64 nodes using manifests in repo](https://github.com/kubeflow/hub/issues/266)
 
 #### 4. Setup a port forward to the service
 

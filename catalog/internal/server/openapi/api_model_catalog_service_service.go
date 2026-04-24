@@ -12,13 +12,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/hub/catalog/internal/catalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
+	"github.com/kubeflow/hub/catalog/internal/db/models"
+	model "github.com/kubeflow/hub/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/pkg/api"
 )
 
 // ModelCatalogServiceAPIService is a service that implements the logic for the ModelCatalogServiceAPIServicer

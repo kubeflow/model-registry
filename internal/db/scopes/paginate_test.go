@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/hub/internal/db/models"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,9 +3,9 @@ package db
 import (
 	"fmt"
 
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
-	"github.com/kubeflow/model-registry/internal/db/types"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/hub/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/hub/internal/db/types"
 	"gorm.io/gorm"
 )
 

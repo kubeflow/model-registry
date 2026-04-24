@@ -1,10 +1,10 @@
-[Model registry server set up]: ../../bff/docs/dev-guide.md
+[Hub server set up]: ../../bff/docs/dev-guide.md
 
-# Deploying the Model Registry UI in a local cluster
+# Deploying the Hub UI in a local cluster
 
 For this guide, we will be using kind for locally deploying our cluster. See
-the [Model registry server set up] guide for prerequisites on setting up kind
-and deploying the model registry server.
+the [Hub server set up] guide for prerequisites on setting up kind
+and deploying the Hub server.
 
 ## Setup
 
@@ -35,7 +35,7 @@ make docker-push-standalone
 
 **Note: You will need to set up `IMG_UI_STANDALONE` in your .env.local file to push the image to your own registry.**
 
-### 4. Deploy Model Registry UI to cluster
+### 4. Deploy Kubeflow Hub UI to cluster
 
 You can now deploy the UI and BFF to your newly created cluster using the kustomize configs in the root manifest directory:
 

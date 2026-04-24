@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
+	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

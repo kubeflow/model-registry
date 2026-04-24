@@ -25,7 +25,7 @@ IMG_ORG ?= kubeflow
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry/server
+IMG_REPO ?= hub/server
 # container image build path
 BUILD_PATH ?= .
 # container image
@@ -39,26 +39,26 @@ endif
 
 # Change Dockerfile path depending on IMG_REPO
 # UI image uses repo root as context so COPY manifests/... for sample-catalog.yaml works
-ifeq ($(IMG_REPO),model-registry/ui)
+ifeq ($(IMG_REPO),hub/ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
 	BUILD_PATH := $(PROJECT_PATH)
 	ARGS := --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff $(ARGS)
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry/storage-initializer)
+ifeq ($(IMG_REPO),hub/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry/controller)
+ifeq ($(IMG_REPO),hub/controller)
     DOCKERFILE := $(CONTROLLER_PATH)/Dockerfile.controller
 endif
 
 model-registry: build
 
 internal/converter/generated/converter.go: internal/converter/*.go
-	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
+	${GOVERTER} gen github.com/kubeflow/hub/internal/converter/
 
 .PHONY: gen/converter
 gen/converter: internal/converter/generated/converter.go
@@ -144,7 +144,7 @@ endif
 .PHONY: vet
 vet:
 	@echo "Running go vet on all packages..."
-	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/hub/internal/db/filter) && \
 	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
 	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 
@@ -237,7 +237,7 @@ build/prepare: gen vet lint
 # WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
 .PHONY: build/compile
 build/compile:
-	${GO} build -buildvcs=false
+	${GO} build -buildvcs=false -o model-registry
 
 # WARNING: DO NOT EDIT THIS TARGET DIRECTLY!!!
 # Use build/prepare to add build prerequisites
@@ -308,7 +308,7 @@ image/build:
 	${DOCKER} build ${BUILD_PATH} -f ${DOCKERFILE} -t ${IMG}:$(IMG_VERSION) $(ARGS)
 
 # build docker image using buildx
-# PLATFORMS defines the target platforms for the model registry image be built to provide support to multiple
+# PLATFORMS defines the target platforms for the image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx). To use this option you need to:
 # - be able to use docker buildx. More info: https://docs.docker.com/build/buildx/
 # - have enabled BuildKit. More info: https://docs.docker.com/develop/develop-images/build_enhancements/
@@ -429,7 +429,7 @@ controller/uninstall: controller/manifests bin/kustomize ## Uninstall CRDs from 
 
 .PHONY: controller/deploy
 controller/deploy: controller/manifests bin/kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/model-registry/controller=${IMG}:${IMG_VERSION}
+	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/hub/controller=${IMG}:${IMG_VERSION}
 	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) apply -f -
 
 .PHONY: controller/undeploy
