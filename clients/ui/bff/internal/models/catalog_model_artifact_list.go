@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 type CatalogModelArtifact struct {

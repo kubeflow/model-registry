@@ -32,7 +32,9 @@ ARG BFF_SOURCE_CODE
 ARG TARGETOS
 ARG TARGETARCH
 
-WORKDIR /usr/src/app
+COPY ../../pkg/openapi /usr/src/app/pkg/openapi
+
+WORKDIR /usr/src/app/clients/ui/bff
 
 # Copy the Go Modules manifests
 COPY ${BFF_SOURCE_CODE}/go.mod ${BFF_SOURCE_CODE}/go.sum ./
@@ -45,7 +47,7 @@ COPY ${BFF_SOURCE_CODE}/cmd/ cmd/
 COPY ${BFF_SOURCE_CODE}/internal/ internal/
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o /usr/src/app/bff ./cmd
 
 # Final stage
 # Use distroless as minimal base image to package the application binary

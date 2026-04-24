@@ -9,9 +9,9 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/kubeflow/hub/ui/bff/internal/constants"
 	"github.com/kubeflow/hub/ui/bff/internal/models"
-	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -184,8 +184,8 @@ func GetModelArtifactListMock() openapi.ModelArtifactList {
 	}
 }
 
-func newCustomProperties() *map[string]openapi.MetadataValue {
-	result := map[string]openapi.MetadataValue{
+func newCustomProperties() map[string]openapi.MetadataValue {
+	return map[string]openapi.MetadataValue{
 		"tensorflow": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "",
@@ -223,8 +223,6 @@ func newCustomProperties() *map[string]openapi.MetadataValue {
 			},
 		},
 	}
-
-	return &result
 }
 
 func catalogCustomProperties() *map[string]openapi.MetadataValue {
@@ -1047,7 +1045,7 @@ func GetCatalogLabelListMock() models.CatalogLabelList {
 func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 	architecturesJSON, _ := json.Marshal([]string{"amd64", "arm64", "s390x", "ppc64le"})
 	customProps := newCustomProperties()
-	(*customProps)["architecture"] = openapi.MetadataValue{
+	customProps["architecture"] = openapi.MetadataValue{
 		MetadataStringValue: &openapi.MetadataStringValue{
 			StringValue:  string(architecturesJSON),
 			MetadataType: "MetadataStringValue",
@@ -1060,7 +1058,7 @@ func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 			Uri:                      stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         customProps,
+			CustomProperties:         &customProps,
 		},
 	}
 }
