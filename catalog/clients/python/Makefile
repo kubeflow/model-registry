@@ -219,7 +219,7 @@ $(LOCALBIN):
 deploy-apply: deploy-namespace deploy-kustomize
 	@echo "Applying kustomize manifests..."
 	cd "$(KUSTOMIZE_E2E)" && \
-	$(KUSTOMIZE) edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
+	$(KUSTOMIZE) edit set image "ghcr.io/kubeflow/hub/server=$(KIND_IMAGE)"
 	kubectl apply -k "$(KUSTOMIZE_E2E)"
 	@echo "Waiting for PostgreSQL to be ready..."
 	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres -n "$(CATALOG_NAMESPACE)" --timeout=120s

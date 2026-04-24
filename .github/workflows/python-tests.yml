@@ -120,7 +120,7 @@ jobs:
       FORCE_COLOR: "1"
       IMG_REGISTRY: ghcr.io
       IMG_ORG: kubeflow
-      IMG_REPO: model-registry
+      IMG_REPO: hub
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Check out the repository

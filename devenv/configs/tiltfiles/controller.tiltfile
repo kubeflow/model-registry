@@ -84,7 +84,7 @@ local_resource(
 )
 
 docker_build_with_restart(
-    "ghcr.io/kubeflow/model-registry/controller",
+    "ghcr.io/kubeflow/hub/controller",
     context="../../../",
     dockerfile="../../../tilt-controller.dockerfile",
     entrypoint=["/manager"],

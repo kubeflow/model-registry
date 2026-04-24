@@ -56,6 +56,6 @@ jobs:
       - name: Build controller
         shell: bash
         env:
-          IMG_REPO: model-registry/controller
+          IMG_REPO: hub/controller
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
         run: make image/build

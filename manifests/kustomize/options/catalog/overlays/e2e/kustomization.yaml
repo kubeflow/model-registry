@@ -53,6 +53,6 @@ patches:
     name: model-catalog-server
     version: v1
 images:
-- name: ghcr.io/kubeflow/model-registry/server
+- name: ghcr.io/kubeflow/hub/server
   newName: model-registry
   newTag: catalog-test

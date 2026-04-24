@@ -923,7 +923,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
+							Image: "ghcr.io/kubeflow/hub/job/async-upload:latest",
 							Env: []corev1.EnvVar{
 								{Name: "MODEL_SYNC_SOURCE_TYPE", Value: "s3"},
 								{Name: "MODEL_SYNC_SOURCE_AWS_KEY", Value: "models/my-model"},
@@ -1045,7 +1045,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
+							Image: "ghcr.io/kubeflow/hub/job/async-upload:latest",
 						},
 					},
 				},
@@ -1122,7 +1122,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
+							Image: "ghcr.io/kubeflow/hub/job/async-upload:latest",
 						},
 					},
 				},
@@ -1168,7 +1168,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 				Spec: corev1.PodSpec{
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
-						{Name: "async-upload", Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest"},
+						{Name: "async-upload", Image: "ghcr.io/kubeflow/hub/job/async-upload:latest"},
 					},
 				},
 			},

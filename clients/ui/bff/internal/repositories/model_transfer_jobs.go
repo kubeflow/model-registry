@@ -24,7 +24,7 @@ import (
 
 const (
 	// DefaultAsyncUploadImage is the default container image for async-upload jobs.
-	DefaultAsyncUploadImage  = "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
+	DefaultAsyncUploadImage  = "ghcr.io/kubeflow/hub/job/async-upload:latest"
 	asyncUploadConfigMapName = "model-registry-ui-config"
 	asyncUploadConfigMapKey  = "images-jobs-async-upload"
 )

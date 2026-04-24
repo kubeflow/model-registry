@@ -29,7 +29,7 @@ spec:
           command:
             - /model-registry
             - proxy
-          image: ghcr.io/kubeflow/model-registry/server:latest
+          image: ghcr.io/kubeflow/hub/server:latest
           env:
           - name: DBCONFIG_USER
             valueFrom:

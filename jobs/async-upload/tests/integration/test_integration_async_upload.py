@@ -270,12 +270,12 @@ def wait_for_job_completion(
 
 def get_termination_message(job_name: str, namespace: str, k8s_core_client) -> str | None:
     """Get the termination message from a completed job's pod.
-    
+
     Returns the termination message content or None if not found.
     """
     try:
         pods = k8s_core_client.list_namespaced_pod(
-            namespace=namespace, 
+            namespace=namespace,
             label_selector=f"job-name={job_name}"
         )
         for pod in pods.items:
@@ -298,54 +298,54 @@ def validate_termination_message(
     expected_ma_id: str | None = None,
 ) -> dict:
     """Validate the termination message contains expected JSON structure with IDs.
-    
+
     Args:
         termination_message: The raw termination message string
         expected_intent: Expected intent type (e.g., "create_model", "create_version", "update_artifact")
         expected_rm_id: Expected RegisteredModel ID (validates if provided)
         expected_mv_id: Expected ModelVersion ID (validates if provided)
         expected_ma_id: Expected ModelArtifact ID (validates if provided)
-    
+
     Returns:
         The parsed termination message as a dict
-    
+
     Raises:
         AssertionError if validation fails
     """
     assert termination_message is not None, "Termination message should not be None"
-    
+
     # Parse JSON
     try:
         result = json.loads(termination_message)
     except json.JSONDecodeError as e:
         pytest.fail(f"Termination message is not valid JSON: {e}\nMessage: {termination_message}")
-    
+
     # Validate intent field is always present
     assert "intent" in result, f"Missing 'intent' in termination message: {result}"
-    
+
     if expected_intent:
         assert result["intent"] == expected_intent, \
             f"Intent mismatch: expected {expected_intent}, got {result['intent']}"
-    
+
     # Validate specific IDs if provided
     if expected_rm_id:
         assert "RegisteredModel" in result, f"Missing 'RegisteredModel' in termination message: {result}"
         assert "id" in result["RegisteredModel"], f"Missing 'id' in RegisteredModel: {result}"
         assert result["RegisteredModel"]["id"] == expected_rm_id, \
             f"RegisteredModel ID mismatch: expected {expected_rm_id}, got {result['RegisteredModel']['id']}"
-    
+
     if expected_mv_id:
         assert "ModelVersion" in result, f"Missing 'ModelVersion' in termination message: {result}"
         assert "id" in result["ModelVersion"], f"Missing 'id' in ModelVersion: {result}"
         assert result["ModelVersion"]["id"] == expected_mv_id, \
             f"ModelVersion ID mismatch: expected {expected_mv_id}, got {result['ModelVersion']['id']}"
-    
+
     if expected_ma_id:
         assert "ModelArtifact" in result, f"Missing 'ModelArtifact' in termination message: {result}"
         assert "id" in result["ModelArtifact"], f"Missing 'id' in ModelArtifact: {result}"
         assert result["ModelArtifact"]["id"] == expected_ma_id, \
             f"ModelArtifact ID mismatch: expected {expected_ma_id}, got {result['ModelArtifact']['id']}"
-    
+
     print(f"✅ Termination message validated: {json.dumps(result, indent=2)}")
     return result
 
@@ -431,13 +431,13 @@ class JobResult:
 
 def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
     """Helper function to run the async upload job and wait for completion.
-    
+
     Returns:
         JobResult containing job_name and termination_message
     """
     # Configuration
     container_image_uri = os.environ.get(
-        "CONTAINER_IMAGE_URI", "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
+        "CONTAINER_IMAGE_URI", "ghcr.io/kubeflow/hub/job/async-upload:latest"
     )
     job_name = f"test-async-upload-job-{uuid.uuid4().hex[:8]}"
     namespace = "default"
@@ -502,11 +502,11 @@ def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
         pytest.fail("Job did not complete successfully")
 
     print("Job completed successfully!")
-    
+
     # Get termination message
     termination_message = get_termination_message(job_name, namespace, k8s.core)
     print(f"Termination message: {termination_message}")
-    
+
     return JobResult(job_name=job_name, termination_message=termination_message)
 
 
@@ -647,7 +647,7 @@ def test_update_artifact_integration(
     assert updated_ma.state == ArtifactState.LIVE, f"State was not updated to LIVE: {updated_ma.state}"
     print(f"✅ Artifact URI updated to: {updated_ma.uri}")
     print(f"✅ Artifact state updated to: {updated_ma.state}")
-    
+
     # Validate termination message contains correct IDs
     # Note: update_artifact only returns the ModelArtifact ID since that's the only
     # entity being updated - the job doesn't look up parent RM/MV IDs
@@ -657,7 +657,7 @@ def test_update_artifact_integration(
         expected_intent="update_artifact",
         expected_ma_id=ma.id,
     )
-    
+
     print("Integration test completed successfully!")
 
 

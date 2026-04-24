@@ -69,10 +69,10 @@ Create a PR to update what's needed on the release branch, i.e. to update the ma
 
 ```
 git checkout -b mr_maintainer-$TDATE-upstreamSync
-pushd manifests/kustomize/base && kustomize edit set image ghcr.io/kubeflow/model-registry/server=ghcr.io/kubeflow/model-registry/server:$VVERSION && popd
-pushd manifests/kustomize/options/csi && kustomize edit set image ghcr.io/kubeflow/model-registry/storage-initializer=ghcr.io/kubeflow/model-registry/storage-initializer:$VVERSION && popd
-pushd manifests/kustomize/options/ui/base && kustomize edit set image model-registry-ui=ghcr.io/kubeflow/model-registry/ui:$VVERSION && popd
-pushd manifests/kustomize/options/catalog/base && kustomize edit set image ghcr.io/kubeflow/model-registry/server=ghcr.io/kubeflow/model-registry/server:$VVERSION && popd
+pushd manifests/kustomize/base && kustomize edit set image ghcr.io/kubeflow/hub/server=ghcr.io/kubeflow/hub/server:$VVERSION && popd
+pushd manifests/kustomize/options/csi && kustomize edit set image ghcr.io/kubeflow/hub/storage-initializer=ghcr.io/kubeflow/hub/storage-initializer:$VVERSION && popd
+pushd manifests/kustomize/options/ui/base && kustomize edit set image model-registry-ui=ghcr.io/kubeflow/hub/ui:$VVERSION && popd
+pushd manifests/kustomize/options/catalog/base && kustomize edit set image ghcr.io/kubeflow/hub/server=ghcr.io/kubeflow/hub/server:$VVERSION && popd
 git add .
 git commit -s
 
@@ -142,4 +142,3 @@ Please notice the OpenAPI spec in the Reference section is automatically updated
 See at the beginning "Prerequisites", to facilitate the next round, now it's the best time:
 - bump already MR py client to the next version, example PR
 https://github.com/kubeflow/model-registry/pull/871
-

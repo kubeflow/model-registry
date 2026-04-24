@@ -25,7 +25,7 @@ IMG_ORG ?= kubeflow
 # container image version
 IMG_VERSION ?= main
 # container image repository
-IMG_REPO ?= model-registry/server
+IMG_REPO ?= hub/server
 # container image build path
 BUILD_PATH ?= .
 # container image
@@ -39,19 +39,19 @@ endif
 
 # Change Dockerfile path depending on IMG_REPO
 # UI image uses repo root as context so COPY manifests/... for sample-catalog.yaml works
-ifeq ($(IMG_REPO),model-registry/ui)
+ifeq ($(IMG_REPO),hub/ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
 	BUILD_PATH := $(PROJECT_PATH)
 	ARGS := --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff $(ARGS)
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry/storage-initializer)
+ifeq ($(IMG_REPO),hub/storage-initializer)
     DOCKERFILE := $(CSI_PATH)/Dockerfile.csi
 endif
 
 # The BUILD_PATH is still the root
-ifeq ($(IMG_REPO),model-registry/controller)
+ifeq ($(IMG_REPO),hub/controller)
     DOCKERFILE := $(CONTROLLER_PATH)/Dockerfile.controller
 endif
 
@@ -429,7 +429,7 @@ controller/uninstall: controller/manifests bin/kustomize ## Uninstall CRDs from 
 
 .PHONY: controller/deploy
 controller/deploy: controller/manifests bin/kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/model-registry/controller=${IMG}:${IMG_VERSION}
+	cd manifests/kustomize/options/controller/manager && $(KUSTOMIZE) edit set image ghcr.io/kubeflow/hub/controller=${IMG}:${IMG_VERSION}
 	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) apply -f -
 
 .PHONY: controller/undeploy

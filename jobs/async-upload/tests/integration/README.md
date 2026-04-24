@@ -62,7 +62,7 @@ The integration tests require:
 ## Environment Variables
 
 - `MR_HOST_URL`: Model Registry URL (default: `http://localhost:8080`)
-- `CONTAINER_IMAGE_URI`: Container image for the async-upload job (default: `ghcr.io/kubeflow/model-registry/job/async-upload:latest`)
+- `CONTAINER_IMAGE_URI`: Container image for the async-upload job (default: `ghcr.io/kubeflow/hub/job/async-upload:latest`)
 
 ## What the Tests Do
 
