@@ -2,6 +2,8 @@ import pytest
 import schemathesis
 from hypothesis import settings
 
+from tests.fuzz_api.model_registry.test_mr_stateless import call_and_validate_with_null_byte_handling
+
 schema = schemathesis.pytest.from_fixture("generated_schema")
 
 @pytest.mark.parametrize("generated_schema", ["catalog.yaml"], indirect=True)
@@ -15,4 +17,4 @@ def test_catalog_api_stateless(auth_headers: dict, case: schemathesis.Case, veri
 
     This test uses schemathesis to generate and validate API requests
     """
-    case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
