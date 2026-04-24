@@ -1,10 +1,10 @@
 # Model Registry
 
-![build checks status](https://github.com/kubeflow/model-registry/actions/workflows/build.yml/badge.svg?branch=main)
-[![codecov](https://codecov.io/github/kubeflow/model-registry/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/model-registry)
+![build checks status](https://github.com/kubeflow/hub/actions/workflows/build.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/github/kubeflow/hub/graph/badge.svg?token=61URLQA3VS)](https://codecov.io/github/kubeflow/hub)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkubeflow%2Fmodel-registry.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkubeflow%2Fmodel-registry?ref=badge_shield&issueType=license)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9937/badge)](https://www.bestpractices.dev/projects/9937)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kubeflow/model-registry/badge)](https://scorecard.dev/viewer/?uri=github.com/kubeflow/model-registry)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kubeflow/hub/badge)](https://scorecard.dev/viewer/?uri=github.com/kubeflow/hub)
 
 Model registry provides a central repository for model developers to store and manage models, versions, and artifacts metadata.
 
@@ -14,7 +14,7 @@ Model registry provides a central repository for model developers to store and m
 
 > **Alpha**
 >
-> This Kubeflow component has alpha status with limited support. See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status). The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/model-registry) about the usability of the feature.
+> This Kubeflow component has alpha status with limited support. See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status). The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/hub) about the usability of the feature.
 
 ## Documentation links:
 
@@ -39,10 +39,10 @@ Model registry provides a central repository for model developers to store and m
  - [contributing](./CONTRIBUTING.md)
  - [Kubeflow community and the Model Registry working group](https://www.kubeflow.org/docs/about/community/)
  - REST API
-   - [OpenAPI definition](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml) 
-   - [playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml)
- - [license scanning](https://github.com/kubeflow/model-registry/issues/323)
- - [monitoring image quality](https://github.com/kubeflow/model-registry/issues/327)
+   - [OpenAPI definition](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/hub/main/api/openapi/model-registry.yaml)
+   - [playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/hub/main/api/openapi/model-registry.yaml)
+ - [license scanning](https://github.com/kubeflow/hub/issues/323)
+ - [monitoring image quality](https://github.com/kubeflow/hub/issues/327)
 8. [UI](clients/ui/README.md)
 
 ## Pre-requisites:
@@ -159,7 +159,7 @@ The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allo
 There are two `docker-compose` files that make the startup easier:
 
 - `docker-compose.yaml` - Uses pre-built images from registry
-- `docker-compose-local.yaml` - Builds model registry from source  
+- `docker-compose-local.yaml` - Builds model registry from source
 
 Both files support MySQL and PostgreSQL databases using profiles.
 
@@ -171,7 +171,7 @@ The easiest way to run the services is using the provided Makefile targets:
 # Start with MySQL (using pre-built images)
 make compose/up
 
-# Start with PostgreSQL (using pre-built images)  
+# Start with PostgreSQL (using pre-built images)
 make compose/up/postgres
 
 # Start with MySQL (builds from source)
@@ -195,7 +195,7 @@ Alternatively, you can run the compose files directly:
 # Using pre-built images with MySQL
 docker-compose --profile mysql up
 
-# Using pre-built images with PostgreSQL  
+# Using pre-built images with PostgreSQL
 DB_TYPE=postgres docker-compose --profile postgres up
 
 # Building from source with PostgreSQL

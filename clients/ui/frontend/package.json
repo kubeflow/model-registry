@@ -2,8 +2,8 @@
   "name": "model-registry-ui",
   "version": "1.0.0",
   "description": "An user interface for Kubeflow Model Registry project",
-  "repository": "https://github.com/kubeflow/model-registry.git",
-  "homepage": "https://github.com/kubeflow/model-registry",
+  "repository": "https://github.com/kubeflow/hub.git",
+  "homepage": "https://github.com/kubeflow/hub",
   "license": "Apache-2.0",
   "private": true,
   "engines": {

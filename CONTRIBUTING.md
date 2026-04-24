@@ -1,7 +1,7 @@
 # Kubeflow Contributor Guide
 
-Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and 
-contributions to this project. Please read the 
+Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and
+contributions to this project. Please read the
 [contributor's guide in our docs](https://www.kubeflow.org/docs/about/contributing/).
 
 The contributor's guide:
@@ -10,7 +10,7 @@ The contributor's guide:
   * like explained in [this guide](https://wiki.linuxfoundation.org/dco), or [this example](https://github.com/kubeflow/community/tree/master/dco-signoff-hook#signing-off-commits)
 * references the [Code of Conduct](https://www.kubeflow.org/docs/about/contributing/#follow-the-code-of-conduct)
 * helps you get started with your first contribution to Kubeflow
-  * like how to identify [good-first-issue](https://github.com/kubeflow/model-registry/labels/good%20first%20issue) tickets
+  * like how to identify [good-first-issue](https://github.com/kubeflow/hub/labels/good%20first%20issue) tickets
 * and [describes](https://www.kubeflow.org/docs/about/contributing/#owners-files-and-pr-workflow) the pull request and review workflow in detail, including the
   OWNERS files and automated workflow tool
 
@@ -20,7 +20,7 @@ The [Kubeflow Community calendar](https://www.kubeflow.org/docs/about/community/
 
 The remainder of this document focuses on technical aspects while contributing to the Model Registry project specifically.
 
-The [Model Registry documentation](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/model-registry?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
+The [Model Registry documentation](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links) provides details about: what is a Model Registry, how to Install, logical model Concepts, how the MR python client works, Tutorials, FAQs and most importantly the [Technical References](https://github.com/kubeflow/hub?tab=readme-ov-file#documentation-links:~:text=FAQs-,Development,-introduction%20to%20local)!
 
 # Contributing to Model Registry using Apple-silicon/ARM-based computers
 
@@ -30,7 +30,7 @@ The content from this guide might also be applicable in part for general ARM-bas
 ## Consider installing coreutils
 
 While we strived to keep the repository scripts cross-compatible with GNU and BSD utilities, you might want to consider installing the `coreutils` from Homebrew, [following these instructions](https://formulae.brew.sh/formula/coreutils).
-You will need to ensure the gnubin directory is added to your shell path. 
+You will need to ensure the gnubin directory is added to your shell path.
 
 ## Makefile
 
@@ -280,5 +280,5 @@ Solution:
 - Use `export TESTCONTAINERS_RYUK_DISABLED=true` to disable Ryuk entirely; the tests are configured to close all container resources, but we do not recommend this option
 
 For more information:
-- section [Docker engine](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md#docker-engine) in this document
+- section [Docker engine](https://github.com/kubeflow/hub/blob/main/CONTRIBUTING.md#docker-engine) in this document
 - https://pypi.org/project/testcontainers/#:~:text=the%20database%20version.-,Configuration,-Env%20Variable

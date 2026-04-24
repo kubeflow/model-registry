@@ -1,6 +1,6 @@
 # Kubeflow Model Registry – Async Upload Job
 
-> Lightweight, non‑root Python Job containerised for **transferring model artefacts** between storage back‑ends (S3, OCI, PVC, …) and registering them in **Kubeflow Model Registry**. Born out of the discussion in [kubeflow/model-registry #1108](https://github.com/kubeflow/model-registry/issues/1108).
+> Lightweight, non‑root Python Job containerised for **transferring model artefacts** between storage back‑ends (S3, OCI, PVC, …) and registering them in **Kubeflow Model Registry**. Born out of the discussion in [kubeflow/hub #1108](https://github.com/kubeflow/hub/issues/1108).
 
 ---
 
@@ -198,6 +198,6 @@ The following `SIGSTORE_*` environment variables configure the sigstore infrastr
 
 ## References
 
-- Issue thread : [https://github.com/kubeflow/model-registry/issues/1108](https://github.com/kubeflow/model-registry/issues/1108)
+- Issue thread : [https://github.com/kubeflow/hub/issues/1108](https://github.com/kubeflow/hub/issues/1108)
 - OCI Image Spec : [https://github.com/opencontainers/image-spec](https://github.com/opencontainers/image-spec)
 - Kubernetes Pod Security : [https://kubernetes.io/docs/concepts/security/pod-security-standards/](https://kubernetes.io/docs/concepts/security/pod-security-standards/)

@@ -230,7 +230,7 @@ def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
 def test_save_to_oci_registry_preserves_dir_structure(mocker, tmp_path):
     """Verify one layer per file with correct directory structure via root_dir.
 
-    Regression test for https://github.com/kubeflow/model-registry/issues/2437
+    Regression test for https://github.com/kubeflow/hub/issues/2437
     With root_dir support we expect:
     - One layer per individual file (not one layer per top-level subdir)
     - Original directory structure preserved (paths relative to root_dir)

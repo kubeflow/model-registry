@@ -26,7 +26,7 @@ else
 fi
 # Step 3: Deploy Model Registry to cluster
 echo "Deploying Model Registry to cluster..."
-kubectl apply -k "https://github.com/kubeflow/model-registry/manifests/kustomize/overlays/db"
+kubectl apply -k "https://github.com/kubeflow/hub/manifests/kustomize/overlays/db"
 
 # Wait for deployment to be available
 echo "Waiting for Model Registry deployment to be available..."

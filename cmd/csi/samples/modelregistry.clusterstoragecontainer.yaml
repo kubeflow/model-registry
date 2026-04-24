@@ -5,7 +5,7 @@ metadata:
 spec:
   container:
     name: storage-initializer
-    image: quay.io/kubeflow/model-registry-storage-initializer:latest
+    image: ghcr.io/kubeflow/hub/storage-initializer:latest
     env:
     - name: MR_BASE_URL
       value: "modelregistry-sample.kubeflow.svc.cluster.local:8080"

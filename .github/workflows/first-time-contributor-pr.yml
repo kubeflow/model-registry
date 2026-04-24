@@ -2,7 +2,7 @@ name: Welcome first-time contributors (Beta2)
 
 on:
   pull_request:
-    types: 
+    types:
       - opened
       - synchronize
       - reopened
@@ -33,16 +33,16 @@ jobs:
           python3 << 'EOF'
           import yaml
           import os
-          
+
           with open('OWNERS', 'r') as f:
               data = yaml.safe_load(f)
-          
+
           approvers = data.get('approvers', [])
           result = ' '.join([f'@{approver}' for approver in approvers])
-          
+
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'approvers={result}\n')
-          
+
           print(f'Extracted approvers: {result}')
           EOF
       - name: Log approvers
@@ -59,7 +59,7 @@ jobs:
             Thanks for opening your first issue! We're happy to have you as part of our community 🚀
 
             **Here's what happens next:**
-            - If you'd like to contribute to this issue, check out our [Contributing Guide](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
+            - If you'd like to contribute to this issue, check out our [Contributing Guide](https://github.com/kubeflow/hub/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
             - Our team will review your issue soon!
 
             **Join the community:**
@@ -73,7 +73,7 @@ jobs:
             Thanks for opening your first PR! We're happy to have you as part of our community 🚀
 
             **Here's what happens next:**
-            - If you haven't already, please check out our [Contributing Guide](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
+            - If you haven't already, please check out our [Contributing Guide](https://github.com/kubeflow/hub/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
             - Our team will review your PR soon!
 
             **Join the community:**

@@ -144,7 +144,7 @@ endif
 .PHONY: vet
 vet:
 	@echo "Running go vet on all packages..."
-	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/hub/internal/db/filter) && \
 	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
 	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 

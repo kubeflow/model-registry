@@ -37,7 +37,7 @@ All the following instructions should be performed from the model-registry root 
 
     ```bash
     TAG=$(git rev-parse HEAD) && \
-    MR_IMG=kubeflow/model-registry:$TAG && \
+    MR_IMG=kubeflow/hub:$TAG && \
     make IMG_VERSION=$TAG image/build && \
     kind load docker-image $MR_IMG
     ```
@@ -56,7 +56,7 @@ All the following instructions should be performed from the model-registry root 
     Either, using the local model-registry library as dependency:
     ```bash
     TAG=$(git rev-parse HEAD)
-    IMG=kubeflow/model-registry-storage-initializer:$TAG && \ 
+    IMG=ghcr.io/kubeflow/hub/storage-initializer:$TAG && \
     make IMG_VERSION=$TAG IMG_REPO=model-registry-storage-initializer image/build && \
     kind load docker-image $IMG
     ```
@@ -249,4 +249,3 @@ EOF
     SERVICE_HOSTNAME=$(kubectl get inferenceservice iris-model -n kserve-test -o jsonpath='{.status.url}' | cut -d "/" -f 3)
     curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/iris-model:predict" -d @/tmp/iris-input.json
     ```
-

@@ -2,7 +2,7 @@
 
 > ⚠️  NOTE: UNSTABLE API  ⚠️
 > This library is provided as a convenience for Kubeflow Model Registry developers.
-> If you are not actively involved in the development of Model Registry, please prefer the [REST API](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml).
+> If you are not actively involved in the development of Model Registry, please prefer the [REST API](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/hub/main/api/openapi/model-registry.yaml).
 
 ## Getting Started
 
@@ -17,7 +17,7 @@ You can use Model Registry to manage [convenient type definitions](../pkg/openap
 Install it using:
 
 ```bash
-go get github.com/kubeflow/model-registry
+go get github.com/kubeflow/hub
 ```
 
 Assuming that an Model Registry server is running at `localhost:8080`, you can connect with it using:
@@ -25,7 +25,7 @@ Assuming that an Model Registry server is running at `localhost:8080`, you can c
 ```go
 import (
   "net/http"
-  "github.com/kubeflow/model-registry/pkg/openapi"
+  "github.com/kubeflow/hub/pkg/openapi"
 )
 
 cfg := &openapi.Configuration{
