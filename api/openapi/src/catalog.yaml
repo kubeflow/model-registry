@@ -1800,6 +1800,7 @@ components:
         - `(license = "Apache 2.0" OR license = "MIT") AND verifiedSource = true`
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     mcpToolFilterQuery:
@@ -1824,6 +1825,7 @@ components:
         - `(accessType = "read_only" OR accessType = "execute") AND name LIKE "%model%"`
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     filterQuery:
@@ -1865,6 +1867,7 @@ components:
         - **Combined filtering**: `name = "llm-model" AND artifacts.performance_score > 0.95` - combine model and artifact filters
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     artifactFilterQuery:
@@ -1902,6 +1905,7 @@ components:
         - Escaped property: `` `custom-key` = "value" ``
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     orderBy:

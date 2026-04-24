@@ -22,6 +22,7 @@ import (
 	"github.com/kubeflow/hub/internal/datastore"
 	"github.com/kubeflow/hub/internal/datastore/embedmd"
 	"github.com/kubeflow/hub/internal/db"
+	"github.com/kubeflow/hub/internal/server/middleware"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -197,7 +198,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 
 	server := &http.Server{
 		Addr:    catalogCfg.ListenAddress,
-		Handler: openapi.NewRouter(ctrl, mcpCtrl),
+		Handler: middleware.ValidationMiddleware(openapi.NewRouter(ctrl, mcpCtrl)),
 	}
 
 	g, gctx := errgroup.WithContext(ctx)
