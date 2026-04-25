@@ -37,4 +37,6 @@ export type McpCatalogContextType = {
   filterOptions: McpCatalogFilterOptionsList | null;
   filterOptionsLoaded: boolean;
   filterOptionsLoadError: Error | undefined;
+  emptyCategoryLabels: Set<string>;
+  reportCategoryEmpty: (label: string, isEmpty: boolean) => void;
 };

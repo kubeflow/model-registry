@@ -8,6 +8,7 @@ import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
+import useEmptyCategoryTracking from '~/app/hooks/useEmptyCategoryTracking';
 import {
   CatalogFilterOptionsList,
   CatalogLabelList,
@@ -69,6 +70,8 @@ export type ModelCatalogContextType = {
   ) => string | number | string[] | undefined;
   sortBy: ModelCatalogSortOption | null;
   setSortBy: (sortBy: ModelCatalogSortOption | null) => void;
+  emptyCategoryLabels: Set<string>;
+  reportCategoryEmpty: (label: string, isEmpty: boolean) => void;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -116,6 +119,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   getPerformanceFilterDefaultValue: () => undefined,
   sortBy: null,
   setSortBy: () => undefined,
+  emptyCategoryLabels: new Set<string>(),
+  reportCategoryEmpty: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -150,6 +155,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState(false);
   const [lastViewedModelName, setLastViewedModelName] = React.useState<string | null>(null);
   const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
+  const { emptyCategoryLabels, reportCategoryEmpty } = useEmptyCategoryTracking();
 
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
@@ -350,6 +356,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
       sortBy,
       setSortBy,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     }),
     [
       catalogSourcesLoaded,
@@ -379,6 +387,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       getDefaultValueForPerformanceFilter,
       sortBy,
       setSortBy,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     ],
   );
 

@@ -7,7 +7,7 @@ import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { hasMcpFiltersApplied } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
 import { MCP_CATALOG_TITLE, MCP_CATALOG_DESCRIPTION } from '~/app/pages/mcpCatalog/const';
-import { getActiveSourceLabels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import useEffectiveCategories from '~/app/hooks/useEffectiveCategories';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import McpCatalogSourceLabelSelector from './McpCatalogSourceLabelSelector';
 import McpCatalogAllServersView from './McpCatalogAllServersView';
@@ -24,30 +24,19 @@ const McpCatalog: React.FC = () => {
     catalogSources,
     catalogLabels,
     catalogSourcesLoaded,
+    emptyCategoryLabels,
   } = React.useContext(McpCatalogContext);
 
   const filtersApplied = hasMcpFiltersApplied(filters, searchQuery);
   const isAllServersView = selectedSourceLabel === undefined && !filtersApplied;
 
-  const activeCategories = React.useMemo(
-    () => getActiveSourceLabels(catalogSources, catalogLabels),
-    [catalogSources, catalogLabels],
-  );
-
-  const isSingleCategory = activeCategories.length === 1;
-  const hasNoCategories = activeCategories.length === 0;
-
-  React.useEffect(() => {
-    if (catalogSourcesLoaded && isSingleCategory && selectedSourceLabel !== activeCategories[0]) {
-      setSelectedSourceLabel(activeCategories[0]);
-    }
-  }, [
+  const { effectiveActiveCategories, isSingleCategory, hasNoCategories } = useEffectiveCategories(
+    catalogSources,
+    catalogLabels,
+    emptyCategoryLabels,
     catalogSourcesLoaded,
-    isSingleCategory,
-    activeCategories,
-    selectedSourceLabel,
     setSelectedSourceLabel,
-  ]);
+  );
 
   const handleSearch = React.useCallback(
     (term: string) => {
@@ -103,7 +92,9 @@ const McpCatalog: React.FC = () => {
                     <McpCatalogGalleryView
                       handleFilterReset={handleResetAllFilters}
                       isSingleCategory={isSingleCategory}
-                      singleCategoryLabel={isSingleCategory ? activeCategories[0] : undefined}
+                      singleCategoryLabel={
+                        isSingleCategory ? effectiveActiveCategories[0] : undefined
+                      }
                     />
                   )}
                 </PageSection>
