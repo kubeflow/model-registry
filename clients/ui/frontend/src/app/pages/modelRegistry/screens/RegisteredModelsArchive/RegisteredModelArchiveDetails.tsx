@@ -54,7 +54,7 @@ const RegisteredModelsArchiveDetails: React.FC<RegisteredModelsArchiveDetailsPro
           rm && (
             <Flex alignItems={{ default: 'alignItemsCenter' }}>
               <FlexItem>{rm.name}</FlexItem>
-              <Label>Archived</Label>
+              <Label variant="outline">Archived</Label>
             </Flex>
           )
         }
