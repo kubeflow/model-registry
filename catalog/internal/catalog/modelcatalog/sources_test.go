@@ -7,7 +7,7 @@ import (
 
 	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 	model "github.com/kubeflow/hub/catalog/pkg/openapi"
-	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
 )
 
 func TestSourceCollection_ByLabel(t *testing.T) {

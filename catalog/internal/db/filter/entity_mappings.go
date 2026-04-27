@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	catalogmodels "github.com/kubeflow/hub/catalog/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/filter"
+	"github.com/kubeflow/hub/internal/platform/db/filter"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -87,9 +87,9 @@ func (c *catalogEntityMappings) IsChildEntity(entityType filter.RestEntityType) 
 }
 
 // GetEqualityExpansion implements filter.EqualityExpander so that:
-//   - externalId = "x" matches both exact and namespaced (sourceId:x) stored values.
-//   - name = "modelName" matches both exact and namespaced (sourceId:modelName) stored values,
-//     so callers can filter by model name without requiring the source prefix.
+// - externalId = "x" matches both exact and namespaced (sourceId:x) stored values.
+// - name = "modelName" matches both exact and namespaced (sourceId:modelName) stored values,
+//   so callers can filter by model name without requiring the source prefix.
 func (c *catalogEntityMappings) GetEqualityExpansion(restEntityType filter.RestEntityType, propertyName string, value any) (likeArg any, useExpansion bool) {
 	if restEntityType != filter.RestEntityType(catalogmodels.RestEntityCatalogModel) {
 		return nil, false

@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/hub/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/schema"
-	"github.com/kubeflow/hub/internal/db/utils"
+	"github.com/kubeflow/hub/internal/platform/db/schema"
+	"github.com/kubeflow/hub/internal/platform/db/utils"
 	"gorm.io/gorm"
 )
 

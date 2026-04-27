@@ -3,7 +3,7 @@ package basecatalog
 import (
 	"maps"
 
-	"github.com/kubeflow/hub/internal/db/filter"
+	"github.com/kubeflow/hub/internal/platform/db/filter"
 )
 
 // CommonContextProperties returns the entity-table properties shared by all Context entities.

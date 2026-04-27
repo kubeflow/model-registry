@@ -8,7 +8,7 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
 	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
-	internalmodels "github.com/kubeflow/hub/internal/db/models"
+	internalmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 	"github.com/kubeflow/hub/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -1,7 +1,9 @@
 package filter
 
-// RestEntityType represents the specific REST API entity type
-type RestEntityType string
+import platformfilter "github.com/kubeflow/hub/internal/platform/db/filter"
+
+// RestEntityType is an alias for the platform type
+type RestEntityType = platformfilter.RestEntityType
 
 const (
 	// Context-based REST entities

@@ -5,7 +5,7 @@ import (
 
 	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
 	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
-	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
 )
 
 // DbPropToAPIOption converts a database PropertyOption to an API FilterOption.

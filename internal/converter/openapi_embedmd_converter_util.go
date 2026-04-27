@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
 	"github.com/kubeflow/hub/internal/db/models"
 	"github.com/kubeflow/hub/pkg/api"
 	"github.com/kubeflow/hub/pkg/openapi"

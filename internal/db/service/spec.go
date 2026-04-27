@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/kubeflow/hub/internal/datastore"
+	"github.com/kubeflow/hub/internal/platform/datastore"
 	"github.com/kubeflow/hub/internal/defaults"
 )
 

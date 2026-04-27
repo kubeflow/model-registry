@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/kubeflow/hub/internal/db/filter"
-	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	catalogmodels "github.com/kubeflow/hub/catalog/internal/db/models"
+	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
+	"github.com/kubeflow/hub/internal/platform/db/filter"
 )
 
 type MetricsType string
@@ -22,7 +23,7 @@ type CatalogMetricsArtifactListOptions struct {
 
 // GetRestEntityType implements the FilterApplier interface
 func (c *CatalogMetricsArtifactListOptions) GetRestEntityType() filter.RestEntityType {
-	return filter.RestEntityModelArtifact // Reusing existing filter type
+	return filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact)
 }
 
 type CatalogMetricsArtifactAttributes struct {

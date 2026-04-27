@@ -7,11 +7,11 @@ import (
 
 	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
-	"github.com/kubeflow/hub/internal/apiutils"
-	dbmodels "github.com/kubeflow/hub/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/schema"
-	"github.com/kubeflow/hub/internal/db/service"
-	"github.com/kubeflow/hub/internal/db/utils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
+	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
+	"github.com/kubeflow/hub/internal/platform/db/schema"
+	service "github.com/kubeflow/hub/internal/platform/db/repository"
+	"github.com/kubeflow/hub/internal/platform/db/utils"
 	"gorm.io/gorm"
 )
 

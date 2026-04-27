@@ -3,7 +3,7 @@ package embedmd
 import (
 	"testing"
 
-	"github.com/kubeflow/hub/internal/db/types"
+	"github.com/kubeflow/hub/internal/platform/db/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

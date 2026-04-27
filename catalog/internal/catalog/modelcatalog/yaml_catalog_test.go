@@ -14,8 +14,8 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 	catalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	model "github.com/kubeflow/hub/catalog/pkg/openapi"
-	"github.com/kubeflow/hub/internal/apiutils"
-	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
+	models "github.com/kubeflow/hub/internal/platform/db/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	model "github.com/kubeflow/hub/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/hub/internal/db/models"
+	mrmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 type ListModelsParams struct {
