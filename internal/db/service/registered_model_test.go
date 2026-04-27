@@ -343,4 +343,51 @@ func TestRegisteredModelRepository(t *testing.T) {
 		assert.Equal(t, 3.14, *dbProp.DoubleValue)
 		assert.Nil(t, dbProp.IntValue, "DB int_value column should be NULL after type change")
 	})
+
+	t.Run("TestSameNameRegularAndCustomProperty", func(t *testing.T) {
+		// Regression test: a model with the same property name as both a regular and custom property
+		// must be updatable without triggering a unique_violation (PostgreSQL error 23505).
+		// The bug was that GORM's Model(&existingProp).Select("*").Updates(prop) omitted
+		// is_custom_property=false from the WHERE clause (zero-value bool), causing the UPDATE
+		// to match both rows and try to set both to is_custom_property=false.
+		registeredModel := &models.RegisteredModelImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.RegisteredModelAttributes{
+				Name: apiutils.Of("same-name-prop-model"),
+			},
+			Properties: &[]models.Properties{
+				{Name: "score", StringValue: apiutils.Of("good")},
+			},
+			CustomProperties: &[]models.Properties{
+				{Name: "score", DoubleValue: apiutils.Of(0.95)},
+			},
+		}
+
+		saved, err := repo.Save(registeredModel)
+		require.NoError(t, err)
+
+		// Update the model — this is where the bug triggered
+		registeredModel.ID = saved.GetID()
+		registeredModel.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
+		registeredModel.Properties = &[]models.Properties{
+			{Name: "score", StringValue: apiutils.Of("excellent")},
+		}
+		registeredModel.CustomProperties = &[]models.Properties{
+			{Name: "score", DoubleValue: apiutils.Of(0.99)},
+		}
+
+		updated, err := repo.Save(registeredModel)
+		require.NoError(t, err, "updating a model with same-name regular and custom property must not error")
+
+		retrieved, err := repo.GetByID(*updated.GetID())
+		require.NoError(t, err)
+
+		require.NotNil(t, retrieved.GetProperties())
+		require.Len(t, *retrieved.GetProperties(), 1)
+		assert.Equal(t, "excellent", *(*retrieved.GetProperties())[0].StringValue)
+
+		require.NotNil(t, retrieved.GetCustomProperties())
+		require.Len(t, *retrieved.GetCustomProperties(), 1)
+		assert.Equal(t, 0.99, *(*retrieved.GetCustomProperties())[0].DoubleValue)
+	})
 }
