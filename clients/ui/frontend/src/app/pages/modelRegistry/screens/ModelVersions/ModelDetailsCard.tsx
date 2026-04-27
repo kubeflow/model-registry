@@ -136,16 +136,6 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           {rm.owner || EMPTY_CUSTOM_PROPERTY_VALUE}
         </Content>
       </DashboardDescriptionListGroup>
-      <DashboardDescriptionListGroup title="Model ID">
-        <ClipboardCopy
-          hoverTip="Copy"
-          clickTip="Copied"
-          variant="inline-compact"
-          data-testid="registered-model-id-clipboard-copy"
-        >
-          {rm.id}
-        </ClipboardCopy>
-      </DashboardDescriptionListGroup>
       <DashboardDescriptionListGroup
         isEmpty={!rm.lastUpdateTimeSinceEpoch}
         contentWhenEmpty="Unknown"
@@ -159,6 +149,16 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         title="Created"
       >
         <ModelTimestamp timeSinceEpoch={rm.createTimeSinceEpoch} />
+      </DashboardDescriptionListGroup>
+      <DashboardDescriptionListGroup title="Model ID">
+        <ClipboardCopy
+          hoverTip="Copy"
+          clickTip="Copied"
+          variant="inline-compact"
+          data-testid="registered-model-id-clipboard-copy"
+        >
+          {rm.id}
+        </ClipboardCopy>
       </DashboardDescriptionListGroup>
     </>
   );
