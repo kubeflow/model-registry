@@ -46,7 +46,7 @@ const renderWithContext = (
 };
 
 describe('CatalogSourceStatus', () => {
-  it('renders "Connected" label with outline variant', () => {
+  it('renders "Ready" label with outline variant', () => {
     renderWithContext(mockConfig, {
       catalogSources: {
         ...defaultPagination,
@@ -56,7 +56,7 @@ describe('CatalogSourceStatus', () => {
     });
 
     const label = screen.getByTestId('source-status-connected-test-source');
-    expect(screen.getByText('Connected')).toBeVisible();
+    expect(screen.getByText('Ready')).toBeVisible();
     expect(label.className).toMatch(/outline/);
     expect(label.className).not.toMatch(/filled/);
   });
