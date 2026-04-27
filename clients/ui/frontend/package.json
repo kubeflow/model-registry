@@ -96,7 +96,7 @@
     "@patternfly/react-drag-drop": "^6.4.0",
     "@patternfly/react-icons": "^6.4.0",
     "@patternfly/react-styles": "^6.4.0",
-    "@patternfly/react-table": "^6.4.0",
+    "@patternfly/react-table": "^6.4.3",
     "@patternfly/react-templates": "^6.4.0",
     "classnames": "^2.2.6",
     "dompurify": "^3.4.0",
