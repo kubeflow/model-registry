@@ -75,7 +75,10 @@ generate:
 	@rm -f src/catalog_openapi_README.md
 	@if [ -d patches ] && [ -n "$$(ls -A patches/*.patch 2>/dev/null)" ]; then \
 		echo "Applying patches..."; \
-		git apply patches/*.patch; \
+		for patch_file in patches/*.patch; do \
+			echo "  Applying $$patch_file..."; \
+			git apply "$$patch_file" || exit 1; \
+		done; \
 	fi
 	@echo "[OK] Generated catalog_openapi package"
 
