@@ -237,7 +237,7 @@ def api_client(user_token: str | None, verify_ssl: bool) -> Generator[CatalogAPI
 
 @pytest.fixture(scope="session")
 def model_with_artifacts(
-    request: pytest.FixtureRequest, api_client: CatalogAPIClient, verify_ssl: bool
+    request: pytest.FixtureRequest, api_client: CatalogAPIClient, verify_ssl: bool, kind_cluster: bool
 ) -> tuple[str, str]:
     """Get a model that has artifacts for testing.
 
@@ -254,7 +254,7 @@ def model_with_artifacts(
     if not verify_ssl:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    models = api_client.get_models()
+    models = api_client.get_models(page_size=1000 if not kind_cluster else None)
     if not models.get("items"):
         pytest.fail("No models available - test data may not be loaded")
 
