@@ -92,7 +92,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@patternfly/patternfly": "^6.4.0",
-    "@patternfly/react-core": "^6.4.0",
+    "@patternfly/react-core": "^6.4.3",
     "@patternfly/react-drag-drop": "^6.4.0",
     "@patternfly/react-icons": "^6.4.0",
     "@patternfly/react-styles": "^6.4.0",
