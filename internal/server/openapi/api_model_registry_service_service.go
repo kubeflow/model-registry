@@ -15,10 +15,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kubeflow/hub/internal/apiutils"
 	"github.com/kubeflow/hub/internal/converter"
 	"github.com/kubeflow/hub/internal/converter/generated"
-	"github.com/kubeflow/hub/internal/db/scopes"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
+	"github.com/kubeflow/hub/internal/platform/db/scopes"
 	"github.com/kubeflow/hub/pkg/api"
 	model "github.com/kubeflow/hub/pkg/openapi"
 )

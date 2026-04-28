@@ -3,7 +3,7 @@ package basecatalog
 import (
 	"testing"
 
-	"github.com/kubeflow/hub/internal/db/filter"
+	"github.com/kubeflow/hub/internal/platform/db/filter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

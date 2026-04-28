@@ -19,9 +19,9 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/db/service"
 	"github.com/kubeflow/hub/catalog/internal/leader"
 	"github.com/kubeflow/hub/catalog/internal/server/openapi"
-	"github.com/kubeflow/hub/internal/datastore"
+	"github.com/kubeflow/hub/internal/platform/datastore"
 	"github.com/kubeflow/hub/internal/datastore/embedmd"
-	"github.com/kubeflow/hub/internal/db"
+	"github.com/kubeflow/hub/internal/platform/db"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )

@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	platformmw "github.com/kubeflow/hub/internal/platform/server/middleware"
 	"github.com/kubeflow/hub/internal/server/openapi"
 )
 
@@ -12,5 +13,5 @@ func WrapWithValidation(routers ...openapi.Router) http.Handler {
 	baseRouter := openapi.NewRouter(routers...)
 
 	// Wrap it with our custom validation middleware
-	return ValidationMiddleware(baseRouter)
+	return platformmw.ValidationMiddleware(baseRouter)
 }

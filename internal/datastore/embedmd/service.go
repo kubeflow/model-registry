@@ -9,13 +9,14 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
-	"github.com/kubeflow/hub/internal/apiutils"
-	"github.com/kubeflow/hub/internal/datastore"
-	"github.com/kubeflow/hub/internal/db"
 	"github.com/kubeflow/hub/internal/db/models"
 	"github.com/kubeflow/hub/internal/db/service"
-	"github.com/kubeflow/hub/internal/db/types"
-	"github.com/kubeflow/hub/internal/tls"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
+	"github.com/kubeflow/hub/internal/platform/datastore"
+	db "github.com/kubeflow/hub/internal/platform/db"
+	_ "github.com/kubeflow/hub/internal/platform/db/drivers"
+	"github.com/kubeflow/hub/internal/platform/db/types"
+	"github.com/kubeflow/hub/internal/platform/tls"
 	"gorm.io/gorm"
 )
 

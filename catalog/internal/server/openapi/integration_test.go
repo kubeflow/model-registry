@@ -14,7 +14,7 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/hub/catalog/internal/server/openapi"
 	model "github.com/kubeflow/hub/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/hub/internal/db/models"
+	mrmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/kubeflow/hub/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/platform/db/schema"
 	"gorm.io/gorm"
 )
 

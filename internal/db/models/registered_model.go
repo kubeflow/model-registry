@@ -1,9 +1,8 @@
 package models
 
 import (
-	"math"
-
 	"github.com/kubeflow/hub/internal/db/filter"
+	"github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 type RegisteredModelListOptions struct {
@@ -12,77 +11,19 @@ type RegisteredModelListOptions struct {
 	ExternalID *string
 }
 
-// GetRestEntityType implements the FilterApplier interface
 func (r *RegisteredModelListOptions) GetRestEntityType() filter.RestEntityType {
 	return filter.RestEntityRegisteredModel
 }
 
-type Properties struct {
-	Name             string
-	IsCustomProperty bool
-	IntValue         *int32
-	DoubleValue      *float64
-	StringValue      *string
-	BoolValue        *bool
-	ByteValue        *[]byte
-	ProtoValue       *[]byte
-}
+// Properties is a type alias for entity.Properties
+type Properties = entity.Properties
 
-func (p *Properties) SetInt64Value(n int64) {
-	if n >= math.MinInt32 && n <= math.MaxInt32 {
-		n32 := int32(n)
-		p.IntValue = &n32
-	} else {
-		p.IntValue = nil
-	}
-}
-
-// Constructor functions for Properties
-
-// NewStringProperty creates a string property
-func NewStringProperty(name string, value string, isCustom bool) Properties {
-	return Properties{
-		Name:             name,
-		IsCustomProperty: isCustom,
-		StringValue:      &value,
-	}
-}
-
-// NewIntProperty creates an int property
-func NewIntProperty(name string, value int32, isCustom bool) Properties {
-	return Properties{
-		Name:             name,
-		IsCustomProperty: isCustom,
-		IntValue:         &value,
-	}
-}
-
-// NewDoubleProperty creates a double property
-func NewDoubleProperty(name string, value float64, isCustom bool) Properties {
-	return Properties{
-		Name:             name,
-		IsCustomProperty: isCustom,
-		DoubleValue:      &value,
-	}
-}
-
-// NewBoolProperty creates a bool property
-func NewBoolProperty(name string, value bool, isCustom bool) Properties {
-	return Properties{
-		Name:             name,
-		IsCustomProperty: isCustom,
-		BoolValue:        &value,
-	}
-}
-
-// NewByteProperty creates a byte property
-func NewByteProperty(name string, value []byte, isCustom bool) Properties {
-	return Properties{
-		Name:             name,
-		IsCustomProperty: isCustom,
-		ByteValue:        &value,
-	}
-}
+// Re-export constructor functions
+var NewStringProperty = entity.NewStringProperty
+var NewIntProperty = entity.NewIntProperty
+var NewDoubleProperty = entity.NewDoubleProperty
+var NewBoolProperty = entity.NewBoolProperty
+var NewByteProperty = entity.NewByteProperty
 
 type RegisteredModelAttributes struct {
 	Name                     *string
