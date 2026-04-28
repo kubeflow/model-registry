@@ -69,7 +69,7 @@ dev-start-federated:
 
 .PHONY: dev-frontend-federated
 dev-frontend-federated:
-	cd frontend && AUTH_METHOD=user_token DEPLOYMENT_MODE=federated STYLE_THEME=patternfly PORT=$(FEDERATED_FRONTEND_PORT) npm run start:dev
+	cd frontend && AUTH_METHOD=user_token DEPLOYMENT_MODE=federated STYLE_THEME=patternfly PORT=$(FEDERATED_FRONTEND_PORT) PROXY_PORT=$(FEDERATED_BFF_PORT) npm run start:dev
 
 .PHONY: dev-bff-federated
 dev-bff-federated:
