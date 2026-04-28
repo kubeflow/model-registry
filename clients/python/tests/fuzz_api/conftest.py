@@ -157,6 +157,7 @@ def map_query(context: Any, query: dict[str, Any] | None) -> dict[str, Any] | No
 def map_case(context: Any, case: Case) -> Case:
     """Fix parameter constraints the OpenAPI spec cannot express."""
     _fix_path_param_ids(case)
+    _fix_body_id(case)
     _fix_artifact_body(case)
     if case.method and case.method.upper() != "GET":
         return case
@@ -193,6 +194,21 @@ def _fix_singleton_get_query(case: Case) -> None:
     elif has_name and not has_external_id and not has_parent_id:
         case.query["externalId"] = "999999"
         del case.query["name"]
+
+
+def _fix_body_id(case: Case) -> None:
+    """Sanitize or remove empty id from request body.
+
+    Schemathesis's explicit example replay can bypass map_body, so the body
+    may contain id: "" which the server parses as strconv.ParseInt("").
+    """
+    if not isinstance(case.body, dict):
+        return
+    val = case.body.get("id")
+    if val is None:
+        return
+    if isinstance(val, str) and (not val or not _is_valid_id(val)):
+        del case.body["id"]
 
 
 _ID_PATH_PARAMS = {"id", "registeredmodelId", "modelversionId", "experimentId", "experimentrunId",
