@@ -6,7 +6,7 @@ import (
 
 	"github.com/kubeflow/hub/catalog/internal/converter"
 	"github.com/kubeflow/hub/catalog/pkg/openapi"
-	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
 	"github.com/kubeflow/hub/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"github.com/kubeflow/hub/internal/core"
-	"github.com/kubeflow/hub/internal/db"
-	"github.com/kubeflow/hub/internal/db/schema"
 	"github.com/kubeflow/hub/internal/db/service"
 	"github.com/kubeflow/hub/internal/defaults"
+	db "github.com/kubeflow/hub/internal/platform/db"
+	"github.com/kubeflow/hub/internal/platform/db/schema"
+	platformproxy "github.com/kubeflow/hub/internal/platform/proxy"
+	"github.com/kubeflow/hub/internal/platform/tls"
 	"github.com/kubeflow/hub/internal/testutils"
-	"github.com/kubeflow/hub/internal/tls"
 	"github.com/kubeflow/hub/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -141,8 +142,8 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 
 	cleanupSchemaState(t, sharedDB)
 
-	dbHealthChecker := NewDatabaseHealthChecker()
-	handler := GeneralReadinessHandler(dbHealthChecker)
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
@@ -161,8 +162,8 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	dbHealthChecker := NewDatabaseHealthChecker()
-	handler := GeneralReadinessHandler(dbHealthChecker)
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
@@ -204,9 +205,9 @@ func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 	cleanupSchemaState(t, sharedDB)
 
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health", nil)
 	require.NoError(t, err)
@@ -226,9 +227,9 @@ func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 	cleanupSchemaState(t, sharedDB)
 
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -240,23 +241,23 @@ func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 	assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
 
 	// Parse and validate JSON response
-	var healthStatus HealthStatus
+	var healthStatus platformproxy.HealthStatus
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, StatusPass, healthStatus.Status)
-	assert.Contains(t, healthStatus.Checks, HealthCheckDatabase)
+	assert.Equal(t, platformproxy.StatusPass, healthStatus.Status)
+	assert.Contains(t, healthStatus.Checks, platformproxy.HealthCheckDatabase)
 	assert.Contains(t, healthStatus.Checks, HealthCheckModelRegistry)
-	assert.Contains(t, healthStatus.Checks, HealthCheckMeta)
+	assert.Contains(t, healthStatus.Checks, platformproxy.HealthCheckMeta)
 
 	// Check database health details
-	dbCheck := healthStatus.Checks[HealthCheckDatabase]
-	assert.Equal(t, StatusPass, dbCheck.Status)
+	dbCheck := healthStatus.Checks[platformproxy.HealthCheckDatabase]
+	assert.Equal(t, platformproxy.StatusPass, dbCheck.Status)
 	assert.Equal(t, "database is healthy", dbCheck.Message)
 
 	// Check model registry health details
 	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
-	assert.Equal(t, StatusPass, mrCheck.Status)
+	assert.Equal(t, platformproxy.StatusPass, mrCheck.Status)
 	assert.Equal(t, "model registry service is healthy", mrCheck.Message)
 	assert.Equal(t, float64(5), mrCheck.Details[detailTotalResourcesChecked])
 	assert.Equal(t, true, mrCheck.Details[detailRegisteredModelsAccessible])
@@ -272,9 +273,9 @@ func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 	defer cleanupSchemaState(t, sharedDB)
 
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -285,20 +286,20 @@ func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, rr.Code)
 
 	// Parse and validate JSON response
-	var healthStatus HealthStatus
+	var healthStatus platformproxy.HealthStatus
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, StatusFail, healthStatus.Status)
+	assert.Equal(t, platformproxy.StatusFail, healthStatus.Status)
 
 	// Database should fail
-	dbCheck := healthStatus.Checks[HealthCheckDatabase]
-	assert.Equal(t, StatusFail, dbCheck.Status)
+	dbCheck := healthStatus.Checks[platformproxy.HealthCheckDatabase]
+	assert.Equal(t, platformproxy.StatusFail, dbCheck.Status)
 	assert.Contains(t, dbCheck.Message, "database schema is in dirty state")
 
 	// Model registry should still pass (if database connection works for queries)
 	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
-	assert.Equal(t, StatusPass, mrCheck.Status)
+	assert.Equal(t, platformproxy.StatusPass, mrCheck.Status)
 }
 
 func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T) {
@@ -309,9 +310,9 @@ func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T
 	cleanupSchemaState(t, sharedDB)
 
 	// Create health checkers - with nil model registry service
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(nil)
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -322,19 +323,19 @@ func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T
 	assert.Equal(t, http.StatusServiceUnavailable, rr.Code)
 
 	// Parse and validate JSON response
-	var healthStatus HealthStatus
+	var healthStatus platformproxy.HealthStatus
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, StatusFail, healthStatus.Status)
+	assert.Equal(t, platformproxy.StatusFail, healthStatus.Status)
 
 	// Database should pass
-	dbCheck := healthStatus.Checks[HealthCheckDatabase]
-	assert.Equal(t, StatusPass, dbCheck.Status)
+	dbCheck := healthStatus.Checks[platformproxy.HealthCheckDatabase]
+	assert.Equal(t, platformproxy.StatusPass, dbCheck.Status)
 
 	// Model registry should fail
 	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
-	assert.Equal(t, StatusFail, mrCheck.Status)
+	assert.Equal(t, platformproxy.StatusFail, mrCheck.Status)
 	assert.Equal(t, "model registry service not available", mrCheck.Message)
 }
 
@@ -347,9 +348,9 @@ func TestGeneralReadinessHandler_SimpleTextResponse_Failure(t *testing.T) {
 	defer cleanupSchemaState(t, sharedDB)
 
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health", nil)
 	require.NoError(t, err)
@@ -370,9 +371,9 @@ func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	dbHealthChecker := NewDatabaseHealthChecker()
+	dbHealthChecker := platformproxy.NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(nil) // Nil service to make it fail
-	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
+	handler := platformproxy.GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -382,16 +383,16 @@ func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
 
 	assert.Equal(t, http.StatusServiceUnavailable, rr.Code)
 
-	var healthStatus HealthStatus
+	var healthStatus platformproxy.HealthStatus
 	err = json.Unmarshal(rr.Body.Bytes(), &healthStatus)
 	require.NoError(t, err)
 
-	assert.Equal(t, StatusFail, healthStatus.Status)
+	assert.Equal(t, platformproxy.StatusFail, healthStatus.Status)
 
 	// Both checks should fail
-	dbCheck := healthStatus.Checks[HealthCheckDatabase]
-	assert.Equal(t, StatusFail, dbCheck.Status)
+	dbCheck := healthStatus.Checks[platformproxy.HealthCheckDatabase]
+	assert.Equal(t, platformproxy.StatusFail, dbCheck.Status)
 
 	mrCheck := healthStatus.Checks[HealthCheckModelRegistry]
-	assert.Equal(t, StatusFail, mrCheck.Status)
+	assert.Equal(t, platformproxy.StatusFail, mrCheck.Status)
 }

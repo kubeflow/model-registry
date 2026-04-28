@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { useFetchState, POLL_INTERVAL } from 'mod-arch-core';
 import useModelTransferJobs from '~/app/hooks/useModelTransferJobs';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
@@ -129,10 +129,9 @@ describe('useModelTransferJobs', () => {
     // toggle hasActiveJobs to true and cause a re-render with refreshRate = POLL_INTERVAL.
     const capturedCallback = getCapturedCallback();
     expect(capturedCallback).toBeDefined();
-    await capturedCallback?.({});
-
-    // Wait for the hook to re-render after state update
-    await renderResult.waitForNextUpdate();
+    await act(async () => {
+      await capturedCallback?.({});
+    });
 
     // The latest call to useFetchState should have refreshRate set to POLL_INTERVAL
     const lastCallOptions = optionsCalls[optionsCalls.length - 1];
@@ -234,7 +233,9 @@ describe('useModelTransferJobs', () => {
     // so refreshRate should remain undefined (no need to wait for another update).
     const capturedCallback = getCapturedCallback();
     expect(capturedCallback).toBeDefined();
-    await capturedCallback?.({});
+    await act(async () => {
+      await capturedCallback?.({});
+    });
 
     const lastCallOptions = optionsCalls[optionsCalls.length - 1];
     expect(lastCallOptions.refreshRate).toBeUndefined();

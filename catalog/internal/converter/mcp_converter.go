@@ -9,7 +9,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/hub/catalog/pkg/openapi"
-	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 // ==============================================================================

@@ -16,7 +16,7 @@ import (
 
 	catalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
-	"github.com/kubeflow/hub/internal/db/models"
+	models "github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 func TestPopulateFromHFInfo(t *testing.T) {

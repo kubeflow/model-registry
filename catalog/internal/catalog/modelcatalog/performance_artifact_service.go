@@ -9,8 +9,8 @@ import (
 
 	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/hub/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/scopes"
+	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
+	"github.com/kubeflow/hub/internal/platform/db/scopes"
 )
 
 type PerformanceArtifactParams struct {

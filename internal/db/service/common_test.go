@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kubeflow/hub/internal/db/schema"
+	"github.com/kubeflow/hub/internal/platform/db/schema"
 	"github.com/kubeflow/hub/internal/db/service"
 	"github.com/kubeflow/hub/internal/defaults"
 	"github.com/kubeflow/hub/internal/testutils"

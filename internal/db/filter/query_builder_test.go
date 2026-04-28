@@ -144,15 +144,15 @@ func TestQueryBuilderEntityTypes(t *testing.T) {
 				expectedTablePrefix = "Execution"
 			}
 
-			if queryBuilder.tablePrefix != expectedTablePrefix {
-				t.Errorf("Expected table prefix %s, got %s", expectedTablePrefix, queryBuilder.tablePrefix)
+			if queryBuilder.TablePrefix() != expectedTablePrefix {
+				t.Errorf("Expected table prefix %s, got %s", expectedTablePrefix, queryBuilder.TablePrefix())
 			}
 
 			// Log the result for inspection
 			t.Logf("✅ %s", tt.description)
 			t.Logf("   Query: %s", tt.query)
 			t.Logf("   Entity Type: %s", tt.entityType)
-			t.Logf("   Table Prefix: %s", queryBuilder.tablePrefix)
+			t.Logf("   Table Prefix: %s", queryBuilder.TablePrefix())
 			t.Logf("   Expected Joins: %d", expectedJoins)
 		})
 	}
@@ -240,8 +240,8 @@ func TestQueryBuilderPropertyTypes(t *testing.T) {
 			queryBuilder := NewQueryBuilderForRestEntity(restEntityType, nil)
 
 			// Verify the query builder was created successfully
-			if queryBuilder.entityType != tt.entityType {
-				t.Errorf("Expected entity type %s, got %s", tt.entityType, queryBuilder.entityType)
+			if queryBuilder.EntityType() != tt.entityType {
+				t.Errorf("Expected entity type %s, got %s", tt.entityType, queryBuilder.EntityType())
 			}
 
 			// Log the result for inspection
@@ -384,7 +384,7 @@ func TestQueryBuilderPropertyTypeSuffix(t *testing.T) {
 				t.Fatal("No leaf expression found")
 			}
 
-			propRef := qb.buildPropertyReference(leafExpr)
+			propRef := qb.BuildPropertyReference(leafExpr)
 
 			// Check property name
 			if propRef.Name != tt.expectedSQL {
@@ -450,8 +450,8 @@ func TestExperimentPropertiesInArtifacts(t *testing.T) {
 				// Create query builder for this artifact type
 				queryBuilder := NewQueryBuilderForRestEntity(artifactType.restEntityType, nil)
 
-				if queryBuilder.entityType != EntityTypeArtifact {
-					t.Errorf("Expected EntityTypeArtifact, got %s", queryBuilder.entityType)
+				if queryBuilder.EntityType() != EntityTypeArtifact {
+					t.Errorf("Expected EntityTypeArtifact, got %s", queryBuilder.EntityType())
 				}
 
 				// Build property reference
@@ -460,7 +460,7 @@ func TestExperimentPropertiesInArtifacts(t *testing.T) {
 					t.Fatal("No leaf expression found")
 				}
 
-				propRef := queryBuilder.buildPropertyReference(leafExpr)
+				propRef := queryBuilder.BuildPropertyReference(leafExpr)
 
 				if propRef.Name != prop.dbColumn {
 					t.Errorf("Expected property reference name %s, got %s", prop.dbColumn, propRef.Name)

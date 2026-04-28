@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubeflow/hub/internal/apiutils"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
 	"github.com/kubeflow/hub/internal/db/models"
 	"github.com/kubeflow/hub/pkg/openapi"
 	"github.com/stretchr/testify/assert"

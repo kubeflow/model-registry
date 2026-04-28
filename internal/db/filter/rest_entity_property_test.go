@@ -185,17 +185,17 @@ func TestQueryBuilderWithPropertyTypeDistinction(t *testing.T) {
 			qb := NewQueryBuilderForRestEntity(tt.restEntityType, nil)
 
 			// Verify the query builder was created with correct types
-			if qb.restEntityType != tt.restEntityType {
-				t.Errorf("Expected REST entity type %s, got %s", tt.restEntityType, qb.restEntityType)
+			if qb.RestEntityType() != tt.restEntityType {
+				t.Errorf("Expected REST entity type %s, got %s", tt.restEntityType, qb.RestEntityType())
 			}
 
 			expectedMLMDType := GetMLMDEntityType(tt.restEntityType)
-			if qb.entityType != expectedMLMDType {
-				t.Errorf("Expected MLMD entity type %s, got %s", expectedMLMDType, qb.entityType)
+			if qb.EntityType() != expectedMLMDType {
+				t.Errorf("Expected MLMD entity type %s, got %s", expectedMLMDType, qb.EntityType())
 			}
 
 			t.Logf("✅ %s: Query builder created successfully with REST entity type %s (MLMD: %s)",
-				tt.description, qb.restEntityType, qb.entityType)
+				tt.description, qb.RestEntityType(), qb.EntityType())
 		})
 	}
 }

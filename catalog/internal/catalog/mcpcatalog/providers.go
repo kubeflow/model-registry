@@ -15,7 +15,7 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/hub/catalog/internal/catalog/mcpcatalog/models"
 	apimodels "github.com/kubeflow/hub/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/hub/internal/db/models"
+	mrmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 

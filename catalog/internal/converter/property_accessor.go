@@ -3,7 +3,7 @@ package converter
 import (
 	"encoding/json"
 
-	dbmodels "github.com/kubeflow/hub/internal/db/models"
+	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 // PropertyAccessor provides O(1) access to database properties via map lookup.

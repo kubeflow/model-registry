@@ -6,10 +6,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kubeflow/hub/internal/datastore"
 	"github.com/kubeflow/hub/internal/datastore/embedmd"
-	"github.com/kubeflow/hub/internal/datastore/embedmd/postgres"
-	"github.com/kubeflow/hub/internal/tls"
+	"github.com/kubeflow/hub/internal/platform/datastore"
+	"github.com/kubeflow/hub/internal/platform/db/postgres"
+	"github.com/kubeflow/hub/internal/platform/tls"
 	"github.com/stretchr/testify/require"
 	testcontainers "github.com/testcontainers/testcontainers-go"
 	cont_postgres "github.com/testcontainers/testcontainers-go/modules/postgres"

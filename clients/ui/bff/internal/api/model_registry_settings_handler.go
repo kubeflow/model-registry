@@ -36,10 +36,33 @@ func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *h
 		Key:  "ssl-secret-key",
 	}
 
+	lastTransitionTime, _ := time.Parse(time.RFC3339, "2024-03-22T09:30:02Z")
+	deletionTime := lastTransitionTime
 	registries := []models.ModelRegistryKind{
-		createSampleModelRegistry("model-registry", namespace, &sslRootCertificateConfigMap, nil),
-		createSampleModelRegistry("model-registry-dora", namespace, nil, &sslRootCertificateSecret),
-		createSampleModelRegistry("model-registry-bella", namespace, nil, nil),
+		createSampleModelRegistry("model-registry", namespace, &sslRootCertificateConfigMap, nil, nil, nil),
+		createSampleModelRegistry("model-registry-dora", namespace, nil, &sslRootCertificateSecret, nil, nil),
+		createSampleModelRegistry("model-registry-bella", namespace, nil, nil, nil, nil),
+		createSampleModelRegistry("model-registry-ready", namespace, nil, nil, nil,
+			[]models.Condition{
+				{LastTransitionTime: lastTransitionTime, Message: "Deployment for custom resource model-registry-ready is available", Reason: "Available", Status: "True", Type: "Available"},
+			}),
+		createSampleModelRegistry("model-registry-starting", namespace, nil, nil, nil,
+			[]models.Condition{
+				{LastTransitionTime: lastTransitionTime, Message: "Deployment for custom resource model-registry-starting was successfully created", Reason: "CreatedDeployment", Status: "True", Type: "Progressing"},
+			}),
+		createSampleModelRegistry("model-registry-stopping", namespace, nil, nil, &deletionTime,
+			[]models.Condition{
+				{LastTransitionTime: lastTransitionTime, Message: "Deployment for custom resource model-registry-stopping is available", Reason: "Available", Status: "True", Type: "Available"},
+			}),
+		createSampleModelRegistry("model-registry-degrading", namespace, nil, nil, nil,
+			[]models.Condition{
+				{LastTransitionTime: lastTransitionTime, Message: "Service is degrading", Reason: "Degraded", Status: "True", Type: "Degraded"},
+			}),
+		createSampleModelRegistry("model-registry-unavailable", namespace, nil, nil, nil,
+			[]models.Condition{
+				{LastTransitionTime: lastTransitionTime, Message: "Service is unavailable", Reason: "Unavailable", Status: "False", Type: "Available"},
+				{LastTransitionTime: lastTransitionTime, Message: "Istio resources are unavailable", Reason: "IstioUnavailable", Status: "False", Type: "IstioAvailable"},
+			}),
 	}
 
 	modelRegistryRes := ModelRegistrySettingsListEnvelope{
@@ -62,7 +85,7 @@ func (app *App) GetModelRegistrySettingsHandler(w http.ResponseWriter, r *http.R
 	}
 
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil, nil, nil)
 
 	modelRegistryWithCreds := models.ModelRegistryAndCredentials{
 		ModelRegistry:    registry,
@@ -102,7 +125,7 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 
 	ctxLogger.Info("Creating model registry", "name", modelRegistryName)
 
-	registry := createSampleModelRegistry(modelRegistryName, namespace, nil, nil)
+	registry := createSampleModelRegistry(modelRegistryName, namespace, nil, nil, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -125,7 +148,7 @@ func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	}
 
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -148,7 +171,7 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 
 	// This is a temporary fix to handle frontend error (as it is expecting ModelRegistryKind response) until we have a real implementation
 	modelId := ps.ByName(ModelRegistryId)
-	registry := createSampleModelRegistry(modelId, namespace, nil, nil)
+	registry := createSampleModelRegistry(modelId, namespace, nil, nil, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
 		Data: registry,
@@ -161,10 +184,9 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 }
 
 // This function is a temporary function to create a sample model registry kind until we have a real implementation
-func createSampleModelRegistry(name string, namespace string, SSLRootCertificateConfigMap *models.Entry, SSLRootCertificateSecret *models.Entry) models.ModelRegistryKind {
+func createSampleModelRegistry(name string, namespace string, SSLRootCertificateConfigMap *models.Entry, SSLRootCertificateSecret *models.Entry, deletionTimestamp *time.Time, conditions []models.Condition) models.ModelRegistryKind {
 
 	creationTime, _ := time.Parse(time.RFC3339, "2024-03-14T08:01:42Z")
-	lastTransitionTime, _ := time.Parse(time.RFC3339, "2024-03-22T09:30:02Z")
 
 	return models.ModelRegistryKind{
 		APIVersion: "modelregistry.io/v1alpha1",
@@ -173,6 +195,7 @@ func createSampleModelRegistry(name string, namespace string, SSLRootCertificate
 			Name:              name,
 			Namespace:         namespace,
 			CreationTimestamp: creationTime,
+			DeletionTimestamp: deletionTimestamp,
 			Annotations:       map[string]string{},
 		},
 		Spec: models.ModelRegistrySpec{
@@ -205,15 +228,7 @@ func createSampleModelRegistry(name string, namespace string, SSLRootCertificate
 			},
 		},
 		Status: models.Status{
-			Conditions: []models.Condition{
-				{
-					LastTransitionTime: lastTransitionTime,
-					Message:            "Deployment for custom resource " + name + " was successfully created",
-					Reason:             "CreatedDeployment",
-					Status:             "True",
-					Type:               "Progressing",
-				},
-			},
+			Conditions: conditions,
 		},
 	}
 }

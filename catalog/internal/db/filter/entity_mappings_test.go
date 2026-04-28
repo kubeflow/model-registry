@@ -3,8 +3,9 @@ package filter
 import (
 	"testing"
 
+	modelcatalogmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	catalogmodels "github.com/kubeflow/hub/catalog/internal/db/models"
-	"github.com/kubeflow/hub/internal/db/filter"
+	"github.com/kubeflow/hub/internal/platform/db/filter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -123,6 +124,31 @@ func TestBackwardCompat_CatalogArtifact(t *testing.T) {
 	}
 
 	assert.False(t, mappings.IsChildEntity(entityType))
+}
+
+func TestArtifactListOptionsMapToCatalogArtifactEntity(t *testing.T) {
+	mappings := NewCatalogEntityMappings()
+
+	tests := []struct {
+		name       string
+		entityType filter.RestEntityType
+	}{
+		{
+			name:       "model artifact list options",
+			entityType: (&modelcatalogmodels.CatalogModelArtifactListOptions{}).GetRestEntityType(),
+		},
+		{
+			name:       "metrics artifact list options",
+			entityType: (&modelcatalogmodels.CatalogMetricsArtifactListOptions{}).GetRestEntityType(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact), tt.entityType)
+			assert.Equal(t, filter.EntityTypeArtifact, mappings.GetMLMDEntityType(tt.entityType))
+		})
+	}
 }
 
 func TestBackwardCompat_MCPServer(t *testing.T) {

@@ -15,8 +15,8 @@ import (
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/hub/catalog/internal/db/service"
-	"github.com/kubeflow/hub/internal/apiutils"
-	"github.com/kubeflow/hub/internal/db/models"
+	"github.com/kubeflow/hub/internal/platform/apiutils"
+	models "github.com/kubeflow/hub/internal/platform/db/entity"
 )
 
 // metadataJSON represents the minimal structure needed from metadata.json files
