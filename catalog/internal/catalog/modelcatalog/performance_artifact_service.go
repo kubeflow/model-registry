@@ -469,10 +469,10 @@ func (s *PerformanceArtifactService) GetMinimumRecommendedLatency(
 		ModelID:               *model.GetID(),
 		TargetRPS:             targetRPS,
 		Recommendations:       true,                   // Enable Pareto filtering
-		FilterQuery:           filterQuery,             // Apply same filter as performance artifacts API
-		PageSize:              100,                     // Get all Pareto-filtered artifacts (reasonable limit)
-		OrderBy:               params.LatencyProperty,  // Sort by latency property (e.g., "ttft_p90")
-		SortOrder:             "ASC",                   // Ascending order to get minimum first
+		FilterQuery:           filterQuery,            // Apply same filter as performance artifacts API
+		PageSize:              100,                    // Get all Pareto-filtered artifacts (reasonable limit)
+		OrderBy:               params.LatencyProperty, // Sort by latency property (e.g., "ttft_p90")
+		SortOrder:             "ASC",                  // Ascending order to get minimum first
 		RPSProperty:           params.RpsProperty,
 		LatencyProperty:       params.LatencyProperty,
 		HardwareCountProperty: params.HardwareCountProperty,
