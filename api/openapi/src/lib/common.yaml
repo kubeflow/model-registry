@@ -99,7 +99,6 @@ components:
               format: int64
               description: The unique server generated id of the resource.
               type: string
-              readOnly: true
         - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceList:
       required:
