@@ -48,7 +48,9 @@ class RegisterAndStoreFields {
   }
 
   selectNamespace(name: string) {
-    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
+    this.findNamespaceSelectCombobox().should('not.be.disabled');
+    this.findNamespaceSelectCombobox().scrollIntoView().click();
+    cy.findByRole('listbox').should('be.visible');
     cy.findByRole('option', { name }).click();
   }
 
@@ -66,11 +68,12 @@ class RegisterAndStoreFields {
   }
 
   shouldHaveNamespaceOptions(namespaces: string[]) {
-    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
+    this.findNamespaceSelectCombobox().should('not.be.disabled');
+    this.findNamespaceSelectCombobox().scrollIntoView().click();
     namespaces.forEach((namespace) => {
       cy.findByRole('option', { name: namespace }).should('exist');
     });
-    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
+    this.findNamespaceSelectCombobox().scrollIntoView().click();
     return this;
   }
 
