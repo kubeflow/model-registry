@@ -34,9 +34,9 @@ type ModelArtifact struct {
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	// Optional id of the experiment that produced this artifact.
-	ExperimentId *string `json:"experimentId,omitempty"`
+	ExperimentId *string `json:"experimentId,omitempty" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	// Optional id of the experiment run that produced this artifact.
-	ExperimentRunId *string `json:"experimentRunId,omitempty"`
+	ExperimentRunId *string `json:"experimentRunId,omitempty" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	ArtifactType    *string `json:"artifactType,omitempty"`
 	// Name of the model format.
 	ModelFormatName *string `json:"modelFormatName,omitempty"`

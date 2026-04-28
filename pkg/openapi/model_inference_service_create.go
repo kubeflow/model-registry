@@ -28,14 +28,14 @@ type InferenceServiceCreate struct {
 	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
-	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	ModelVersionId *string `json:"modelVersionId,omitempty" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	// Model runtime.
 	Runtime      *string                `json:"runtime,omitempty"`
 	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`
 	// ID of the `RegisteredModel` to serve.
-	RegisteredModelId string `json:"registeredModelId"`
+	RegisteredModelId string `json:"registeredModelId" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	// ID of the parent `ServingEnvironment` for this `InferenceService` entity.
-	ServingEnvironmentId string `json:"servingEnvironmentId"`
+	ServingEnvironmentId string `json:"servingEnvironmentId" validate:"regexp=^[1-9][0-9]{0,8}$"`
 }
 
 type _InferenceServiceCreate InferenceServiceCreate

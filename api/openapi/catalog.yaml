@@ -1752,7 +1752,7 @@ components:
         int_value:
           format: int32
           type: string
-          pattern: "^-?[0-9]{1,9}$"
+          pattern: "^-?([1-9][0-9]{0,8}|0)$"
         metadataType:
           type: string
           enum:
@@ -2403,10 +2403,9 @@ components:
       name: pageSize
       description: Number of entities in each page.
       schema:
-        type: integer
+        type: string
         format: int32
-        minimum: 1
-        maximum: 2147483647
+        pattern: "^[1-9][0-9]{0,8}$"
       in: query
       required: false
     nextPageToken:

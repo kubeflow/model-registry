@@ -58,7 +58,7 @@ func (r ApiFindMCPServerToolsRequest) SortOrder(sortOrder SortOrder) ApiFindMCPS
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiFindMCPServerToolsRequest) NextPageToken(nextPageToken string) ApiFindMCPServerToolsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -283,7 +283,7 @@ func (r ApiFindMCPServersRequest) SortOrder(sortOrder SortOrder) ApiFindMCPServe
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiFindMCPServersRequest) NextPageToken(nextPageToken string) ApiFindMCPServersRequest {
 	r.nextPageToken = &nextPageToken
 	return r

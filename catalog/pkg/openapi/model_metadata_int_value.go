@@ -17,9 +17,9 @@ import (
 // checks if the MetadataIntValue type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &MetadataIntValue{}
 
-// MetadataIntValue An integer (int64) property value.
+// MetadataIntValue An integer (int32) property value.
 type MetadataIntValue struct {
-	IntValue     string `json:"int_value"`
+	IntValue     string `json:"int_value" validate:"regexp=^-?([1-9][0-9]{0,8}|0)$"`
 	MetadataType string `json:"metadataType"`
 }
 

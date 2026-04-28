@@ -35,7 +35,7 @@ type ServeModel struct {
 	LastUpdateTimeSinceEpoch *string         `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	LastKnownState           *ExecutionState `json:"lastKnownState,omitempty"`
 	// ID of the `ModelVersion` that was served in `InferenceService`.
-	ModelVersionId string `json:"modelVersionId"`
+	ModelVersionId string `json:"modelVersionId" validate:"regexp=^[1-9][0-9]{0,8}$"`
 }
 
 type _ServeModel ServeModel

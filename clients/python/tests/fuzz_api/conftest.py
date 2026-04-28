@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import os
 import secrets
 import subprocess
@@ -13,6 +14,8 @@ from schemathesis.generation.stateful.state_machine import APIStateMachine
 from schemathesis.specs.openapi.schemas import OpenApiSchema
 
 from tests.constants import DEFAULT_API_TIMEOUT, REGISTRY_URL
+
+logger = logging.getLogger(__name__)
 
 SINGLETON_GET_PATHS = {
     "/api/model_registry/v1alpha3/registered_model",
@@ -83,24 +86,35 @@ def map_body(context: Any, body: Any) -> Any:
     """
     body = _sanitize_strings(body)
     if isinstance(body, dict):
-        allowed = _resolve_allowed(context)
-        body = {k: v for k, v in body.items() if k in allowed}
-        for field in _STRING_FIELDS:
-            if field in body and not isinstance(body[field], str):
-                del body[field]
-        for field in _NUMERIC_STRING_FIELDS:
-            if field in body and isinstance(body[field], str):
-                try:
-                    int(body[field])
-                except ValueError:
-                    body[field] = str(secrets.randbelow(999999999))
-        if "name" in body and body["name"] == "":
-            body["name"] = f"fuzz-{secrets.randbelow(1000000)}"
-        if "customProperties" in body:
-            body["customProperties"] = _sanitize_custom_properties(body["customProperties"])
-        if "artifactType" in body and body["artifactType"] not in _ARTIFACT_TYPES:
-            body["artifactType"] = "doc-artifact"
+        body = _sanitize_body_dict(context, body)
     return body
+
+
+def _sanitize_body_dict(context: Any, body: dict) -> dict:
+    """Filter, coerce, and fix fields in a fuzz-generated request body dict."""
+    allowed = _resolve_allowed(context)
+    body = {k: v for k, v in body.items() if k in allowed}
+    _enforce_field_types(body)
+    if "name" in body and body["name"] == "":
+        body["name"] = f"fuzz-{secrets.randbelow(1000000)}"
+    if "customProperties" in body:
+        body["customProperties"] = _sanitize_custom_properties(body["customProperties"])
+    if "artifactType" in body and body["artifactType"] not in _ARTIFACT_TYPES:
+        body["artifactType"] = "doc-artifact"
+    return body
+
+
+def _enforce_field_types(body: dict) -> None:
+    """Remove non-string values from string fields and coerce numeric string fields."""
+    for field in _STRING_FIELDS:
+        if field in body and not isinstance(body[field], str):
+            del body[field]
+    for field in _NUMERIC_STRING_FIELDS:
+        if field in body and isinstance(body[field], str):
+            try:
+                int(body[field])
+            except ValueError:
+                body[field] = str(secrets.randbelow(999999999))
 
 
 def _resolve_allowed(context: Any) -> set[str]:
@@ -112,7 +126,7 @@ def _resolve_allowed(context: Any) -> set[str]:
             if path in _PATH_PROPERTIES:
                 return _PATH_PROPERTIES[path]
     except Exception:
-        pass
+        logger.debug("Failed to resolve allowed properties from context", exc_info=True)
     return _ALL_BODY_PROPERTIES
 
 
@@ -142,20 +156,32 @@ def map_query(context: Any, query: dict[str, Any] | None) -> dict[str, Any] | No
 @schemathesis.hook
 def map_case(context: Any, case: Case) -> Case:
     """Fix parameter constraints the OpenAPI spec cannot express."""
-    if case.path and _is_generic_artifact_path(case.path) and isinstance(case.body, dict):
-        method = case.method.upper() if case.method else ""
-        if method == "POST":
-            if "artifactType" not in case.body or case.body["artifactType"] not in _ARTIFACT_TYPES:
-                case.body["artifactType"] = secrets.choice(_ARTIFACT_TYPES)
-            _ensure_artifact_required_fields(case.body)
-        elif method == "PATCH":
-            existing_type = _get_artifact_type(case)
-            if existing_type:
-                case.body["artifactType"] = existing_type
+    _fix_artifact_body(case)
     if case.method and case.method.upper() != "GET":
         return case
     if case.path not in SINGLETON_GET_PATHS:
         return case
+    _fix_singleton_get_query(case)
+    return case
+
+
+def _fix_artifact_body(case: Case) -> None:
+    """Ensure artifact bodies have valid artifactType and required fields."""
+    if not (case.path and _is_generic_artifact_path(case.path) and isinstance(case.body, dict)):
+        return
+    method = case.method.upper() if case.method else ""
+    if method == "POST":
+        if "artifactType" not in case.body or case.body["artifactType"] not in _ARTIFACT_TYPES:
+            case.body["artifactType"] = secrets.choice(_ARTIFACT_TYPES)
+        _ensure_artifact_required_fields(case.body)
+    elif method == "PATCH":
+        existing_type = _get_artifact_type(case)
+        if existing_type:
+            case.body["artifactType"] = existing_type
+
+
+def _fix_singleton_get_query(case: Case) -> None:
+    """Ensure singleton GET endpoints have a valid identifier query parameter."""
     if case.query is None:
         case.query = {}
     has_name = case.query.get("name")
@@ -166,7 +192,6 @@ def map_case(context: Any, case: Case) -> Case:
     elif has_name and not has_external_id and not has_parent_id:
         case.query["externalId"] = "999999"
         del case.query["name"]
-    return case
 
 
 _GENERIC_ARTIFACT_PATHS = {
@@ -190,7 +215,7 @@ def _get_artifact_type(case: Case) -> str | None:
         if resp.ok:
             return resp.json().get("artifactType")
     except Exception:
-        pass
+        logger.debug("Failed to fetch artifact type for %s", case.formatted_path, exc_info=True)
     return None
 
 

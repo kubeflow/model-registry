@@ -34,7 +34,7 @@ type ExperimentRun struct {
 	// Experiment run owner id or name.
 	Owner *string `json:"owner,omitempty"`
 	// ID of the `Experiment` to which this experiment run belongs.
-	ExperimentId string `json:"experimentId"`
+	ExperimentId string `json:"experimentId" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	// Start time of the experiment run in milliseconds since epoch. Different from createTimeSinceEpoch, which is registry resource creation time.
 	StartTimeSinceEpoch *string `json:"startTimeSinceEpoch,omitempty"`
 	// The unique server generated id of the resource.
