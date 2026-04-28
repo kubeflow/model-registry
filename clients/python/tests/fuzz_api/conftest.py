@@ -156,8 +156,8 @@ def map_query(context: Any, query: dict[str, Any] | None) -> dict[str, Any] | No
 @schemathesis.hook
 def map_case(context: Any, case: Case) -> Case:
     """Fix parameter constraints the OpenAPI spec cannot express."""
+    _fix_path_param_ids(case)
     _fix_artifact_body(case)
-    _fix_nested_post_parent(case)
     if case.method and case.method.upper() != "GET":
         return case
     if case.path not in SINGLETON_GET_PATHS:
@@ -195,59 +195,33 @@ def _fix_singleton_get_query(case: Case) -> None:
         del case.query["name"]
 
 
-_NESTED_PARENT_ENDPOINTS: dict[str, tuple[str, str]] = {
-    "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions": (
-        "/api/model_registry/v1alpha3/registered_models",
-        "registeredmodelId",
-    ),
-    "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts": (
-        "/api/model_registry/v1alpha3/model_versions",
-        "modelversionId",
-    ),
-    "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts": (
-        "/api/model_registry/v1alpha3/experiment_runs",
-        "experimentrunId",
-    ),
-}
-
-_parent_id_cache: dict[str, str] = {}
+_ID_PATH_PARAMS = {"id", "registeredmodelId", "modelversionId", "experimentId", "experimentrunId",
+                   "inferenceserviceId", "servingenvironmentId", "servemodelId"}
 
 
-def _fix_nested_post_parent(case: Case) -> None:
-    """Ensure path parameters reference existing parent resources."""
-    if not case.path:
+def _fix_path_param_ids(case: Case) -> None:
+    """Replace empty or non-numeric path parameter IDs with a valid fallback.
+
+    Schemathesis sometimes generates empty strings for path parameters despite
+    the pattern constraint. An empty ID causes 400 (bad request); a valid but
+    non-existent numeric ID causes 404 which Schemathesis already accepts.
+    """
+    if not case.path_parameters:
         return
-    entry = _NESTED_PARENT_ENDPOINTS.get(case.path)
-    if not entry:
-        return
-    parent_url, param_name = entry
-    parent_id = _parent_id_cache.get(param_name) or _ensure_parent(parent_url)
-    if parent_id:
-        _parent_id_cache[param_name] = parent_id
-        if case.path_parameters is None:
-            case.path_parameters = {}
-        case.path_parameters[param_name] = parent_id
+    for param in _ID_PATH_PARAMS:
+        val = case.path_parameters.get(param)
+        if val is not None and not _is_valid_id(val):
+            case.path_parameters[param] = "1"
 
 
-def _ensure_parent(parent_url: str) -> str | None:
-    """Get or create a parent resource, returning its id."""
+def _is_valid_id(val: Any) -> bool:
+    """Check if a value is a non-empty numeric string."""
+    if not isinstance(val, str) or not val:
+        return False
     try:
-        resp = requests.get(f"{REGISTRY_URL}{parent_url}", params={"pageSize": "1"}, timeout=DEFAULT_API_TIMEOUT)
-        if resp.ok:
-            items = resp.json().get("items", [])
-            if items:
-                return items[0].get("id")
-        name = f"fuzz-parent-{secrets.randbelow(1000000)}"
-        resp = requests.post(
-            f"{REGISTRY_URL}{parent_url}",
-            json={"name": name},
-            timeout=DEFAULT_API_TIMEOUT,
-        )
-        if resp.ok:
-            return resp.json().get("id")
-    except Exception:
-        logger.debug("Failed to ensure parent at %s", parent_url, exc_info=True)
-    return None
+        return int(val) > 0
+    except ValueError:
+        return False
 
 
 _GENERIC_ARTIFACT_PATHS = {
