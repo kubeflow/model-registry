@@ -157,6 +157,7 @@ def map_query(context: Any, query: dict[str, Any] | None) -> dict[str, Any] | No
 def map_case(context: Any, case: Case) -> Case:
     """Fix parameter constraints the OpenAPI spec cannot express."""
     _fix_artifact_body(case)
+    _fix_nested_post_parent(case)
     if case.method and case.method.upper() != "GET":
         return case
     if case.path not in SINGLETON_GET_PATHS:
@@ -192,6 +193,59 @@ def _fix_singleton_get_query(case: Case) -> None:
     elif has_name and not has_external_id and not has_parent_id:
         case.query["externalId"] = "999999"
         del case.query["name"]
+
+
+_NESTED_POST_PARENTS: dict[str, tuple[str, str, dict[str, Any]]] = {
+    "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions": (
+        "/api/model_registry/v1alpha3/registered_models",
+        "registeredmodelId",
+        {"name": "fuzz-parent-rm", "description": "auto-created for fuzz"},
+    ),
+    "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts": (
+        "/api/model_registry/v1alpha3/model_versions",
+        "modelversionId",
+        {},
+    ),
+    "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts": (
+        "/api/model_registry/v1alpha3/experiment_runs",
+        "experimentrunId",
+        {},
+    ),
+}
+
+_parent_id_cache: dict[str, str] = {}
+
+
+def _fix_nested_post_parent(case: Case) -> None:
+    """Ensure parent resources exist for nested POST endpoints."""
+    if not case.path or not case.method or case.method.upper() != "POST":
+        return
+    entry = _NESTED_POST_PARENTS.get(case.path)
+    if not entry:
+        return
+    parent_url, param_name, create_body = entry
+    parent_id = _parent_id_cache.get(param_name) or _create_parent(parent_url, create_body)
+    if parent_id:
+        _parent_id_cache[param_name] = parent_id
+        if case.path_parameters:
+            case.path_parameters[param_name] = parent_id
+
+
+def _create_parent(parent_url: str, create_body: dict) -> str | None:
+    """POST to create a parent resource and return its id."""
+    if not create_body:
+        return None
+    try:
+        resp = requests.post(
+            f"{REGISTRY_URL}{parent_url}",
+            json=create_body,
+            timeout=DEFAULT_API_TIMEOUT,
+        )
+        if resp.ok:
+            return resp.json().get("id")
+    except Exception:
+        logger.debug("Failed to create parent resource at %s", parent_url, exc_info=True)
+    return None
 
 
 _GENERIC_ARTIFACT_PATHS = {
