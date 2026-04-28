@@ -4,6 +4,7 @@ import {
   Button,
   Content,
   Flex,
+  FlexItem,
   Stack,
   StackItem,
   Toolbar,
@@ -193,12 +194,11 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
         </>
       )}
       <StackItem>
-        <Flex
-          justifyContent={{ default: 'justifyContentSpaceBetween' }}
-          alignItems={{ default: 'alignItemsCenter' }}
-        >
+        <Flex alignItems={{ default: 'alignItemsCenter' }}>
           <ModelCatalogSourceLabelBlocks />
-          <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+          <FlexItem align={{ default: 'alignRight' }}>
+            <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+          </FlexItem>
         </Flex>
       </StackItem>
       {shouldShowAlert && (
