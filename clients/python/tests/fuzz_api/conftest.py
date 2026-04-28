@@ -69,7 +69,7 @@ _STRING_FIELDS = {
 }
 
 _NUMERIC_STRING_FIELDS = {
-    "registeredModelId", "servingEnvironmentId", "modelVersionId",
+    "id", "registeredModelId", "servingEnvironmentId", "modelVersionId",
     "experimentId", "experimentRunId", "startTimeSinceEpoch",
     "endTimeSinceEpoch", "timestamp",
 }
