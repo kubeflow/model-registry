@@ -195,21 +195,18 @@ def _fix_singleton_get_query(case: Case) -> None:
         del case.query["name"]
 
 
-_NESTED_POST_PARENTS: dict[str, tuple[str, str, dict[str, Any]]] = {
+_NESTED_PARENT_ENDPOINTS: dict[str, tuple[str, str]] = {
     "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions": (
         "/api/model_registry/v1alpha3/registered_models",
         "registeredmodelId",
-        {"name": "fuzz-parent-rm", "description": "auto-created for fuzz"},
     ),
     "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts": (
         "/api/model_registry/v1alpha3/model_versions",
         "modelversionId",
-        {},
     ),
     "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts": (
         "/api/model_registry/v1alpha3/experiment_runs",
         "experimentrunId",
-        {},
     ),
 }
 
@@ -217,34 +214,39 @@ _parent_id_cache: dict[str, str] = {}
 
 
 def _fix_nested_post_parent(case: Case) -> None:
-    """Ensure parent resources exist for nested POST endpoints."""
-    if not case.path or not case.method or case.method.upper() != "POST":
+    """Ensure path parameters reference existing parent resources."""
+    if not case.path:
         return
-    entry = _NESTED_POST_PARENTS.get(case.path)
+    entry = _NESTED_PARENT_ENDPOINTS.get(case.path)
     if not entry:
         return
-    parent_url, param_name, create_body = entry
-    parent_id = _parent_id_cache.get(param_name) or _create_parent(parent_url, create_body)
+    parent_url, param_name = entry
+    parent_id = _parent_id_cache.get(param_name) or _ensure_parent(parent_url)
     if parent_id:
         _parent_id_cache[param_name] = parent_id
-        if case.path_parameters:
-            case.path_parameters[param_name] = parent_id
+        if case.path_parameters is None:
+            case.path_parameters = {}
+        case.path_parameters[param_name] = parent_id
 
 
-def _create_parent(parent_url: str, create_body: dict) -> str | None:
-    """POST to create a parent resource and return its id."""
-    if not create_body:
-        return None
+def _ensure_parent(parent_url: str) -> str | None:
+    """Get or create a parent resource, returning its id."""
     try:
+        resp = requests.get(f"{REGISTRY_URL}{parent_url}", params={"pageSize": "1"}, timeout=DEFAULT_API_TIMEOUT)
+        if resp.ok:
+            items = resp.json().get("items", [])
+            if items:
+                return items[0].get("id")
+        name = f"fuzz-parent-{secrets.randbelow(1000000)}"
         resp = requests.post(
             f"{REGISTRY_URL}{parent_url}",
-            json=create_body,
+            json={"name": name},
             timeout=DEFAULT_API_TIMEOUT,
         )
         if resp.ok:
             return resp.json().get("id")
     except Exception:
-        logger.debug("Failed to create parent resource at %s", parent_url, exc_info=True)
+        logger.debug("Failed to ensure parent at %s", parent_url, exc_info=True)
     return None
 
 
@@ -285,7 +287,7 @@ def _ensure_artifact_required_fields(body: dict) -> None:
         if "value" not in body or isinstance(body["value"], str):
             body["value"] = round(secrets.randbelow(10000) / 100.0, 2)
         body.setdefault("name", f"metric-{secrets.randbelow(100000)}")
-        body.setdefault("step", secrets.randbelow(1000))
+        body["step"] = _clamp_int64(body.get("step", secrets.randbelow(1000)))
         body.setdefault("timestamp", str(secrets.randbelow(2000000000000)))
     elif art_type == "parameter":
         if "value" in body and not isinstance(body["value"], str):
@@ -295,6 +297,19 @@ def _ensure_artifact_required_fields(body: dict) -> None:
         body.pop("step", None)
         body.pop("timestamp", None)
         body.pop("parameterType", None)
+
+
+_INT64_MAX = 9223372036854775807
+_INT64_MIN = -9223372036854775808
+
+
+def _clamp_int64(val: Any) -> int:
+    """Clamp a value to the int64 range."""
+    try:
+        n = int(val)
+    except (TypeError, ValueError):
+        return 0
+    return max(_INT64_MIN, min(_INT64_MAX, n))
 
 
 def _sanitize_custom_properties(props: Any) -> Any:
