@@ -94,6 +94,7 @@ components:
                 it must be unique among all the artifacts of the same artifact type within
                 a database instance and cannot be changed once set.
               type: string
+              minLength: 1
             id:
               format: int64
               description: The unique server generated id of the resource.
@@ -133,6 +134,7 @@ components:
     MetadataBoolValue:
       description: A bool property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - bool_value
@@ -141,11 +143,13 @@ components:
           type: boolean
         metadataType:
           type: string
-          example: MetadataBoolValue
+          enum:
+            - MetadataBoolValue
           default: MetadataBoolValue
     MetadataDoubleValue:
       description: A double property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - double_value
@@ -155,25 +159,30 @@ components:
           type: number
         metadataType:
           type: string
-          example: MetadataDoubleValue
+          enum:
+            - MetadataDoubleValue
           default: MetadataDoubleValue
     MetadataIntValue:
-      description: An integer (int64) property value.
+      description: An integer (int32) property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - int_value
       properties:
         int_value:
-          format: int64
+          format: int32
           type: string
+          pattern: "^-?([1-9][0-9]{0,8}|0)$"
         metadataType:
           type: string
-          example: MetadataIntValue
+          enum:
+            - MetadataIntValue
           default: MetadataIntValue
     MetadataProtoValue:
       description: A proto property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - type
@@ -185,13 +194,16 @@ components:
         proto_value:
           description: Base64 encoded bytes for proto value
           type: string
+          format: byte
         metadataType:
           type: string
-          example: MetadataProtoValue
+          enum:
+            - MetadataProtoValue
           default: MetadataProtoValue
     MetadataStringValue:
       description: A string property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - string_value
@@ -200,11 +212,13 @@ components:
           type: string
         metadataType:
           type: string
-          example: MetadataStringValue
+          enum:
+            - MetadataStringValue
           default: MetadataStringValue
     MetadataStructValue:
       description: A struct property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - struct_value
@@ -212,9 +226,11 @@ components:
         struct_value:
           description: Base64 encoded bytes for struct value
           type: string
+          format: byte
         metadataType:
           type: string
-          example: MetadataStructValue
+          enum:
+            - MetadataStructValue
           default: MetadataStructValue
     MetadataValue:
       oneOf:
@@ -292,6 +308,8 @@ components:
       description: The ID of resource.
       schema:
         type: string
+        format: int64
+        pattern: "^[1-9][0-9]{0,8}$"
       in: path
       required: true
     name:
@@ -302,6 +320,7 @@ components:
       description: Name of entity to search.
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]+$"
       in: query
       required: false
     externalId:
@@ -312,6 +331,7 @@ components:
       description: External ID of entity to search.
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]+$"
       in: query
       required: false
     parentResourceId:
@@ -322,6 +342,8 @@ components:
       description: ID of the parent resource to use for search.
       schema:
         type: string
+        format: int64
+        pattern: "^[1-9][0-9]{0,8}$"
       in: query
       required: false
     filterQuery:
@@ -359,21 +381,26 @@ components:
         - Escaped property: `` `mlflow.source.type` = "notebook" ``
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     pageSize:
       examples:
         pageSize:
-          value: "100"
+          value: 100
       name: pageSize
       description: Number of entities in each page.
       schema:
         type: string
+        format: int32
+        pattern: "^[1-9][0-9]{0,8}$"
       in: query
       required: false
     nextPageToken:
       name: nextPageToken
-      description: Token to use to retrieve next page of results.
+      description: >-
+        Opaque pagination token returned by a previous list call.
+        Do not construct manually; use the value from a prior response's nextPageToken field.
       schema:
         type: string
       in: query
@@ -400,6 +427,7 @@ components:
       description: "Comma-separated list of step IDs to filter metrics by."
       schema:
         type: string
+        pattern: "^[0-9]{1,9}(,[0-9]{1,9})*$"
       in: query
       required: false
   securitySchemes:

@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
@@ -35,7 +35,7 @@ class ServingEnvironmentCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(description="The name of the ServingEnvironment.")
+    name: Annotated[str, Field(min_length=1, strict=True)] = Field(description="The name of the ServingEnvironment.")
     __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "name"]
 
     model_config = ConfigDict(

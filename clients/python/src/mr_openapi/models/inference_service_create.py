@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.inference_service_state import InferenceServiceState
@@ -40,17 +40,17 @@ class InferenceServiceCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
-    model_version_id: StrictStr | None = Field(
+    model_version_id: Annotated[str, Field(strict=True)] | None = Field(
         default=None,
         description="ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.",
         alias="modelVersionId",
     )
     runtime: StrictStr | None = Field(default=None, description="Model runtime.")
     desired_state: InferenceServiceState | None = Field(default=InferenceServiceState.DEPLOYED, alias="desiredState")
-    registered_model_id: StrictStr = Field(
+    registered_model_id: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="ID of the `RegisteredModel` to serve.", alias="registeredModelId"
     )
-    serving_environment_id: StrictStr = Field(
+    serving_environment_id: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="ID of the parent `ServingEnvironment` for this `InferenceService` entity.",
         alias="servingEnvironmentId",
     )
@@ -65,6 +65,33 @@ class InferenceServiceCreate(BaseModel):
         "registeredModelId",
         "servingEnvironmentId",
     ]
+
+    @field_validator("model_version_id")
+    def model_version_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if value is None:
+            return value
+
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("registered_model_id")
+    def registered_model_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("serving_environment_id")
+    def serving_environment_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

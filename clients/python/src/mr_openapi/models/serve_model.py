@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.execution_state import ExecutionState
@@ -52,7 +52,7 @@ class ServeModel(BaseModel):
         alias="lastUpdateTimeSinceEpoch",
     )
     last_known_state: ExecutionState | None = Field(default=ExecutionState.UNKNOWN, alias="lastKnownState")
-    model_version_id: StrictStr = Field(
+    model_version_id: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
     __properties: ClassVar[list[str]] = [
@@ -66,6 +66,14 @@ class ServeModel(BaseModel):
         "lastKnownState",
         "modelVersionId",
     ]
+
+    @field_validator("model_version_id")
+    def model_version_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

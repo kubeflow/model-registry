@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -50,10 +50,10 @@ class Metric(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    experiment_id: StrictStr | None = Field(
+    experiment_id: Annotated[str, Field(strict=True)] | None = Field(
         default=None, description="Optional id of the experiment that produced this artifact.", alias="experimentId"
     )
-    experiment_run_id: StrictStr | None = Field(
+    experiment_run_id: Annotated[str, Field(strict=True)] | None = Field(
         default=None,
         description="Optional id of the experiment run that produced this artifact.",
         alias="experimentRunId",
@@ -83,6 +83,28 @@ class Metric(BaseModel):
         "step",
         "state",
     ]
+
+    @field_validator("experiment_id")
+    def experiment_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if value is None:
+            return value
+
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("experiment_run_id")
+    def experiment_run_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if value is None:
+            return value
+
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

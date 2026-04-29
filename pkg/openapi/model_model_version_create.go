@@ -31,7 +31,7 @@ type ModelVersionCreate struct {
 	// Name of the author.
 	Author *string `json:"author,omitempty"`
 	// ID of the `RegisteredModel` to which this version belongs.
-	RegisteredModelId string `json:"registeredModelId"`
+	RegisteredModelId string `json:"registeredModelId" validate:"regexp=^[1-9][0-9]{0,8}$"`
 }
 
 type _ModelVersionCreate ModelVersionCreate

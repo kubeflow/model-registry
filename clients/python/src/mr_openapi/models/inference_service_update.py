@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.inference_service_state import InferenceServiceState
@@ -36,7 +36,7 @@ class InferenceServiceUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    model_version_id: StrictStr | None = Field(
+    model_version_id: Annotated[str, Field(strict=True)] | None = Field(
         default=None,
         description="ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.",
         alias="modelVersionId",
@@ -51,6 +51,17 @@ class InferenceServiceUpdate(BaseModel):
         "runtime",
         "desiredState",
     ]
+
+    @field_validator("model_version_id")
+    def model_version_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if value is None:
+            return value
+
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

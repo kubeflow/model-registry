@@ -58,7 +58,7 @@ func (r ApiFindLabelsRequest) SortOrder(sortOrder SortOrder) ApiFindLabelsReques
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiFindLabelsRequest) NextPageToken(nextPageToken string) ApiFindLabelsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -318,7 +318,7 @@ func (r ApiFindModelsRequest) SortOrder(sortOrder SortOrder) ApiFindModelsReques
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiFindModelsRequest) NextPageToken(nextPageToken string) ApiFindModelsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -709,7 +709,7 @@ func (r ApiFindSourcesRequest) SortOrder(sortOrder SortOrder) ApiFindSourcesRequ
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiFindSourcesRequest) NextPageToken(nextPageToken string) ApiFindSourcesRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -926,7 +926,7 @@ func (r ApiGetAllModelArtifactsRequest) SortOrder(sortOrder SortOrder) ApiGetAll
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiGetAllModelArtifactsRequest) NextPageToken(nextPageToken string) ApiGetAllModelArtifactsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -1178,7 +1178,7 @@ func (r ApiGetAllModelPerformanceArtifactsRequest) SortOrder(sortOrder SortOrder
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiGetAllModelPerformanceArtifactsRequest) NextPageToken(nextPageToken string) ApiGetAllModelPerformanceArtifactsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
@@ -1528,7 +1528,7 @@ func (r ApiPreviewCatalogSourceRequest) PageSize(pageSize string) ApiPreviewCata
 	return r
 }
 
-// Token to use to retrieve next page of results.
+// Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response&#39;s nextPageToken field.
 func (r ApiPreviewCatalogSourceRequest) NextPageToken(nextPageToken string) ApiPreviewCatalogSourceRequest {
 	r.nextPageToken = &nextPageToken
 	return r

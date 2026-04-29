@@ -24,16 +24,28 @@ deploy-latest-mr:
 	LOCAL=1 IMG=$(IMG):$(IMG_VERSION) ./scripts/deploy_on_kind.sh
 # TODO RHOAIENG-30453 align consistency ./scripts/deploy_on_kind.sh uses IMG with :tag, Vs, Makefile(s) and ci/GHA we use IMG without trailing :tag
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
+	@echo "Waiting for model-registry port-forward (8080)..."
+	@for i in $$(seq 1 30); do curl -sf http://localhost:8080/api/model_registry/v1alpha3/registered_models > /dev/null 2>&1 && break || sleep 1; done
+	@curl -sf http://localhost:8080/api/model_registry/v1alpha3/registered_models > /dev/null 2>&1 || \
+		(echo "ERROR: model-registry not reachable on localhost:8080 after 30s"; exit 1)
 
 .PHONY: deploy-test-minio
 deploy-test-minio:
 	cd ../../ && ./scripts/deploy_minio_on_kind.sh
 	kubectl port-forward -n minio svc/minio 9000:9000 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
+	@echo "Waiting for minio port-forward (9000)..."
+	@for i in $$(seq 1 30); do curl -sf http://localhost:9000/minio/health/live > /dev/null 2>&1 && break || sleep 1; done
+	@curl -sf http://localhost:9000/minio/health/live > /dev/null 2>&1 || \
+		(echo "ERROR: minio not reachable on localhost:9000 after 30s"; exit 1)
 
 .PHONY: deploy-local-registry
 deploy-local-registry:
 	cd ../../ && ./scripts/deploy_local_kind_registry.sh
 	kubectl port-forward service/distribution-registry-test-service -n local-oci-registry-ns 5001:5001 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
+	@echo "Waiting for local-registry port-forward (5001)..."
+	@for i in $$(seq 1 30); do curl -sf http://localhost:5001/v2/ > /dev/null 2>&1 && break || sleep 1; done
+	@curl -sf http://localhost:5001/v2/ > /dev/null 2>&1 || \
+		(echo "ERROR: local registry not reachable on localhost:5001 after 30s"; exit 1)
 
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
@@ -44,16 +56,24 @@ test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 
 .PHONY: test-fuzz
 test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
-	@echo "Starting stateless fuzz tests with parallel execution"
+	@echo "Cleaning database before fuzz tests..."
+	cd ../../ && ./scripts/cleanup.sh
 	poetry install --all-extras
-	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
-	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateless.py tests/fuzz_api/model_catalog/test_catalog_stateless.py --fuzz -n auto -v --hypothesis-show-statistics
-	@echo "Running stateful fuzz tests sequentially"
-	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
-	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateful.py --fuzz -v --hypothesis-show-statistics
-	@rm -f ../../scripts/manifests/minio/.env
-	$(MAKE) test-e2e-cleanup
-	@exit $$STATUS
+	@echo "Starting stateless fuzz tests with parallel execution"; \
+	set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateless.py tests/fuzz_api/model_catalog/test_catalog_stateless.py --fuzz -n auto -v --hypothesis-show-statistics; \
+	STATELESS=$$?; \
+	echo "Cleaning database before stateful fuzz tests..."; \
+	cd ../../ && ./scripts/cleanup.sh && cd clients/python; \
+	echo "Running stateful fuzz tests sequentially"; \
+	set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateful.py tests/fuzz_api/model_catalog/test_catalog_stateful.py --fuzz -v --hypothesis-show-statistics; \
+	STATEFUL=$$?; \
+	rm -f ../../scripts/manifests/minio/.env; \
+	$(MAKE) test-e2e-cleanup; \
+	if [ $$STATELESS -ne 0 ] || [ $$STATEFUL -ne 0 ]; then \
+		echo "Fuzz tests failed (stateless=$$STATELESS, stateful=$$STATEFUL)"; exit 1; \
+	fi
 
 .PHONY: test-e2e-run
 test-e2e-run:

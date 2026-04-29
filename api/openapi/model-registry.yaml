@@ -147,6 +147,8 @@ paths:
         description: A unique identifier for an `Artifact`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/experiment:
@@ -334,6 +336,8 @@ paths:
         description: A unique identifier for an `ExperimentRun`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts":
@@ -400,6 +404,8 @@ paths:
         description: A unique identifier for an `ExperimentRun`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/metric_history":
@@ -436,6 +442,8 @@ paths:
         description: A unique identifier for an `ExperimentRun`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/experiments:
@@ -541,6 +549,8 @@ paths:
         description: A unique identifier for an `Experiment`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/experiments/{experimentId}/experiment_runs":
@@ -605,6 +615,8 @@ paths:
         description: A unique identifier for an `Experiment`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/inference_service:
@@ -741,6 +753,8 @@ paths:
         description: A unique identifier for a `InferenceService`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/model":
@@ -769,6 +783,8 @@ paths:
         description: A unique identifier for a `InferenceService`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/serves":
@@ -833,6 +849,8 @@ paths:
         description: A unique identifier for a `InferenceService`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/inference_services/{inferenceserviceId}/version":
@@ -861,6 +879,8 @@ paths:
         description: A unique identifier for a `InferenceService`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/model_artifact:
@@ -997,6 +1017,8 @@ paths:
         description: A unique identifier for a `ModelArtifact`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/model_version:
@@ -1131,6 +1153,8 @@ paths:
         description: A unique identifier for a `ModelVersion`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts":
@@ -1197,6 +1221,8 @@ paths:
         description: A unique identifier for a `ModelVersion`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/registered_model:
@@ -1326,6 +1352,8 @@ paths:
         description: A unique identifier for a `RegisteredModel`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/registered_models/{registeredmodelId}/versions":
@@ -1390,6 +1418,8 @@ paths:
         description: A unique identifier for a `RegisteredModel`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   /api/model_registry/v1alpha3/serving_environment:
@@ -1519,6 +1549,8 @@ paths:
         description: A unique identifier for a `ServingEnvironment`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
   "/api/model_registry/v1alpha3/serving_environments/{servingenvironmentId}/inference_services":
@@ -1583,6 +1615,8 @@ paths:
         description: A unique identifier for a `ServingEnvironment`.
         schema:
           type: string
+          format: int64
+          pattern: "^[1-9][0-9]{0,8}$"
         in: path
         required: true
 components:
@@ -1695,10 +1729,14 @@ components:
               description: |-
                 Optional id of the experiment that produced this artifact.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
             experimentRunId:
               description: |-
                 Optional id of the experiment run that produced this artifact.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
     BaseModel:
       type: object
       properties:
@@ -1779,6 +1817,7 @@ components:
                 it must be unique among all the artifacts of the same artifact type within
                 a database instance and cannot be changed once set.
               type: string
+              minLength: 1
             id:
               format: int64
               description: The unique server generated id of the resource.
@@ -1996,6 +2035,7 @@ components:
                 The client provided name of the experiment. It must be unique among all the Experiments of the same
                 type within a Model Registry instance and cannot be changed once set.
               type: string
+              minLength: 1
     ExperimentList:
       description: List of Experiments.
       allOf:
@@ -2027,6 +2067,9 @@ components:
             experimentId:
               description: ID of the `Experiment` to which this experiment run belongs.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
+              minLength: 1
             startTimeSinceEpoch:
               description: |-
                 Start time of the experiment run in milliseconds since epoch.
@@ -2135,9 +2178,15 @@ components:
             registeredModelId:
               description: ID of the `RegisteredModel` to serve.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
+              minLength: 1
             servingEnvironmentId:
               description: ID of the parent `ServingEnvironment` for this `InferenceService` entity.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
+              minLength: 1
     InferenceServiceList:
       description: List of InferenceServices.
       allOf:
@@ -2174,6 +2223,8 @@ components:
               description: >-
                 ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
             runtime:
               description: Model runtime.
               type: string
@@ -2182,6 +2233,7 @@ components:
     MetadataBoolValue:
       description: A bool property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - bool_value
@@ -2190,11 +2242,13 @@ components:
           type: boolean
         metadataType:
           type: string
-          example: MetadataBoolValue
+          enum:
+            - MetadataBoolValue
           default: MetadataBoolValue
     MetadataDoubleValue:
       description: A double property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - double_value
@@ -2204,25 +2258,30 @@ components:
           type: number
         metadataType:
           type: string
-          example: MetadataDoubleValue
+          enum:
+            - MetadataDoubleValue
           default: MetadataDoubleValue
     MetadataIntValue:
-      description: An integer (int64) property value.
+      description: An integer (int32) property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - int_value
       properties:
         int_value:
-          format: int64
+          format: int32
           type: string
+          pattern: "^-?([1-9][0-9]{0,8}|0)$"
         metadataType:
           type: string
-          example: MetadataIntValue
+          enum:
+            - MetadataIntValue
           default: MetadataIntValue
     MetadataProtoValue:
       description: A proto property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - type
@@ -2234,13 +2293,16 @@ components:
         proto_value:
           description: Base64 encoded bytes for proto value
           type: string
+          format: byte
         metadataType:
           type: string
-          example: MetadataProtoValue
+          enum:
+            - MetadataProtoValue
           default: MetadataProtoValue
     MetadataStringValue:
       description: A string property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - string_value
@@ -2249,11 +2311,13 @@ components:
           type: string
         metadataType:
           type: string
-          example: MetadataStringValue
+          enum:
+            - MetadataStringValue
           default: MetadataStringValue
     MetadataStructValue:
       description: A struct property value.
       type: object
+      additionalProperties: false
       required:
         - metadataType
         - struct_value
@@ -2261,9 +2325,11 @@ components:
         struct_value:
           description: Base64 encoded bytes for struct value
           type: string
+          format: byte
         metadataType:
           type: string
-          example: MetadataStructValue
+          enum:
+            - MetadataStructValue
           default: MetadataStructValue
     MetadataValue:
       oneOf:
@@ -2446,11 +2512,15 @@ components:
             registeredModelId:
               description: ID of the `RegisteredModel` to which this version belongs.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
+              minLength: 1
             name:
               description: |-
                 The client provided name of the model's version. It must be unique among all the ModelVersions of the same
                 type within a Model Registry instance and cannot be changed once set.
               type: string
+              minLength: 1
     ModelVersionList:
       description: List of ModelVersion entities.
       allOf:
@@ -2557,6 +2627,7 @@ components:
                 The client provided name of the model. It must be unique among all the RegisteredModels of the same
                 type within a Model Registry instance and cannot be changed once set.
               type: string
+              minLength: 1
     RegisteredModelList:
       description: List of RegisteredModels.
       allOf:
@@ -2608,6 +2679,9 @@ components:
             modelVersionId:
               description: ID of the `ModelVersion` that was served in `InferenceService`.
               type: string
+              format: int64
+              pattern: "^[1-9][0-9]{0,8}$"
+              minLength: 1
     ServeModelList:
       description: List of ServeModel entities.
       allOf:
@@ -2646,6 +2720,7 @@ components:
             name:
               description: The name of the ServingEnvironment.
               type: string
+              minLength: 1
     ServingEnvironmentList:
       description: List of ServingEnvironments.
       allOf:
@@ -3013,6 +3088,8 @@ components:
       description: The ID of resource.
       schema:
         type: string
+        format: int64
+        pattern: "^[1-9][0-9]{0,8}$"
       in: path
       required: true
     name:
@@ -3023,6 +3100,7 @@ components:
       description: Name of entity to search.
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]+$"
       in: query
       required: false
     externalId:
@@ -3033,6 +3111,7 @@ components:
       description: External ID of entity to search.
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]+$"
       in: query
       required: false
     parentResourceId:
@@ -3043,6 +3122,8 @@ components:
       description: ID of the parent resource to use for search.
       schema:
         type: string
+        format: int64
+        pattern: "^[1-9][0-9]{0,8}$"
       in: query
       required: false
     filterQuery:
@@ -3080,21 +3161,25 @@ components:
         - Escaped property: `` `mlflow.source.type` = "notebook" ``
       schema:
         type: string
+        pattern: "^[\\x20-\\x7E]*$"
       in: query
       required: false
     pageSize:
       examples:
         pageSize:
-          value: "100"
+          value: 100
       name: pageSize
       description: Number of entities in each page.
       schema:
         type: string
+        format: int32
+        pattern: "^[1-9][0-9]{0,8}$"
       in: query
       required: false
     nextPageToken:
       name: nextPageToken
-      description: Token to use to retrieve next page of results.
+      description: >-
+        Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
       schema:
         type: string
       in: query
@@ -3121,6 +3206,7 @@ components:
       description: "Comma-separated list of step IDs to filter metrics by."
       schema:
         type: string
+        pattern: "^[0-9]{1,9}(,[0-9]{1,9})*$"
       in: query
       required: false
   securitySchemes:

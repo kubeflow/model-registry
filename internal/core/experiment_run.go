@@ -203,6 +203,11 @@ func (b *ModelRegistryService) GetExperimentRuns(listOptions api.ListOptions, ex
 }
 
 func (b *ModelRegistryService) UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error) {
+	_, err := b.GetExperimentRunById(experimentRunId)
+	if err != nil {
+		return nil, err
+	}
+
 	result, err := b.upsertArtifact(artifact, &experimentRunId)
 	if err != nil {
 		return nil, err

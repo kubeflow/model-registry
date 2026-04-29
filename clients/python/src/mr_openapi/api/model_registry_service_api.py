@@ -312,7 +312,7 @@ class ModelRegistryServiceApi:
     async def create_environment_inference_service(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         inference_service_create: Annotated[
             InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
@@ -383,7 +383,7 @@ class ModelRegistryServiceApi:
     async def create_environment_inference_service_with_http_info(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         inference_service_create: Annotated[
             InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
@@ -454,7 +454,7 @@ class ModelRegistryServiceApi:
     async def create_environment_inference_service_without_preload_content(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         inference_service_create: Annotated[
             InferenceServiceCreate, Field(description="A new `InferenceService` to be created.")
@@ -821,7 +821,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_experiment_experiment_run(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -888,7 +888,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_experiment_experiment_run_with_http_info(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -955,7 +955,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_experiment_experiment_run_without_preload_content(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_run: Annotated[ExperimentRun, Field(description="A new `ExperimentRun` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -1574,7 +1574,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service_serve(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         serve_model_create: Annotated[
             ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
@@ -1643,7 +1645,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service_serve_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         serve_model_create: Annotated[
             ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
@@ -1712,7 +1716,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_inference_service_serve_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         serve_model_create: Annotated[
             ServeModelCreate, Field(description="A new `ServeModel` to be associated with the `InferenceService`.")
         ],
@@ -2573,7 +2579,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model_version(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -2640,7 +2648,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model_version_with_http_info(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -2707,7 +2717,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def create_registered_model_version_without_preload_content(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         model_version: Annotated[ModelVersion, Field(description="A new `ModelVersion` to be created.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3077,10 +3089,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_artifact(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3149,10 +3166,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_artifact_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3221,10 +3243,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_artifact_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3348,8 +3375,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -3413,8 +3444,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -3478,8 +3513,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -3594,10 +3633,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment_run(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3666,10 +3710,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment_run_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3738,10 +3787,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_experiment_run_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3865,10 +3919,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_inference_service(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -3937,10 +3996,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_inference_service_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4009,10 +4073,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_inference_service_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4136,10 +4205,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_artifact(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4208,10 +4282,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_artifact_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4280,10 +4359,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_artifact_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4407,10 +4491,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_version(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4479,10 +4568,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_version_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4551,10 +4645,15 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_model_version_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         parent_resource_id: Annotated[
-            StrictStr | None, Field(description="ID of the parent resource to use for search.")
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="ID of the parent resource to use for search."),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -4678,8 +4777,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_registered_model(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -4743,8 +4846,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_registered_model_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -4808,8 +4915,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_registered_model_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -4924,8 +5035,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_serving_environment(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -4989,8 +5104,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_serving_environment_with_http_info(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -5054,8 +5173,12 @@ class ModelRegistryServiceApi:
     @validate_call
     async def find_serving_environment_without_preload_content(
         self,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -5170,7 +5293,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifact(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -5228,7 +5351,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifact_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -5286,7 +5409,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_artifact_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -5391,7 +5514,7 @@ class ModelRegistryServiceApi:
     async def get_artifacts(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
@@ -5399,7 +5522,9 @@ class ModelRegistryServiceApi:
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5407,7 +5532,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5431,7 +5559,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -5486,7 +5614,7 @@ class ModelRegistryServiceApi:
     async def get_artifacts_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
@@ -5494,7 +5622,9 @@ class ModelRegistryServiceApi:
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5502,7 +5632,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5526,7 +5659,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -5581,7 +5714,7 @@ class ModelRegistryServiceApi:
     async def get_artifacts_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
@@ -5589,7 +5722,9 @@ class ModelRegistryServiceApi:
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5597,7 +5732,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5621,7 +5759,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -5743,17 +5881,23 @@ class ModelRegistryServiceApi:
     async def get_environment_inference_services(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5761,7 +5905,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5789,7 +5936,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -5845,17 +5992,23 @@ class ModelRegistryServiceApi:
     async def get_environment_inference_services_with_http_info(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5863,7 +6016,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5891,7 +6047,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -5947,17 +6103,23 @@ class ModelRegistryServiceApi:
     async def get_environment_inference_services_without_preload_content(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -5965,7 +6127,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -5993,7 +6158,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -6122,7 +6287,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6183,7 +6348,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_with_http_info(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6244,7 +6409,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_without_preload_content(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6351,16 +6516,22 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_experiment_runs(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -6368,7 +6539,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -6396,7 +6570,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -6451,16 +6625,22 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_experiment_runs_with_http_info(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -6468,7 +6648,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -6496,7 +6679,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -6551,16 +6734,22 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_experiment_runs_without_preload_content(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -6568,7 +6757,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -6596,7 +6788,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -6725,7 +6917,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6786,7 +6980,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_with_http_info(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6847,7 +7043,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_without_preload_content(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -6954,19 +7152,27 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_artifacts(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -6974,7 +7180,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7002,7 +7211,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7058,19 +7267,27 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_artifacts_with_http_info(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7078,7 +7295,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7106,7 +7326,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7162,19 +7382,27 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_artifacts_without_preload_content(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7182,7 +7410,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7210,7 +7441,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7344,18 +7575,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_metric_history(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7363,7 +7601,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7391,7 +7632,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7446,18 +7687,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_metric_history_with_http_info(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7465,7 +7713,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7493,7 +7744,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7548,18 +7799,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_experiment_run_metric_history_without_preload_content(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7567,7 +7825,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7595,7 +7856,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7725,12 +7986,14 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7738,7 +8001,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7760,7 +8026,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7812,12 +8078,14 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7825,7 +8093,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7847,7 +8118,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -7899,12 +8170,14 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -7912,7 +8185,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -7934,7 +8210,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8049,16 +8325,21 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs_metric_history(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8066,7 +8347,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8092,7 +8376,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8147,16 +8431,21 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs_metric_history_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8164,7 +8453,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8190,7 +8482,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8245,16 +8537,21 @@ class ModelRegistryServiceApi:
     async def get_experiment_runs_metric_history_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        step_ids: Annotated[
-            StrictStr | None, Field(description="Comma-separated list of step IDs to filter metrics by.")
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        step_ids: Annotated[
+            Annotated[str, Field(strict=True)] | None,
+            Field(description="Comma-separated list of step IDs to filter metrics by."),
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8262,7 +8559,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8288,7 +8588,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8414,12 +8714,14 @@ class ModelRegistryServiceApi:
     async def get_experiments(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8427,7 +8729,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8449,7 +8754,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8501,12 +8806,14 @@ class ModelRegistryServiceApi:
     async def get_experiments_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8514,7 +8821,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8536,7 +8846,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8588,12 +8898,14 @@ class ModelRegistryServiceApi:
     async def get_experiments_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -8601,7 +8913,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -8623,7 +8938,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -8737,7 +9052,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -8798,7 +9115,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -8859,7 +9178,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -8966,7 +9287,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_model(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9027,7 +9350,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_model_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9088,7 +9413,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_model_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9195,16 +9522,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_serves(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9212,7 +9547,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -9240,7 +9578,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -9295,16 +9633,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_serves_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9312,7 +9658,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -9340,7 +9689,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -9395,16 +9744,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_serves_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9412,7 +9769,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -9440,7 +9800,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -9569,7 +9929,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_version(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9630,7 +9992,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_version_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9691,7 +10055,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_inference_service_version_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -9799,12 +10165,14 @@ class ModelRegistryServiceApi:
     async def get_inference_services(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9812,7 +10180,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -9834,7 +10205,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -9888,12 +10259,14 @@ class ModelRegistryServiceApi:
     async def get_inference_services_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9901,7 +10274,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -9923,7 +10299,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -9977,12 +10353,14 @@ class ModelRegistryServiceApi:
     async def get_inference_services_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -9990,7 +10368,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -10012,7 +10393,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -10128,7 +10509,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifact(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10189,7 +10570,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifact_with_http_info(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10250,7 +10631,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_artifact_without_preload_content(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10358,12 +10739,14 @@ class ModelRegistryServiceApi:
     async def get_model_artifacts(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -10371,7 +10754,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -10393,7 +10779,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -10447,12 +10833,14 @@ class ModelRegistryServiceApi:
     async def get_model_artifacts_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -10460,7 +10848,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -10482,7 +10873,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -10536,12 +10927,14 @@ class ModelRegistryServiceApi:
     async def get_model_artifacts_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -10549,7 +10942,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -10571,7 +10967,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -10687,7 +11083,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10748,7 +11144,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version_with_http_info(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10809,7 +11205,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version_without_preload_content(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -10916,19 +11312,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version_artifacts(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -10936,7 +11338,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -10964,7 +11369,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11020,19 +11425,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version_artifacts_with_http_info(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11040,7 +11451,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11068,7 +11482,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11124,19 +11538,25 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_model_version_artifacts_without_preload_content(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         artifact_type: Annotated[
             ArtifactTypeQueryParam | None, Field(description="Specifies the artifact type for listing artifacts.")
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11144,7 +11564,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11172,7 +11595,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11307,12 +11730,14 @@ class ModelRegistryServiceApi:
     async def get_model_versions(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11320,7 +11745,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11342,7 +11770,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11394,12 +11822,14 @@ class ModelRegistryServiceApi:
     async def get_model_versions_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11407,7 +11837,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11429,7 +11862,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11481,12 +11914,14 @@ class ModelRegistryServiceApi:
     async def get_model_versions_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11494,7 +11929,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11516,7 +11954,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11630,7 +12068,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -11691,7 +12131,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model_with_http_info(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -11752,7 +12194,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model_without_preload_content(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
         | tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]] = None,
@@ -11859,16 +12303,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model_versions(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11876,7 +12328,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -11904,7 +12359,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -11959,16 +12414,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model_versions_with_http_info(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -11976,7 +12439,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12004,7 +12470,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12059,16 +12525,24 @@ class ModelRegistryServiceApi:
     @validate_call
     async def get_registered_model_versions_without_preload_content(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
-        name: Annotated[StrictStr | None, Field(description="Name of entity to search.")] = None,
-        external_id: Annotated[StrictStr | None, Field(description="External ID of entity to search.")] = None,
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
+        name: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Name of entity to search.")
+        ] = None,
+        external_id: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="External ID of entity to search.")
+        ] = None,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12076,7 +12550,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12104,7 +12581,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12234,12 +12711,14 @@ class ModelRegistryServiceApi:
     async def get_registered_models(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12247,7 +12726,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12269,7 +12751,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12321,12 +12803,14 @@ class ModelRegistryServiceApi:
     async def get_registered_models_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12334,7 +12818,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12356,7 +12843,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12408,12 +12895,14 @@ class ModelRegistryServiceApi:
     async def get_registered_models_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12421,7 +12910,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12443,7 +12935,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12558,7 +13050,7 @@ class ModelRegistryServiceApi:
     async def get_serving_environment(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12621,7 +13113,7 @@ class ModelRegistryServiceApi:
     async def get_serving_environment_with_http_info(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12684,7 +13176,7 @@ class ModelRegistryServiceApi:
     async def get_serving_environment_without_preload_content(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12793,12 +13285,14 @@ class ModelRegistryServiceApi:
     async def get_serving_environments(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12806,7 +13300,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12828,7 +13325,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12880,12 +13377,14 @@ class ModelRegistryServiceApi:
     async def get_serving_environments_with_http_info(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12893,7 +13392,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -12915,7 +13417,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -12967,12 +13469,14 @@ class ModelRegistryServiceApi:
     async def get_serving_environments_without_preload_content(
         self,
         filter_query: Annotated[
-            StrictStr | None,
+            Annotated[str, Field(strict=True)] | None,
             Field(
                 description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
             ),
         ] = None,
-        page_size: Annotated[StrictStr | None, Field(description="Number of entities in each page.")] = None,
+        page_size: Annotated[
+            Annotated[str, Field(strict=True)] | None, Field(description="Number of entities in each page.")
+        ] = None,
         order_by: Annotated[
             OrderByField | None, Field(description="Specifies the order by criteria for listing entities.")
         ] = None,
@@ -12980,7 +13484,10 @@ class ModelRegistryServiceApi:
             SortOrder | None, Field(description="Specifies the sort order for listing entities, defaults to ASC.")
         ] = None,
         next_page_token: Annotated[
-            StrictStr | None, Field(description="Token to use to retrieve next page of results.")
+            StrictStr | None,
+            Field(
+                description="Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field."
+            ),
         ] = None,
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13002,7 +13509,7 @@ class ModelRegistryServiceApi:
         :type order_by: OrderByField
         :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
         :type sort_order: SortOrder
-        :param next_page_token: Token to use to retrieve next page of results.
+        :param next_page_token: Opaque pagination token returned by a previous list call. Do not construct manually; use the value from a prior response's nextPageToken field.
         :type next_page_token: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -13116,7 +13623,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_artifact(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13182,7 +13689,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_artifact_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13248,7 +13755,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_artifact_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="A unique identifier for an `Artifact`.")],
+        id: Annotated[str, Field(strict=True, description="A unique identifier for an `Artifact`.")],
         artifact_update: Annotated[ArtifactUpdate, Field(description="Updated `Artifact` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13371,7 +13878,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13437,7 +13944,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment_with_http_info(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13503,7 +14010,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment_without_preload_content(
         self,
-        experiment_id: Annotated[StrictStr, Field(description="A unique identifier for an `Experiment`.")],
+        experiment_id: Annotated[str, Field(strict=True, description="A unique identifier for an `Experiment`.")],
         experiment_update: Annotated[ExperimentUpdate, Field(description="Updated `Experiment` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -13626,7 +14133,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment_run(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         experiment_run_update: Annotated[
             ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
         ],
@@ -13694,7 +14203,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment_run_with_http_info(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         experiment_run_update: Annotated[
             ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
         ],
@@ -13762,7 +14273,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_experiment_run_without_preload_content(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         experiment_run_update: Annotated[
             ExperimentRunUpdate, Field(description="Updated `ExperimentRun` information.")
         ],
@@ -13887,7 +14400,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_inference_service(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         inference_service_update: Annotated[
             InferenceServiceUpdate, Field(description="Updated `InferenceService` information.")
         ],
@@ -13955,7 +14470,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_inference_service_with_http_info(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         inference_service_update: Annotated[
             InferenceServiceUpdate, Field(description="Updated `InferenceService` information.")
         ],
@@ -14023,7 +14540,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_inference_service_without_preload_content(
         self,
-        inferenceservice_id: Annotated[StrictStr, Field(description="A unique identifier for a `InferenceService`.")],
+        inferenceservice_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `InferenceService`.")
+        ],
         inference_service_update: Annotated[
             InferenceServiceUpdate, Field(description="Updated `InferenceService` information.")
         ],
@@ -14148,7 +14667,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_artifact(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         model_artifact_update: Annotated[
             ModelArtifactUpdate, Field(description="Updated `ModelArtifact` information.")
         ],
@@ -14216,7 +14735,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_artifact_with_http_info(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         model_artifact_update: Annotated[
             ModelArtifactUpdate, Field(description="Updated `ModelArtifact` information.")
         ],
@@ -14284,7 +14803,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_artifact_without_preload_content(
         self,
-        modelartifact_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelArtifact`.")],
+        modelartifact_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelArtifact`.")],
         model_artifact_update: Annotated[
             ModelArtifactUpdate, Field(description="Updated `ModelArtifact` information.")
         ],
@@ -14409,7 +14928,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_version(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         model_version_update: Annotated[ModelVersionUpdate, Field(description="Updated `ModelVersion` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -14475,7 +14994,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_version_with_http_info(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         model_version_update: Annotated[ModelVersionUpdate, Field(description="Updated `ModelVersion` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -14541,7 +15060,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_model_version_without_preload_content(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         model_version_update: Annotated[ModelVersionUpdate, Field(description="Updated `ModelVersion` information.")],
         _request_timeout: None
         | Annotated[StrictFloat, Field(gt=0)]
@@ -14664,7 +15183,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_registered_model(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         registered_model_update: Annotated[
             RegisteredModelUpdate, Field(description="Updated `RegisteredModel` information.")
         ],
@@ -14732,7 +15253,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_registered_model_with_http_info(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         registered_model_update: Annotated[
             RegisteredModelUpdate, Field(description="Updated `RegisteredModel` information.")
         ],
@@ -14800,7 +15323,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def update_registered_model_without_preload_content(
         self,
-        registeredmodel_id: Annotated[StrictStr, Field(description="A unique identifier for a `RegisteredModel`.")],
+        registeredmodel_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for a `RegisteredModel`.")
+        ],
         registered_model_update: Annotated[
             RegisteredModelUpdate, Field(description="Updated `RegisteredModel` information.")
         ],
@@ -14926,7 +15451,7 @@ class ModelRegistryServiceApi:
     async def update_serving_environment(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         serving_environment_update: Annotated[
             ServingEnvironmentUpdate, Field(description="Updated `ServingEnvironment` information.")
@@ -14996,7 +15521,7 @@ class ModelRegistryServiceApi:
     async def update_serving_environment_with_http_info(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         serving_environment_update: Annotated[
             ServingEnvironmentUpdate, Field(description="Updated `ServingEnvironment` information.")
@@ -15066,7 +15591,7 @@ class ModelRegistryServiceApi:
     async def update_serving_environment_without_preload_content(
         self,
         servingenvironment_id: Annotated[
-            StrictStr, Field(description="A unique identifier for a `ServingEnvironment`.")
+            str, Field(strict=True, description="A unique identifier for a `ServingEnvironment`.")
         ],
         serving_environment_update: Annotated[
             ServingEnvironmentUpdate, Field(description="Updated `ServingEnvironment` information.")
@@ -15192,7 +15717,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_experiment_run_artifact(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
         ],
@@ -15262,7 +15789,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_experiment_run_artifact_with_http_info(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
         ],
@@ -15332,7 +15861,9 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_experiment_run_artifact_without_preload_content(
         self,
-        experimentrun_id: Annotated[StrictStr, Field(description="A unique identifier for an `ExperimentRun`.")],
+        experimentrun_id: Annotated[
+            str, Field(strict=True, description="A unique identifier for an `ExperimentRun`.")
+        ],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ExperimentRun`.")
         ],
@@ -15459,7 +15990,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_model_version_artifact(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
         ],
@@ -15529,7 +16060,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_model_version_artifact_with_http_info(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
         ],
@@ -15599,7 +16130,7 @@ class ModelRegistryServiceApi:
     @validate_call
     async def upsert_model_version_artifact_without_preload_content(
         self,
-        modelversion_id: Annotated[StrictStr, Field(description="A unique identifier for a `ModelVersion`.")],
+        modelversion_id: Annotated[str, Field(strict=True, description="A unique identifier for a `ModelVersion`.")],
         artifact: Annotated[
             Artifact, Field(description="A new or existing `Artifact` to be associated with the `ModelVersion`.")
         ],

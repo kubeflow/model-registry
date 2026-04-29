@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictBytes, StrictStr, field_validator
 from typing_extensions import Self
 
 
@@ -23,9 +23,17 @@ class MetadataProtoValue(BaseModel):
     """A proto property value."""  # noqa: E501
 
     type: StrictStr = Field(description="url describing proto value")
-    proto_value: StrictStr = Field(description="Base64 encoded bytes for proto value")
+    proto_value: StrictBytes | StrictStr = Field(description="Base64 encoded bytes for proto value")
     metadata_type: StrictStr = Field(alias="metadataType")
     __properties: ClassVar[list[str]] = ["type", "proto_value", "metadataType"]
+
+    @field_validator("metadata_type")
+    def metadata_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value not in {"MetadataProtoValue"}:
+            msg = "must be one of enum values ('MetadataProtoValue')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

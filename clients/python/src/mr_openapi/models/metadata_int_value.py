@@ -13,18 +13,34 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 
 class MetadataIntValue(BaseModel):
-    """An integer (int64) property value."""  # noqa: E501
+    """An integer (int32) property value."""  # noqa: E501
 
-    int_value: StrictStr
+    int_value: Annotated[str, Field(strict=True)]
     metadata_type: StrictStr = Field(alias="metadataType")
     __properties: ClassVar[list[str]] = ["int_value", "metadataType"]
+
+    @field_validator("int_value")
+    def int_value_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^-?([1-9][0-9]{0,8}|0)$", value):
+            msg = r"must validate the regular expression /^-?([1-9][0-9]{0,8}|0)$/"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("metadata_type")
+    def metadata_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value not in {"MetadataIntValue"}:
+            msg = "must be one of enum values ('MetadataIntValue')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

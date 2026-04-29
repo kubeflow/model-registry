@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, field_validator
 from typing_extensions import Self
 
 
@@ -25,6 +25,14 @@ class MetadataBoolValue(BaseModel):
     bool_value: StrictBool
     metadata_type: StrictStr = Field(alias="metadataType")
     __properties: ClassVar[list[str]] = ["bool_value", "metadataType"]
+
+    @field_validator("metadata_type")
+    def metadata_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value not in {"MetadataBoolValue"}:
+            msg = "must be one of enum values ('MetadataBoolValue')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

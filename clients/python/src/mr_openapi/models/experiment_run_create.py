@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.experiment_run_state import ExperimentRunState
@@ -49,7 +49,7 @@ class ExperimentRunCreate(BaseModel):
     status: ExperimentRunStatus | None = ExperimentRunStatus.RUNNING
     state: ExperimentRunState | None = ExperimentRunState.LIVE
     owner: StrictStr | None = Field(default=None, description="Experiment run owner id or name.")
-    experiment_id: StrictStr = Field(
+    experiment_id: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="ID of the `Experiment` to which this experiment run belongs.", alias="experimentId"
     )
     start_time_since_epoch: StrictStr | None = Field(
@@ -69,6 +69,14 @@ class ExperimentRunCreate(BaseModel):
         "experimentId",
         "startTimeSinceEpoch",
     ]
+
+    @field_validator("experiment_id")
+    def experiment_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

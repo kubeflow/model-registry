@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
@@ -36,7 +36,7 @@ class RegisteredModelCreate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
+    name: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="The client provided name of the model. It must be unique among all the RegisteredModels of the same type within a Model Registry instance and cannot be changed once set."
     )
     readme: StrictStr | None = Field(default=None, description="Model documentation in Markdown.")

@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
@@ -36,7 +36,7 @@ class Experiment(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
+    name: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="The client provided name of the experiment. It must be unique among all the Experiments of the same type within a Model Registry instance and cannot be changed once set."
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")

@@ -6,10 +6,10 @@ from hypothesis.errors import Unsatisfiable
 
 
 @pytest.mark.fuzz
-class TestRestAPIStateful:
-    @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
-    def test_mr_api_stateful(self, state_machine):
-        """Launches stateful tests against the Model Registry API endpoints defined in its openAPI yaml spec file"""
+class TestCatalogAPIStateful:
+    @pytest.mark.parametrize("generated_schema", ["catalog.yaml"], indirect=True)
+    def test_catalog_api_stateful(self, state_machine):
+        """Launches stateful tests against the Model Catalog API endpoints defined in its openAPI yaml spec file"""
         try:
             state_machine.run(settings=settings(
                 max_examples=20,

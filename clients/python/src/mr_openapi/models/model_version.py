@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.metadata_value import MetadataValue
@@ -36,12 +36,12 @@ class ModelVersion(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr = Field(
+    name: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
     )
     state: ModelVersionState | None = ModelVersionState.LIVE
     author: StrictStr | None = Field(default=None, description="Name of the author.")
-    registered_model_id: StrictStr = Field(
+    registered_model_id: Annotated[str, Field(min_length=1, strict=True)] = Field(
         description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
     )
     id: StrictStr | None = Field(default=None, description="The unique server generated id of the resource.")
@@ -67,6 +67,14 @@ class ModelVersion(BaseModel):
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
     ]
+
+    @field_validator("registered_model_id")
+    def registered_model_id_validate_regular_expression(cls, value):
+        """Validates the regular expression."""
+        if not re.match(r"^[1-9][0-9]{0,8}$", value):
+            msg = r"must validate the regular expression /^[1-9][0-9]{0,8}$/"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

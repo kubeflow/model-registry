@@ -15,16 +15,24 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictBytes, StrictStr, field_validator
 from typing_extensions import Self
 
 
 class MetadataStructValue(BaseModel):
     """A struct property value."""  # noqa: E501
 
-    struct_value: StrictStr = Field(description="Base64 encoded bytes for struct value")
+    struct_value: StrictBytes | StrictStr = Field(description="Base64 encoded bytes for struct value")
     metadata_type: StrictStr = Field(alias="metadataType")
     __properties: ClassVar[list[str]] = ["struct_value", "metadataType"]
+
+    @field_validator("metadata_type")
+    def metadata_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value not in {"MetadataStructValue"}:
+            msg = "must be one of enum values ('MetadataStructValue')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

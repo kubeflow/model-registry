@@ -26,7 +26,7 @@ type InferenceServiceUpdate struct {
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// ID of the `ModelVersion` to serve. If it's unspecified, then the latest `ModelVersion` by creation order will be served.
-	ModelVersionId *string `json:"modelVersionId,omitempty"`
+	ModelVersionId *string `json:"modelVersionId,omitempty" validate:"regexp=^[1-9][0-9]{0,8}$"`
 	// Model runtime.
 	Runtime      *string                `json:"runtime,omitempty"`
 	DesiredState *InferenceServiceState `json:"desiredState,omitempty"`

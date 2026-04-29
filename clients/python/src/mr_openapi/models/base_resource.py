@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import pprint
 import re  # noqa: F401
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
@@ -45,7 +45,7 @@ class BaseResource(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    name: StrictStr | None = Field(
+    name: Annotated[str, Field(min_length=1, strict=True)] | None = Field(
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
