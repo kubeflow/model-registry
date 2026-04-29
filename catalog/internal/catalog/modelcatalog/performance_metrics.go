@@ -674,12 +674,26 @@ func enrichCatalogModelFromMetadata(existingModel dbmodels.CatalogModel, metadat
 		return nil // Nothing to update
 	}
 
-	// Add the new custom properties to existing model
-	existingCustomProperties := existingModel.GetCustomProperties()
-	if existingCustomProperties == nil {
-		existingCustomProperties = &customProperties
+	// Merge new custom properties into the model, new values overwrite existing ones with same name.
+	newNames := make(map[string]struct{}, len(customProperties))
+	for _, p := range customProperties {
+		newNames[p.Name] = struct{}{}
+	}
+	impl, ok := existingModel.(*dbmodels.CatalogModelImpl)
+	if !ok {
+		return fmt.Errorf("unexpected model type %T", existingModel)
+	}
+	if impl.CustomProperties == nil {
+		impl.CustomProperties = &customProperties
 	} else {
-		*existingCustomProperties = append(*existingCustomProperties, customProperties...)
+		filtered := (*impl.CustomProperties)[:0]
+		for _, p := range *impl.CustomProperties {
+			if _, overwritten := newNames[p.Name]; !overwritten {
+				filtered = append(filtered, p)
+			}
+		}
+		merged := append(filtered, customProperties...)
+		impl.CustomProperties = &merged
 	}
 
 	// Save the updated model

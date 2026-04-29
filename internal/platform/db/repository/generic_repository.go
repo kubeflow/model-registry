@@ -414,7 +414,12 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) handleProperties
 
 		switch result.Error {
 		case nil:
-			if err := tx.Model(&existingProp).Select("*").Updates(prop).Error; err != nil {
+			// Use explicit WHERE (all 3 PK columns) and select only value columns to avoid GORM
+			// skipping is_custom_property=false in WHERE (zero-value bool).
+			if err := tx.Where(r.config.PropertyFieldName+" = ? AND name = ? AND is_custom_property = ?",
+				r.getPropertyEntityID(prop), r.getPropertyName(prop), r.getPropertyIsCustom(prop)).
+				Select("int_value", "double_value", "string_value", "bool_value", "byte_value", "proto_value").
+				Updates(prop).Error; err != nil {
 				return fmt.Errorf("error updating property %s: %w", r.getPropertyName(prop), err)
 			}
 		case gorm.ErrRecordNotFound:
@@ -473,7 +478,6 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getPropertyEntit
 		panic(fmt.Sprintf("unsupported property type: %T", prop))
 	}
 }
-
 
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) CreateDefaultPaginationToken(e TSchema, listOptions TListOpts) string {
 	entityID := r.getEntityID(e)
