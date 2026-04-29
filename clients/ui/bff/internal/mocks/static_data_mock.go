@@ -2468,8 +2468,8 @@ func GetMcpServerMocks() []models.McpServer {
 			},
 		},
 		Readme:        stringToPointer("# Kubernetes MCP Server\n\nThe Kubernetes MCP Server allows AI Assistants to interact with Kubernetes clusters, bringing real-time cluster management directly into your development workflow.\n\n**Note:** This product is not officially supported by CNCF.\n\nIf you need help, please contact us via GitHub Issues if you have feature requests, questions, or need help.\n\n## Quickstart\n\nYou can add this MCP server to your MCP Client like VSCode, Claude, Cursor, Amazon Q, Windsurf, ChatGPT, or GitHub Copilot via the command `npx -y @cncf/kubernetes-mcp-server` (type: stdio). For more details, please refer to the configuration section below.\n\n## Use Cases\n\n- **Real-time cluster management** - Query pod, deployment, and service status\n- **Resource operations** - Create, update, and delete Kubernetes resources\n- **Health monitoring** - Check cluster health and resource utilization\n- **Namespace management** - List and manage namespaces and their contents\n- **Debugging support** - Get pod logs and events for troubleshooting\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `get_pods` | List pods in a namespace |\n| `get_deployments` | List deployments |\n| `get_services` | List services |\n| `get_namespaces` | List all namespaces |\n| `get_pod_logs` | Retrieve pod logs |\n| `get_events` | Get cluster events |\n| `apply_manifest` | Apply a Kubernetes manifest |\n| `delete_resource` | Delete a Kubernetes resource |\n\n## Configuration\n\n```json\n{\n  \"mcpServers\": {\n    \"kubernetes\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@cncf/kubernetes-mcp-server\"],\n      \"env\": {\n        \"KUBECONFIG\": \"/path/to/kubeconfig\"\n      }\n    }\n  }\n}\n```\n\n## Requirements\n\n- Node.js 18+\n- Valid kubeconfig with cluster access\n- kubectl CLI (optional, for fallback operations)\n"),
-		SourceCode:    stringToPointer("cncf/kubernetes-mcp-server"),
-		RepositoryURL: stringToPointer("https://github.com/cncf/kubernetes-mcp-server"),
+		SourceCode:    stringToPointer("containers/kubernetes-mcp-server"),
+		RepositoryURL: stringToPointer("https://github.com/containers/kubernetes-mcp-server"),
 		LastUpdated:   stringToPointer("1709913600000"),
 	}
 
@@ -2620,28 +2620,29 @@ func GetMcpServerMocks() []models.McpServer {
 		},
 	}
 
-	standaloneMcp := models.McpServer{
+	googleMapsMcp := models.McpServer{
 		ID:          "9",
-		Name:        "Standalone MCP Server",
+		Name:        "Google Maps MCP Server",
 		SourceID:    stringToPointer("standalone-mcp-source"),
-		Description: stringToPointer("MCP server with no category, available for use"),
-		Provider:    stringToPointer("Independent"),
-		Version:     stringToPointer("1.0.0"),
+		Description: stringToPointer("Access Google Maps services including search, places, and distance matrix"),
+		Provider:    stringToPointer("Google"),
+		Version:     stringToPointer("0.1.0"),
 		License:     stringToPointer("MIT"),
-		Tags:        []string{"standalone", "general"},
-		ToolCount:   5,
+		Tags:        []string{"maps", "location", "geospatial"},
+		ToolCount:   8,
 		Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
 		DeploymentMode: func() *models.McpDeploymentMode {
 			mode := models.McpDeploymentModeLocal
 			return &mode
 		}(),
 		SecurityIndicators: &models.McpSecurityIndicator{
-			VerifiedSource: &falseVal,
+			VerifiedSource: &trueVal,
 			SecureEndpoint: &trueVal,
 		},
+		RepositoryURL: stringToPointer("https://github.com/modelcontextprotocol/server-google-maps"),
 	}
 
-	allBases := []models.McpServer{prometheusMcp, kubernetesMcp, grafanaMcp, gitMcp, elasticMcp, dynatraceMcp, postgresMcp, redisMcp, standaloneMcp}
+	allBases := []models.McpServer{prometheusMcp, kubernetesMcp, grafanaMcp, gitMcp, elasticMcp, dynatraceMcp, postgresMcp, redisMcp, googleMapsMcp}
 
 	var all []models.McpServer
 	nextID := len(allBases) + 1
