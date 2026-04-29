@@ -220,25 +220,35 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     return (
       <EmptyModelCatalogState
         testid="performance-empty-state"
-        title="No performance data available in selected category"
+        title={
+          isSingleCategory
+            ? 'No performance data available.'
+            : 'No performance data available in selected category'
+        }
         headerIcon={ChartBarIcon}
         variant={EmptyStateVariant.lg}
         description={
-          <>
-            No models in the{' '}
-            <strong>
-              {selectedSourceLabel === 'null'
-                ? CategoryName.otherModels
-                : generateCategoryName(selectedSourceLabel || '')}
-            </strong>{' '}
-            category have performance data. Select another model category, or turn off model
-            performance view to see models in the selected category.
-          </>
+          isSingleCategory ? (
+            'No models have performance data available. Turn off model performance view to see all models.'
+          ) : (
+            <>
+              No models in the{' '}
+              <strong>
+                {selectedSourceLabel === 'null'
+                  ? CategoryName.otherModels
+                  : generateCategoryName(selectedSourceLabel || '')}
+              </strong>{' '}
+              category have performance data. Select another model category, or turn off model
+              performance view to see models in the selected category.
+            </>
+          )
         }
         primaryAction={
-          <Button variant="primary" onClick={handleSelectAllModels}>
-            View all models with performance data
-          </Button>
+          isSingleCategory ? undefined : (
+            <Button variant="primary" onClick={handleSelectAllModels}>
+              View all models with performance data
+            </Button>
+          )
         }
         secondaryAction={
           <Button variant="link" onClick={handleDisablePerformanceView}>

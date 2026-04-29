@@ -485,6 +485,66 @@ describe('Performance Empty State', () => {
     });
   });
 
+  describe('Single Category Empty State Actions', () => {
+    it('should show single-category title and description when performance empty state is displayed', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
+      modelCatalog.visit();
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog
+        .findPerformanceEmptyState()
+        .should('contain.text', 'No performance data available.')
+        .and('not.contain.text', 'in selected category');
+
+      modelCatalog
+        .findPerformanceEmptyState()
+        .should(
+          'contain.text',
+          'No models have performance data available. Turn off model performance view to see all models.',
+        );
+    });
+
+    it('should not show "View all models with performance data" button when single category', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
+      modelCatalog.visit();
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog
+        .findPerformanceEmptyState()
+        .contains('button', /View all models with performance data/i)
+        .should('not.exist');
+    });
+
+    it('should turn off toggle when clicking "Turn off model performance view" in single category', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
+      modelCatalog.visit();
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog.findSetPerformanceOffLink().click();
+
+      modelCatalog.findPerformanceViewToggleValue().should('not.be.checked');
+      modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+    });
+  });
+
   it('should work correctly when toggling performance view', () => {
     initIntercepts({
       sources: mockProviderAndCustomSources(),
