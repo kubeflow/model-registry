@@ -3064,15 +3064,15 @@ test = ["coverage", "pytest", "pytest-cov"]
 
 [[package]]
 name = "rh-model-signing"
-version = "0.1.0"
+version = "1.0.1"
 description = "A tool for signing and verifying ML models (Red Hat Tech Preview)"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
 markers = "extra == \"signing\""
 files = [
-    {file = "rh_model_signing-0.1.0-py3-none-any.whl", hash = "sha256:004d1d9d07f135156b7f6865fc75a70e78b2fb58841127ab8fbd645a2e426f6a"},
-    {file = "rh_model_signing-0.1.0.tar.gz", hash = "sha256:9c34a81e901cd1a00cbfeb283d6c1c10f589272b9cf94b493e8a3b5e905e478e"},
+    {file = "rh_model_signing-1.0.1-py3-none-any.whl", hash = "sha256:669148d50897aa356cfe9cdc894f35b3d0f02e67c3aa934d6077b9f465f3e22a"},
+    {file = "rh_model_signing-1.0.1.tar.gz", hash = "sha256:2914ac502298a7a2bef973f089ae059157619908c1d9c88d7a51d64648013257"},
 ]
 
 [package.dependencies]
@@ -4334,4 +4334,4 @@ signing = ["platformdirs", "rh-model-signing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.10, < 4.0"
-content-hash = "d421796c7163acf57e9a1472e810609f5568c931d7c0cc0280da9619191f115b"
+content-hash = "e3178f54234218e70a85660fa735fe04e941e0d2e45fb4660b167d1c0e5e18da"
