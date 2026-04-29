@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
@@ -26,7 +26,7 @@ func GenerateMockRegisteredModelList() openapi.RegisteredModelList {
 
 func GenerateMockRegisteredModel() openapi.RegisteredModel {
 	model := openapi.RegisteredModel{
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"example_key": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  gofakeit.Sentence(3),
@@ -48,7 +48,7 @@ func GenerateMockRegisteredModel() openapi.RegisteredModel {
 
 func GenerateMockModelVersion() openapi.ModelVersion {
 	model := openapi.ModelVersion{
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"example_key": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  gofakeit.Sentence(3),
@@ -87,7 +87,7 @@ func GenerateMockModelVersionList() openapi.ModelVersionList {
 func GenerateMockModelArtifact() openapi.ModelArtifact {
 	artifact := openapi.ModelArtifact{
 		ArtifactType: stringToPointer("model-artifact"),
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"example_key": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  gofakeit.Sentence(3),

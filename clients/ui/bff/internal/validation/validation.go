@@ -3,7 +3,7 @@ package validation
 import (
 	"errors"
 
-	"github.com/kubeflow/model-registry/pkg/openapi"
+	"github.com/kubeflow/hub/pkg/openapi"
 )
 
 func ValidateRegisteredModel(input openapi.RegisteredModel) error {
