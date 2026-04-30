@@ -7,6 +7,7 @@ import useModelCatalogAPIState, {
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import { useCatalogLabels } from '~/app/hooks/modelCatalog/useCatalogLabels';
 import { useMcpServerFilterOptionListWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList';
+import useEmptyCategoryTracking from '~/app/hooks/useEmptyCategoryTracking';
 import type {
   McpCatalogContextType,
   McpCatalogPaginationState,
@@ -55,6 +56,8 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   filterOptions: null,
   filterOptionsLoaded: false,
   filterOptionsLoadError: undefined,
+  emptyCategoryLabels: new Set<string>(),
+  reportCategoryEmpty: () => undefined,
 });
 
 const MODEL_CATALOG_PATH = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_catalog`;
@@ -89,6 +92,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<string | undefined>(
     initialState.selectedSourceLabel,
   );
+  const { emptyCategoryLabels, reportCategoryEmpty } = useEmptyCategoryTracking();
 
   React.useEffect(() => {
     syncToUrl({ searchQuery, filters, selectedSourceLabel });
@@ -137,6 +141,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     }),
     [
       apiStateMcpCatalog,
@@ -158,6 +164,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       setPageSize,
       setTotalItems,
       clearAllFilters,
+      emptyCategoryLabels,
+      reportCategoryEmpty,
     ],
   );
 

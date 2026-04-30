@@ -14,6 +14,7 @@ import React from 'react';
 import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
+import useReportCategoryEmpty from '~/app/hooks/useReportCategoryEmpty';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import {
   getLabelDescription,
@@ -38,7 +39,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   catalogSources,
   onShowMore,
 }) => {
-  const { catalogLabels } = React.useContext(ModelCatalogContext);
+  const { catalogLabels, reportCategoryEmpty } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     undefined,
     label,
@@ -48,9 +49,20 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
 
   const itemsToDisplay = catalogModels.items.slice(0, pageSize);
 
-  // Get display name and description from labels API
   const categoryTitle = getLabelDisplayName(label, catalogLabels);
   const description = getLabelDescription(label, catalogLabels);
+
+  useReportCategoryEmpty(
+    reportCategoryEmpty,
+    label,
+    catalogModelsLoaded,
+    catalogModels.items.length,
+    searchTerm,
+  );
+
+  if (catalogModelsLoaded && catalogModels.items.length === 0 && !searchTerm) {
+    return null;
+  }
 
   return (
     <>
