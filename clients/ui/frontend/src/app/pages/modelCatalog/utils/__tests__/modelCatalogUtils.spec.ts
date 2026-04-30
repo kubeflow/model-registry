@@ -19,6 +19,8 @@ import {
   ModelCatalogTask,
   ModelCatalogTensorType,
   UseCaseOptionValue,
+  CatalogModelCustomPropertyKey,
+  ModelType,
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogSourceStatus,
@@ -34,6 +36,7 @@ import {
   hasFiltersApplied,
   getArchitecturesFromArtifacts,
   getModelName,
+  getCatalogModelTypePropertyForRegistration,
   getActiveSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockCatalogModelArtifact } from '~/__mocks__/mockCatalogModelArtifactList';
@@ -1384,6 +1387,37 @@ describe('getModelName', () => {
   it('should handle model names with hyphens and underscores', () => {
     const result = getModelName('my_org/my-model_v1');
     expect(result).toBe('my-model_v1');
+  });
+});
+
+describe('getCatalogModelTypePropertyForRegistration', () => {
+  it('returns model_type metadata when catalog has generative or predictive', () => {
+    expect(
+      getCatalogModelTypePropertyForRegistration({
+        [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: ModelType.GENERATIVE,
+        },
+      }),
+    ).toEqual({
+      [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
+        metadataType: ModelRegistryMetadataType.STRING,
+        string_value: ModelType.GENERATIVE,
+      },
+    });
+  });
+
+  it('returns empty object when model_type is absent or not a registerable value', () => {
+    expect(getCatalogModelTypePropertyForRegistration(undefined)).toEqual({});
+    expect(getCatalogModelTypePropertyForRegistration({})).toEqual({});
+    expect(
+      getCatalogModelTypePropertyForRegistration({
+        [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: ModelType.UNKNOWN,
+        },
+      }),
+    ).toEqual({});
   });
 });
 

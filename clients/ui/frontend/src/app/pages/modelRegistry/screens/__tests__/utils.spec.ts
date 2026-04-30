@@ -12,6 +12,7 @@ import {
   ModelState,
 } from '~/app/types';
 import { mockModelArtifact } from '~/__mocks__/mockModelArtifact';
+import { CatalogModelCustomPropertyKey } from '~/concepts/modelCatalog/const';
 import { ModelSourceKind } from '~/concepts/modelRegistry/types';
 import { modelSourcePropertiesToCatalogParams } from '~/concepts/modelRegistry/utils';
 import {
@@ -177,10 +178,14 @@ describe('getProperties', () => {
     });
   });
 
-  it('should return with _lastModified and _registeredFrom props filtered out', () => {
+  it('should return with _lastModified, _registeredFrom, and model_type props filtered out', () => {
     const customProperties: ModelRegistryCustomProperties = {
       property1: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'non-empty' },
       _lastModified: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'non-empty' },
+      [CatalogModelCustomPropertyKey.MODEL_TYPE]: {
+        metadataType: ModelRegistryMetadataType.STRING,
+        string_value: 'predictive',
+      },
       _registeredFromSomething: {
         metadataType: ModelRegistryMetadataType.STRING,
         string_value: 'non-empty',

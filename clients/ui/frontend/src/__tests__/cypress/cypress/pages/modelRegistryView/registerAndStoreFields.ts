@@ -301,9 +301,18 @@ class RegisterAndStoreFields {
     this.findSourceS3SecretAccessKeyInput().type(secretAccessKey);
   }
 
+  /** Sets model type (required on register page). Uses Predictive by default. */
+  selectModelType(
+    optionName: 'Predictive Model' | 'Generative AI model (Example, LLM)' = 'Predictive Model',
+  ) {
+    cy.get('#register-model-type-toggle').click();
+    cy.findByRole('option', { name: optionName }).click();
+  }
+
   // Convenience method to fill all required fields for submission
   fillAllRequiredFields() {
     this.fillModelName('test-model');
+    this.selectModelType();
     this.fillVersionName('v1.0.0');
     this.fillJobName('my-transfer-job');
     this.fillSourceEndpoint('https://s3.amazonaws.com');
