@@ -55,6 +55,21 @@ export const ALERT_TEST_IDS = {
 } as const;
 
 /**
+ * Test IDs for the CategorizedManageColumnsModal
+ */
+export const MANAGE_COLUMNS_TEST_IDS = {
+  button: 'manage-columns-button',
+  modal: 'hardware-config-manage-columns',
+  search: 'hardware-config-manage-columns-search',
+  restoreDefaults: 'hardware-config-manage-columns-restore-defaults',
+  updateButton: 'hardware-config-manage-columns-update-button',
+  cancelButton: 'hardware-config-manage-columns-cancel-button',
+  selectedCount: 'hardware-config-manage-columns-selected-count',
+  section: (categoryId: string): string => `hardware-config-manage-columns-section-${categoryId}`,
+  checkbox: (columnId: string): string => `hardware-config-manage-columns-checkbox-${columnId}`,
+};
+
+/**
  * Non-breaking space character used in table column headers
  */
 export const NBSP = '\u00A0';
