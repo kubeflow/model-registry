@@ -26,12 +26,15 @@ type RegisterModelTypeFieldProps = {
   modelCustomProperties: ModelRegistryCustomProperties | undefined;
   onModelCustomPropertiesChange: (next: ModelRegistryCustomProperties) => void;
   isRequired?: boolean;
+  /** Catalog registration: type is catalog metadata (like URI), not user-editable. */
+  isReadOnly?: boolean;
 };
 
 const RegisterModelTypeField: React.FC<RegisterModelTypeFieldProps> = ({
   modelCustomProperties,
   onModelCustomPropertiesChange,
   isRequired,
+  isReadOnly,
 }) => {
   const stored = getModelTypeStoredValueFromCustomProperties(modelCustomProperties);
 
@@ -52,6 +55,7 @@ const RegisterModelTypeField: React.FC<RegisterModelTypeFieldProps> = ({
             onChange={handleChange}
             placeholder="Select model type"
             isFullWidth
+            isDisabled={isReadOnly}
             dataTestId="register-model-type-select"
             previewDescription={false}
             popperProps={{ direction: 'down' }}

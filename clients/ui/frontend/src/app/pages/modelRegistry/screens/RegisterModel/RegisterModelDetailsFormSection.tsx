@@ -21,6 +21,8 @@ type RegisterModelDetailsFormSectionProp<D extends RegisterModelFormData> = {
   isModelNameDuplicate?: boolean;
   /** When true (MR register-from-registry), model type is required; submit stays disabled until set. */
   isModelTypeRequired?: boolean;
+  /** When true (catalog → MR), model type is prefilled from catalog metadata and is not editable. */
+  isModelTypeReadOnly?: boolean;
 };
 const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   formData,
@@ -28,6 +30,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   hasModelNameError,
   isModelNameDuplicate,
   isModelTypeRequired = false,
+  isModelTypeReadOnly = false,
 }: RegisterModelDetailsFormSectionProp<D>): React.ReactNode => {
   const modelNameInput = (
     <TextInput
@@ -83,6 +86,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
         modelCustomProperties={formData.modelCustomProperties}
         onModelCustomPropertiesChange={(next) => setData('modelCustomProperties', next)}
         isRequired={isModelTypeRequired}
+        isReadOnly={isModelTypeReadOnly}
       />
     </FormSection>
   );
