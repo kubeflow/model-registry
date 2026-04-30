@@ -9,21 +9,22 @@ const useEmptyCategoryTracking = (): UseEmptyCategoryTrackingResult => {
   const [emptyCategoryLabels, setEmptyCategoryLabels] = React.useState<Set<string>>(
     () => new Set<string>(),
   );
-  const emptyCategoryLabelsRef = React.useRef(emptyCategoryLabels);
-  emptyCategoryLabelsRef.current = emptyCategoryLabels;
 
   const reportCategoryEmpty = React.useCallback((label: string, isEmpty: boolean) => {
-    const { current } = emptyCategoryLabelsRef;
-    const hasLabel = current.has(label);
-    if (isEmpty && !hasLabel) {
-      const next = new Set(current);
-      next.add(label);
-      setEmptyCategoryLabels(next);
-    } else if (!isEmpty && hasLabel) {
-      const next = new Set(current);
-      next.delete(label);
-      setEmptyCategoryLabels(next);
-    }
+    setEmptyCategoryLabels((prev) => {
+      const hasLabel = prev.has(label);
+      if (isEmpty && !hasLabel) {
+        const next = new Set(prev);
+        next.add(label);
+        return next;
+      }
+      if (!isEmpty && hasLabel) {
+        const next = new Set(prev);
+        next.delete(label);
+        return next;
+      }
+      return prev;
+    });
   }, []);
 
   return { emptyCategoryLabels, reportCategoryEmpty };

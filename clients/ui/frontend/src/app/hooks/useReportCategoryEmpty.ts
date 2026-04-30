@@ -7,16 +7,14 @@ const useReportCategoryEmpty = (
   itemCount: number,
   searchTerm: string,
 ): void => {
-  const reportTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
-
   React.useEffect(() => {
-    clearTimeout(reportTimerRef.current);
-    if (isLoaded && !searchTerm) {
-      reportTimerRef.current = setTimeout(() => {
-        reportCategoryEmpty(label, itemCount === 0);
-      }, 100);
+    if (!isLoaded || searchTerm) {
+      return undefined;
     }
-    return () => clearTimeout(reportTimerRef.current);
+    const timer = setTimeout(() => {
+      reportCategoryEmpty(label, itemCount === 0);
+    }, 100);
+    return () => clearTimeout(timer);
   }, [isLoaded, itemCount, label, searchTerm, reportCategoryEmpty]);
 };
 

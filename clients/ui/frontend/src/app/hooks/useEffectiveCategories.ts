@@ -3,7 +3,6 @@ import { CatalogLabelList, CatalogSourceList } from '~/app/modelCatalogTypes';
 import { getActiveSourceLabels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type UseEffectiveCategoriesResult = {
-  activeCategories: string[];
   effectiveActiveCategories: string[];
   isSingleCategory: boolean;
   hasNoCategories: boolean;
@@ -29,16 +28,18 @@ const useEffectiveCategories = (
   const isSingleCategory = effectiveActiveCategories.length === 1;
   const hasNoCategories = effectiveActiveCategories.length === 0;
 
-  const effectiveCategoriesKey = effectiveActiveCategories.join(',');
-
   React.useEffect(() => {
     if (catalogSourcesLoaded && isSingleCategory) {
       updateSelectedSourceLabel(effectiveActiveCategories[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalogSourcesLoaded, isSingleCategory, effectiveCategoriesKey, updateSelectedSourceLabel]);
+  }, [
+    catalogSourcesLoaded,
+    isSingleCategory,
+    effectiveActiveCategories,
+    updateSelectedSourceLabel,
+  ]);
 
-  return { activeCategories, effectiveActiveCategories, isSingleCategory, hasNoCategories };
+  return { effectiveActiveCategories, isSingleCategory, hasNoCategories };
 };
 
 export default useEffectiveCategories;
