@@ -511,3 +511,40 @@ def test_oci_credentials_file_loading(
     assert config.destination.email == expected["email"]
 
 
+def test_base_image_pull_flags_defaults(
+    source_s3_env_vars, destination_oci_env_vars, update_artifact_intent_env_vars
+):
+    """Test that base image pull flags default to secure values"""
+    config = get_config([])
+
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.base_image_tls_verify is True
+    assert config.destination.base_image_credentials_path is None
+
+
+def test_base_image_pull_flags_from_env(
+    source_s3_env_vars, destination_oci_env_vars, update_artifact_intent_env_vars, monkeypatch
+):
+    """Test that base image pull flags can be set via environment variables"""
+    monkeypatch.setenv("MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE_TLS_VERIFY", "false")
+    monkeypatch.setenv("MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE_CREDENTIALS_PATH", "/etc/pull-secret/.dockerconfigjson")
+
+    config = get_config([])
+
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.base_image_tls_verify is False
+    assert config.destination.base_image_credentials_path == "/etc/pull-secret/.dockerconfigjson"
+
+
+def test_base_image_pull_flags_from_params(
+    source_s3_env_vars, destination_oci_env_vars, update_artifact_intent_env_vars
+):
+    """Test that base image pull flags can be set via CLI parameters"""
+    config = get_config([
+        "--destination-oci-base-image-tls-verify", "false",
+        "--destination-oci-base-image-credentials-path", "/tmp/auth.json",
+    ])
+
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.base_image_tls_verify is False
+    assert config.destination.base_image_credentials_path == "/tmp/auth.json"

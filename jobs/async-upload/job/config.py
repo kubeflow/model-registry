@@ -79,6 +79,8 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--destination-oci-username")
     p.add_argument("--destination-oci-password")
     p.add_argument("--destination-oci-base-image", default="public.ecr.aws/docker/library/busybox:latest")
+    p.add_argument("--destination-oci-base-image-tls-verify", default=True, type=str2bool)
+    p.add_argument("--destination-oci-base-image-credentials-path", metavar="PATH")
     # The `type` converter is needed here to support env-based booleans
     # See: https://github.com/bw2/ConfigArgParse/tree/master?tab=readme-ov-file#special-values
     p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool)
@@ -484,6 +486,8 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             password=args.destination_oci_password,
             email=None,
             base_image=args.destination_oci_base_image,
+            base_image_tls_verify=args.destination_oci_base_image_tls_verify,
+            base_image_credentials_path=args.destination_oci_base_image_credentials_path,
             enable_tls_verify=args.destination_oci_enable_tls_verify,
             credentials_path=args.destination_oci_credentials_path
         )

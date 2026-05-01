@@ -113,6 +113,12 @@ spec:
               value: "/opt/creds/destination/.dockerconfigjson"
             - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE
               value: "public.ecr.aws/docker/library/busybox:latest"
+            # Uncomment to disable TLS verification when pulling the base image (e.g. disconnected clusters with self-signed certs)
+            # - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE_TLS_VERIFY
+            #   value: "false"
+            # Uncomment to provide auth for pulling the base image from a private/mirrored registry
+            # - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE_CREDENTIALS_PATH
+            #   value: "/opt/creds/base-image/.dockerconfigjson"
             - name: MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY
               value: "false"
 
