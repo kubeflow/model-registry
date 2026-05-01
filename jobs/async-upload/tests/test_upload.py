@@ -13,6 +13,110 @@ from job.models import (
     UpdateArtifactIntent
 )
 
+class TestGetUploadParamsOCIPullArgs:
+    """Test cases for base image pull_args passed to _get_skopeo_backend"""
+
+    @patch("job.upload.utils._get_skopeo_backend")
+    def test_pull_args_with_tls_disabled_and_credentials(self, mock_get_backend):
+        mock_get_backend.return_value = Mock()
+
+        config = AsyncUploadConfig(
+            source=S3StorageConfig(
+                bucket="src-bucket", key="src-key",
+                access_key_id="id", secret_access_key="secret", region="us-east-1"
+            ),
+            destination=OCIStorageConfig(
+                uri="registry.internal/model:v1", registry="registry.internal",
+                username="user", password="pass",
+                base_image="registry.internal/busybox:latest",
+                base_image_tls_verify=False,
+                base_image_credentials_path="/etc/pull-secret/.dockerconfigjson",
+                enable_tls_verify=False,
+                credentials_path="/tmp/push-creds"
+            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
+            storage=StorageConfig(path="/tmp/test"),
+            registry=RegistryConfig(server_address="test-server")
+        )
+
+        _get_upload_params(config)
+
+        mock_get_backend.assert_called_once()
+        call_kwargs = mock_get_backend.call_args
+        pull_args = call_kwargs.kwargs.get("pull_args") or call_kwargs[1].get("pull_args")
+        push_args = call_kwargs.kwargs.get("push_args") or call_kwargs[1].get("push_args")
+
+        assert "--src-tls-verify=false" in pull_args
+        assert "--authfile" in pull_args
+        assert "/etc/pull-secret/.dockerconfigjson" in pull_args
+        assert "--dest-tls-verify=false" in push_args
+        assert "--authfile" in push_args
+        assert "/tmp/push-creds" in push_args
+
+    @patch("job.upload.utils._get_skopeo_backend")
+    def test_pull_args_defaults_are_empty(self, mock_get_backend):
+        mock_get_backend.return_value = Mock()
+
+        config = AsyncUploadConfig(
+            source=S3StorageConfig(
+                bucket="src-bucket", key="src-key",
+                access_key_id="id", secret_access_key="secret", region="us-east-1"
+            ),
+            destination=OCIStorageConfig(
+                uri="quay.io/org/model:v1", registry="quay.io",
+                username="user", password="pass",
+                base_image="quay.io/quay/busybox:latest",
+            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
+            storage=StorageConfig(path="/tmp/test"),
+            registry=RegistryConfig(server_address="test-server")
+        )
+
+        _get_upload_params(config)
+
+        mock_get_backend.assert_called_once()
+        call_kwargs = mock_get_backend.call_args
+        pull_args = call_kwargs.kwargs.get("pull_args") or call_kwargs[1].get("pull_args")
+        push_args = call_kwargs.kwargs.get("push_args") or call_kwargs[1].get("push_args")
+
+        assert pull_args == []
+        assert push_args == []
+
+    @patch("job.upload.utils._get_skopeo_backend")
+    def test_pull_args_independent_from_push_args(self, mock_get_backend):
+        """Base image pull settings are independent from destination push settings"""
+        mock_get_backend.return_value = Mock()
+
+        config = AsyncUploadConfig(
+            source=S3StorageConfig(
+                bucket="src-bucket", key="src-key",
+                access_key_id="id", secret_access_key="secret", region="us-east-1"
+            ),
+            destination=OCIStorageConfig(
+                uri="registry.internal/model:v1", registry="registry.internal",
+                username="user", password="pass",
+                base_image="registry.internal/busybox:latest",
+                base_image_tls_verify=False,
+                base_image_credentials_path="/etc/pull-secret/.dockerconfigjson",
+                enable_tls_verify=True,
+                credentials_path=None,
+            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
+            storage=StorageConfig(path="/tmp/test"),
+            registry=RegistryConfig(server_address="test-server")
+        )
+
+        _get_upload_params(config)
+
+        call_kwargs = mock_get_backend.call_args
+        pull_args = call_kwargs.kwargs.get("pull_args") or call_kwargs[1].get("pull_args")
+        push_args = call_kwargs.kwargs.get("push_args") or call_kwargs[1].get("push_args")
+
+        assert "--src-tls-verify=false" in pull_args
+        assert "--authfile" in pull_args
+        assert push_args == []
+
+
 class TestGetUploadParams:
     """Test cases for _get_upload_params function"""
 
