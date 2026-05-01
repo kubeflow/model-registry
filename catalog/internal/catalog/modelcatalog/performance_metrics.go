@@ -107,6 +107,11 @@ func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 	if id, ok := raw["id"].(string); ok {
 		pr.ID = id
 	}
+	if pr.ID == "" {
+		if configID, ok := raw["config_id"].(string); ok && configID != "" {
+			pr.ID = configID
+		}
+	}
 	if modelID, ok := raw["model_id"].(string); ok {
 		pr.ModelID = modelID
 	}
