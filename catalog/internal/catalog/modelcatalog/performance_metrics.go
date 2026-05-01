@@ -107,6 +107,11 @@ func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 	if id, ok := raw["id"].(string); ok {
 		pr.ID = id
 	}
+	if pr.ID == "" {
+		if configID, ok := raw["config_id"].(string); ok && configID != "" {
+			pr.ID = configID
+		}
+	}
 	if modelID, ok := raw["model_id"].(string); ok {
 		pr.ModelID = modelID
 	}
@@ -505,17 +510,26 @@ func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32
 	// Properties can be empty or contain general metadata
 	properties := []models.Properties{}
 
-	// Create custom properties - simple mapping of benchmark_name to score_value
-	customProperties := []models.Properties{}
-
+	// Create custom properties - simple mapping of benchmark_name to score_value.
+	// Deduplicate by benchmark name: if multiple evaluation records share the same
+	// benchmark, keep the last score encountered. This prevents DB constraint violations
+	// on the (artifact_id, name, is_custom_property) composite primary key.
+	benchmarkScores := make(map[string]float64, len(evalRecords))
 	for _, evalRecord := range evalRecords {
-		// Add the benchmark score as a named property (e.g., "aime24": 63.3333)
 		if score, ok := evalRecord.CustomProperties["score"].(float64); ok {
-			customProperties = append(customProperties, models.Properties{
-				Name:        evalRecord.Benchmark,
-				DoubleValue: &score,
-			})
+			if _, duplicate := benchmarkScores[evalRecord.Benchmark]; duplicate {
+				glog.Warningf("Duplicate benchmark %q for model %d, using latest score", evalRecord.Benchmark, modelID)
+			}
+			benchmarkScores[evalRecord.Benchmark] = score
 		}
+	}
+
+	customProperties := make([]models.Properties, 0, len(benchmarkScores)+1)
+	for benchmark, score := range benchmarkScores {
+		customProperties = append(customProperties, models.Properties{
+			Name:        benchmark,
+			DoubleValue: &score,
+		})
 	}
 
 	// Add overall_average custom property from metadata.json overall_accuracy field

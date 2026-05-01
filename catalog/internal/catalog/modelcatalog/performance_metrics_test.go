@@ -330,6 +330,88 @@ func TestOverallAccuracyToOverallAverage(t *testing.T) {
 	})
 }
 
+func TestCreateAccuracyMetricsArtifact_DuplicateBenchmarks(t *testing.T) {
+	t.Run("duplicate benchmarks are deduplicated using last score", func(t *testing.T) {
+		evalRecords := []evaluationRecord{
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 80.0}},
+			{Benchmark: "aime24", CustomProperties: map[string]any{"score": 63.3}},
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 85.0}},
+		}
+
+		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, nil, nil, nil)
+
+		// Count occurrences of each benchmark name
+		benchmarkCounts := map[string]int{}
+		benchmarkScores := map[string]float64{}
+		for _, prop := range *artifact.CustomProperties {
+			benchmarkCounts[prop.Name]++
+			if prop.DoubleValue != nil {
+				benchmarkScores[prop.Name] = *prop.DoubleValue
+			}
+		}
+
+		// "mmlu" should appear exactly once (deduplicated)
+		if benchmarkCounts["mmlu"] != 1 {
+			t.Errorf("expected mmlu to appear once, got %d", benchmarkCounts["mmlu"])
+		}
+
+		// The last score (85.0) should win
+		if benchmarkScores["mmlu"] != 85.0 {
+			t.Errorf("expected mmlu score 85.0, got %v", benchmarkScores["mmlu"])
+		}
+
+		// "aime24" should still be present
+		if benchmarkCounts["aime24"] != 1 {
+			t.Errorf("expected aime24 to appear once, got %d", benchmarkCounts["aime24"])
+		}
+		if benchmarkScores["aime24"] != 63.3 {
+			t.Errorf("expected aime24 score 63.3, got %v", benchmarkScores["aime24"])
+		}
+	})
+
+	t.Run("no duplicates produces all benchmarks", func(t *testing.T) {
+		evalRecords := []evaluationRecord{
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 90.0}},
+			{Benchmark: "aime24", CustomProperties: map[string]any{"score": 63.3}},
+			{Benchmark: "gpqa", CustomProperties: map[string]any{"score": 72.5}},
+		}
+
+		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, nil, nil, nil)
+
+		benchmarkNames := map[string]bool{}
+		for _, prop := range *artifact.CustomProperties {
+			benchmarkNames[prop.Name] = true
+		}
+
+		for _, expected := range []string{"mmlu", "aime24", "gpqa"} {
+			if !benchmarkNames[expected] {
+				t.Errorf("expected benchmark %q not found in custom properties", expected)
+			}
+		}
+	})
+
+	t.Run("all records with same benchmark produce single property", func(t *testing.T) {
+		evalRecords := []evaluationRecord{
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 80.0}},
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 82.0}},
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 85.0}},
+		}
+
+		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, nil, nil, nil)
+
+		count := 0
+		for _, prop := range *artifact.CustomProperties {
+			if prop.Name == "mmlu" {
+				count++
+			}
+		}
+
+		if count != 1 {
+			t.Errorf("expected exactly 1 mmlu property, got %d", count)
+		}
+	})
+}
+
 func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name             string
