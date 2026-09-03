@@ -223,6 +223,32 @@ describe('PreviewPanel', () => {
     expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
   });
 
+  it('shows refresh alert with disabled link when hasFormChanged is true and preview is disabled', () => {
+    const preview = createMockPreview({ hasFormChanged: true, canPreview: false });
+    render(<PreviewPanel preview={preview} />);
+
+    expect(
+      screen.getByText('Source configuration changed. Refresh the preview.'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
+    expect(screen.getByTestId('refresh-preview-link')).toBeDisabled();
+  });
+
+  it('shows preview disabled tooltip when token validation is required', async () => {
+    const user = userEvent.setup();
+    const preview = createMockPreview({
+      canPreview: false,
+      previewDisabledTooltip: 'Validate the access token to preview models.',
+    });
+
+    render(<PreviewPanel preview={preview} />);
+
+    await user.hover(screen.getByTestId('preview-button-header'));
+    expect(
+      await screen.findByText('Validate the access token to preview models.'),
+    ).toBeInTheDocument();
+  });
+
   it('calls handlePreview when refresh link clicked', async () => {
     const user = userEvent.setup();
     const handlePreview = jest.fn();

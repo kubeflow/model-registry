@@ -44,6 +44,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
     handleLoadMore,
     hasFormChanged,
     canPreview,
+    previewDisabledTooltip,
   } = preview;
   const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
     previewState;
@@ -76,6 +77,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
                 isLoading={isLoadingInitial}
                 variant="link"
                 testId="preview-button-panel-retry"
+                disabledTooltip={previewDisabledTooltip}
               />
             </EmptyStateActions>
           </EmptyStateFooter>
@@ -97,6 +99,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
               isLoading={isLoadingInitial}
               variant="link"
               testId="preview-button-panel"
+              disabledTooltip={previewDisabledTooltip}
             />
           </EmptyStateActions>
         </EmptyStateFooter>
@@ -136,7 +139,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
               title="Source configuration changed. Refresh the preview."
               className="pf-v6-u-mb-md"
               actionLinks={
-                <AlertActionLink onClick={onPreview} data-testid="refresh-preview-link">
+                <AlertActionLink
+                  onClick={onPreview}
+                  isDisabled={!canPreview}
+                  data-testid="refresh-preview-link"
+                >
                   Refresh preview
                 </AlertActionLink>
               }
@@ -218,6 +225,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
             isLoading={isLoadingInitial}
             variant="secondary"
             testId="preview-button-header"
+            disabledTooltip={previewDisabledTooltip}
           />
         </FlexItem>
       </Flex>

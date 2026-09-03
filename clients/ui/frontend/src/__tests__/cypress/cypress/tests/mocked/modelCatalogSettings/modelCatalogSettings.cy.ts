@@ -791,11 +791,43 @@ describe('Manage Source Page', () => {
       manageSourcePage.findSubmitButton().should('not.be.disabled');
     });
 
-    it('should enable Preview button when HF credentials are filled', () => {
+    it('should keep Preview disabled when HF credentials are filled but not validated', () => {
       manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
       manageSourcePage.fillAccessToken('test-token-123');
       manageSourcePage.fillOrganization('Google');
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('be.disabled');
+    });
+
+    it('should enable Preview after HF credentials are validated', () => {
+      cy.intercept('POST', '/model-registry/api/v1/settings/model_catalog/source_preview*', {
+        data: {
+          items: [{ name: 'Google/model-1', included: true }],
+          summary: { totalModels: 1, includedModels: 1, excludedModels: 0 },
+          nextPageToken: '',
+          pageSize: 20,
+          size: 1,
+        },
+      }).as('validateHfCredentials');
+
+      manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
+      manageSourcePage.fillAccessToken('test-token-123');
+      manageSourcePage.fillOrganization('Google');
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.clickValidate();
+      cy.wait('@validateHfCredentials');
       manageSourcePage.findPreviewButton().should('not.be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('not.be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('not.be.disabled');
+    });
+
+    it('should enable Preview for HF when only organization is filled', () => {
+      manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
+      manageSourcePage.fillOrganization('Google');
+      manageSourcePage.findPreviewButton().should('not.be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('not.be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('not.be.disabled');
     });
 
     it('should enable Add button when all required YAML fields are filled', () => {
@@ -970,13 +1002,41 @@ describe('Manage Source Page', () => {
       manageSourcePage.findPreviewButtonPanel().should('be.disabled');
     });
 
-    it('should enable all three preview buttons when credentials are filled', () => {
+    it('should keep all three preview buttons disabled when token is entered but not validated', () => {
       manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
       manageSourcePage.fillAccessToken('test-token');
       manageSourcePage.fillOrganization('Google');
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('be.disabled');
+    });
+
+    it('should show refresh alert with disabled link when token is typed after preview without token', () => {
+      cy.intercept('POST', '/model-registry/api/v1/settings/model_catalog/source_preview*', {
+        data: {
+          items: [{ name: 'Google/model-1', included: true }],
+          summary: { totalModels: 1, includedModels: 1, excludedModels: 0 },
+          nextPageToken: '',
+          pageSize: 20,
+          size: 1,
+        },
+      }).as('previewSource');
+
+      manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
+      manageSourcePage.fillOrganization('Google');
       manageSourcePage.findPreviewButton().should('not.be.disabled');
-      manageSourcePage.findPreviewButtonHeader().should('not.be.disabled');
-      manageSourcePage.findPreviewButtonPanel().should('not.be.disabled');
+      manageSourcePage.findPreviewButton().click();
+      cy.wait('@previewSource');
+
+      cy.contains('1 of 1 models included:').should('exist');
+      manageSourcePage.fillAccessToken('new-token');
+
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('be.disabled');
+      manageSourcePage.findRefreshPreviewAlert().should('exist');
+      manageSourcePage.findRefreshPreviewLink().should('exist').and('be.disabled');
+      cy.contains('1 of 1 models included:').should('exist');
     });
 
     it('submit add source form with yaml source type', () => {
@@ -1383,6 +1443,29 @@ describe('HuggingFace Credentials Validation', () => {
       cy.wait('@validateFail');
 
       cy.contains('Credentials validation failed').should('exist');
+    });
+
+    it('should keep Preview disabled after failed Validate', () => {
+      cy.intercept('POST', '/model-registry/api/v1/settings/model_catalog/source_preview*', {
+        statusCode: 401,
+        body: previewFailResponse,
+      }).as('validateFail');
+
+      manageSourcePage.visitAddSource({ enableTempDevCatalogHuggingFaceApiKeyFeature: true });
+      manageSourcePage.fillOrganization('qwen');
+      manageSourcePage.fillAccessToken('any-token');
+
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('be.disabled');
+
+      cy.findByRole('button', { name: 'Validate' }).click();
+      cy.wait('@validateFail');
+
+      cy.contains('Credentials validation failed').should('exist');
+      manageSourcePage.findPreviewButton().should('be.disabled');
+      manageSourcePage.findPreviewButtonHeader().should('be.disabled');
+      manageSourcePage.findPreviewButtonPanel().should('be.disabled');
     });
   });
 

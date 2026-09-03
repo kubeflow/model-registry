@@ -435,6 +435,23 @@ class ManageSourcePage {
   findClearAccessTokenConfirmButton() {
     return cy.findByTestId('clear-access-token-confirm-button');
   }
+
+  findRefreshPreviewAlert() {
+    return cy.contains('Source configuration changed. Refresh the preview.');
+  }
+
+  findRefreshPreviewLink() {
+    return cy.findByTestId('refresh-preview-link');
+  }
+
+  findValidateButton() {
+    return cy.findByRole('button', { name: 'Validate' });
+  }
+
+  clickValidate() {
+    this.findValidateButton().click();
+    return this;
+  }
 }
 
 export const modelCatalogSettings = new ModelCatalogSettings();

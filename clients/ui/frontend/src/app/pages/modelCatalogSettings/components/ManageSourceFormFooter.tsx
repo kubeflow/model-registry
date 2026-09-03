@@ -22,6 +22,7 @@ type ManageSourceFormFooterProps = {
   isPreviewDisabled: boolean;
   isPreviewLoading: boolean;
   onPreview: () => void;
+  previewDisabledTooltip?: string;
 };
 
 const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
@@ -34,6 +35,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
   isPreviewDisabled,
   isPreviewLoading,
   onPreview,
+  previewDisabledTooltip,
 }) => (
   <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
     <Stack hasGutter>
@@ -66,6 +68,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
                 isLoading={isPreviewLoading}
                 variant="secondary"
                 testId="preview-button"
+                disabledTooltip={previewDisabledTooltip}
               />
             </ActionListItem>
             <ActionListItem>

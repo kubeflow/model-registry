@@ -210,6 +210,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         isPreviewDisabled={!preview.canPreview}
         isPreviewLoading={preview.previewState.isLoadingInitial}
         onPreview={() => preview.handlePreview()}
+        previewDisabledTooltip={preview.previewDisabledTooltip}
       />
     </>
   );

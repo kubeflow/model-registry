@@ -245,7 +245,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
           isInline
           variant="danger"
           title={ERROR_MESSAGES.VALIDATION_FAILED}
-          className="pf-v6-u-mt-md"
+          className="pf-v6-u"
         >
           {validationError.message}
         </Alert>

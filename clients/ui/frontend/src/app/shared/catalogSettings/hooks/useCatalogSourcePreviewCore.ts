@@ -42,6 +42,7 @@ export type UseCatalogSourcePreviewCoreResult<TItem, TSummary, TRequest> = {
   handleTabChange: (tab: CatalogSettingsPreviewTab) => void;
   handleLoadMore: () => void;
   hasFormChanged: boolean;
+  resetPreview: () => void;
 };
 
 const createInitialPreviewState = <TItem, TSummary, TRequest>(): CatalogSettingsPreviewCoreState<
@@ -187,6 +188,10 @@ export const useCatalogSourcePreviewCore = <TItem, TSummary, TRequest>({
     handlePreviewInternal({ loadMore: true });
   }, [handlePreviewInternal]);
 
+  const resetPreview = React.useCallback(() => {
+    setPreviewState(createInitialPreviewState<TItem, TSummary, TRequest>());
+  }, []);
+
   // mount-only: auto-preview when entering edit mode
   React.useEffect(() => {
     const hasNoResults =
@@ -203,5 +208,6 @@ export const useCatalogSourcePreviewCore = <TItem, TSummary, TRequest>({
     handleTabChange,
     handleLoadMore,
     hasFormChanged,
+    resetPreview,
   };
 };

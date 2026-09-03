@@ -91,6 +91,10 @@ export const SUCCESS_MESSAGES = {
   VALIDATION_SUCCESSFUL_BODY: 'Organization and access token were validated successfully.',
 } as const;
 
+export const TOOLTIP_MESSAGES = {
+  PREVIEW_REQUIRES_VALIDATION: 'Validate the access token to preview models.',
+} as const;
+
 export const TABLE_COLUMN_LABELS = {
   SOURCE_NAME: 'Source name',
   ORGANIZATION: 'Organization',
