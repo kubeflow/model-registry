@@ -30,6 +30,10 @@ type CatalogSource struct {
 	Status *CatalogSourceStatus `json:"status,omitempty"`
 	// Detailed error information when the status is \"Error\". This field is null or empty when the source is functioning normally.
 	Error NullableString `json:"error,omitempty"`
+	// Whether an API token is stored for this source. The token value is never returned. False for sources that have no stored token.
+	HasApiKey *bool `json:"hasApiKey,omitempty"`
+	// Whether the stored API token validated successfully. Null when no token exists (`hasApiKey` is false).
+	Authenticated NullableBool `json:"authenticated,omitempty"`
 	// Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/_*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/_*`, `*-beta`, `*deprecated*`, `*_/old*`  Examples: - `ibm-granite/_*` - matches all models starting with \"ibm-granite/\" - `meta-llama/_*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
 	IncludedModels []string `json:"includedModels,omitempty"`
 	// Optional list of glob patterns for models to exclude. Models matching any pattern will be excluded even if they match an includedModels pattern. Exclusions take precedence over inclusions.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere in the pattern  Examples: - `*-draft` - excludes all models ending with \"-draft\" - `*-experimental` - excludes experimental models - `*deprecated*` - excludes models with \"deprecated\" anywhere in the name - `*_/beta-*` - excludes models with \"/beta-\" in the path  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
@@ -246,6 +250,81 @@ func (o *CatalogSource) UnsetError() {
 	o.Error.Unset()
 }
 
+// GetHasApiKey returns the HasApiKey field value if set, zero value otherwise.
+func (o *CatalogSource) GetHasApiKey() bool {
+	if o == nil || IsNil(o.HasApiKey) {
+		var ret bool
+		return ret
+	}
+	return *o.HasApiKey
+}
+
+// GetHasApiKeyOk returns a tuple with the HasApiKey field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetHasApiKeyOk() (*bool, bool) {
+	if o == nil || IsNil(o.HasApiKey) {
+		return nil, false
+	}
+	return o.HasApiKey, true
+}
+
+// HasHasApiKey returns a boolean if a field has been set.
+func (o *CatalogSource) HasHasApiKey() bool {
+	if o != nil && !IsNil(o.HasApiKey) {
+		return true
+	}
+
+	return false
+}
+
+// SetHasApiKey gets a reference to the given bool and assigns it to the HasApiKey field.
+func (o *CatalogSource) SetHasApiKey(v bool) {
+	o.HasApiKey = &v
+}
+
+// GetAuthenticated returns the Authenticated field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CatalogSource) GetAuthenticated() bool {
+	if o == nil || IsNil(o.Authenticated.Get()) {
+		var ret bool
+		return ret
+	}
+	return *o.Authenticated.Get()
+}
+
+// GetAuthenticatedOk returns a tuple with the Authenticated field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CatalogSource) GetAuthenticatedOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Authenticated.Get(), o.Authenticated.IsSet()
+}
+
+// HasAuthenticated returns a boolean if a field has been set.
+func (o *CatalogSource) HasAuthenticated() bool {
+	if o != nil && o.Authenticated.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetAuthenticated gets a reference to the given NullableBool and assigns it to the Authenticated field.
+func (o *CatalogSource) SetAuthenticated(v bool) {
+	o.Authenticated.Set(&v)
+}
+
+// SetAuthenticatedNil sets the value for Authenticated to be an explicit nil
+func (o *CatalogSource) SetAuthenticatedNil() {
+	o.Authenticated.Set(nil)
+}
+
+// UnsetAuthenticated ensures that no value is present for Authenticated, not even an explicit nil
+func (o *CatalogSource) UnsetAuthenticated() {
+	o.Authenticated.Unset()
+}
+
 // GetIncludedModels returns the IncludedModels field value if set, zero value otherwise.
 func (o *CatalogSource) GetIncludedModels() []string {
 	if o == nil || IsNil(o.IncludedModels) {
@@ -363,6 +442,12 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	}
 	if o.Error.IsSet() {
 		toSerialize["error"] = o.Error.Get()
+	}
+	if !IsNil(o.HasApiKey) {
+		toSerialize["hasApiKey"] = o.HasApiKey
+	}
+	if o.Authenticated.IsSet() {
+		toSerialize["authenticated"] = o.Authenticated.Get()
 	}
 	if !IsNil(o.IncludedModels) {
 		toSerialize["includedModels"] = o.IncludedModels

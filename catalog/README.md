@@ -205,6 +205,73 @@ The following Hugging Face task types are mapped to model types:
 
 **Note:** The classification is performed automatically when models are fetched from Hugging Face. Models that don't match any known tasks will be classified as `"unknown"` and can be manually updated via the YAML catalog or API if needed.
 
+### Hugging Face Access Properties
+
+The Hugging Face catalog provider sets `hf_access_type` on every HF-sourced model. Presence of this property is the signal that the model came from Hugging Face; it is absent on non-HF models. UI consumers should switch on it for lock-icon and error messaging.
+
+#### `hf_access_type`
+
+**Metadata Type**: `MetadataStringValue`
+
+**Values**: `public` | `private` | `gated_auto` | `gated_manual`
+
+| Value | Meaning | Catalog behavior |
+|-------|---------|------------------|
+| `public` | Public Hugging Face repository | Full metadata |
+| `private` | Private repository | Only listed when the source has a valid token with org access; always has full metadata |
+| `gated_auto` | Gated with automatic approval after the user accepts the license | See `hf_gated_access_granted` |
+| `gated_manual` | Gated with manual review by the model author | See `hf_gated_access_granted` |
+
+Legacy Hugging Face `gated: true` is treated as `gated_auto`. Private takes precedence over gated.
+
+#### `hf_gated_access_granted`
+
+**Metadata Type**: `MetadataStringValue`
+
+**Values**: `"true"` | `"false"`
+
+Present **only on gated models**. `"false"` means the token holder has not been granted access to the gated content (lock / "request access" state, readme empty). `"true"` means full access and full metadata.
+
+**Example: gated model, access granted**
+```json
+{
+  "name": "meta-llama/Llama-3-8B",
+  "readme": "# Llama 3\n\nMeta's latest generation...",
+  "customProperties": {
+    "hf_access_type": { "string_value": "gated_auto", "metadataType": "MetadataStringValue" },
+    "hf_gated_access_granted": { "string_value": "true", "metadataType": "MetadataStringValue" }
+  }
+}
+```
+
+**Example: gated model, access not granted (degraded metadata)**
+```json
+{
+  "name": "meta-llama/Llama-3-8B",
+  "description": "",
+  "readme": "",
+  "license": "unknown",
+  "tasks": [],
+  "customProperties": {
+    "hf_access_type": { "string_value": "gated_auto", "metadataType": "MetadataStringValue" },
+    "hf_gated_access_granted": { "string_value": "false", "metadataType": "MetadataStringValue" }
+  }
+}
+```
+
+**Source token state** on `GET /sources` (token value is never returned):
+
+| `hasApiKey` | `authenticated` | Meaning |
+|-------------|-----------------|--------|
+| `false` | `null` | No token stored |
+| `true` | `true` | Token stored and validated |
+| `true` | `false` | Token stored but validation failed (expired/revoked) |
+
+Filter Hugging Face models by access type:
+```bash
+GET /api/model_catalog/v1alpha1/models?source=huggingface&filterQuery=hf_access_type.string_value='gated_auto'
+```
+
 ### Querying and Filtering by Custom Properties
 
 #### Filter by Model Type
@@ -362,8 +429,8 @@ kubectl rollout restart deployment model-catalog-server -n kubeflow
 Set `apiKeyEnvVar` to use a different API key per source. The value must be `HF_API_KEY` (the default) or start with `HF_API_KEY_` — for example, `HF_API_KEY_META` for a Meta-specific key. Other env var names are rejected. This lets operators supply separate credentials for different HuggingFace organizations without exposing arbitrary environment variables.
 
 **Important Notes:**
-- **Private Models**: For private models, the API key must belong to an account that has been granted access to the model. Without proper access, the catalog service will not be able to retrieve model information.
-- **Gated Models**: For gated models (models with usage restrictions), you must accept the model's terms of service on Hugging Face before the catalog service can access all available model information. Visit the model's page on Hugging Face and accept the terms to ensure full metadata is available.
+- **Private Models**: Private models only appear when the source has a valid token with organization access, and they have all available metadata from Hugging Face (`hf_access_type="private"`). Without access the catalog omits the model entirely.
+- **Gated Models**: Gated models appear even when the token holder has not accepted the license. `hf_gated_access_granted="false"` means lock / "request access" (readme and some other metadata not accessible). `"true"` means full metadata. Accept the model's terms on Hugging Face to request access from the organization.
 
 #### 2. Configure the Source
 

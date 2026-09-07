@@ -3,9 +3,12 @@ import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
 import {
   setupModelCatalogIntercepts,
   interceptPerformanceArtifactsWithFilterCheck,
+  setupHfAccessCardIntercepts,
+  createHfAccessCardModel,
   type ModelCatalogInterceptOptions,
 } from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
 import { PERFORMANCE_FILTER_TEST_IDS } from '~/__tests__/cypress/cypress/support/constants';
+import { MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 
 /**
  * Initialize intercepts for model catalog card tests.
@@ -246,5 +249,69 @@ describe('ModelCatalogCard Component', () => {
         modelCatalog.findValidatedModelLatency().should('be.visible');
       });
     });
+  });
+});
+
+describe('ModelCatalogCard HF access labels', () => {
+  const privateModel = createHfAccessCardModel({
+    name: 'my-org/Llama-3.1-8B-Instruct-FP8-dynamic',
+    hfAccessType: 'private',
+  });
+
+  const gatedGrantedModel = createHfAccessCardModel({
+    name: 'meta-llama/Llama-3.1-8B-Instruct-INT4',
+    hfAccessType: 'gated_auto',
+    hfGatedAccessGranted: 'true',
+  });
+
+  const gatedDeniedModel = createHfAccessCardModel({
+    name: 'meta-llama/Llama-3.1-8B-Instruct-INT8',
+    hfAccessType: 'gated_auto',
+    hfGatedAccessGranted: 'false',
+  });
+
+  beforeEach(() => {
+    setupHfAccessCardIntercepts([privateModel, gatedGrantedModel, gatedDeniedModel]);
+    modelCatalog.visit();
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-FP8-dynamic').should('exist');
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-INT4').should('exist');
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-INT8').should('exist');
+  });
+
+  it('should show Private label with popover on private HF model card', () => {
+    const modelName = 'Llama-3.1-8B-Instruct-FP8-dynamic';
+
+    modelCatalog.findModelCatalogCardByName(modelName).within(() => {
+      modelCatalog.findAccessLabelPrivate().should('contain.text', 'Private');
+      modelCatalog.openPrivateAccessLabelPopover();
+    });
+    modelCatalog.expectAccessLabelPopoverText(MODEL_CATALOG_POPOVER_MESSAGES.HF_PRIVATE);
+    modelCatalog.findModelCatalogCardDescriptionByName(modelName).should('be.visible');
+  });
+
+  it('should show grey Gated label with popover on granted gated HF model card', () => {
+    const modelName = 'Llama-3.1-8B-Instruct-INT4';
+
+    modelCatalog.findModelCatalogCardByName(modelName).within(() => {
+      modelCatalog.findAccessLabelGated().should('contain.text', 'Gated');
+      modelCatalog.openGatedAccessLabelPopover();
+    });
+    modelCatalog.expectAccessLabelPopoverText(MODEL_CATALOG_POPOVER_MESSAGES.HF_GATED);
+    modelCatalog.findModelCatalogCardDescriptionByName(modelName).should('be.visible');
+  });
+
+  it('should show warning Gated label with popover and minimal card for denied gated HF model', () => {
+    const modelName = 'Llama-3.1-8B-Instruct-INT8';
+
+    modelCatalog.findModelCatalogCardByName(modelName).within(() => {
+      modelCatalog.findAccessLabelGatedDenied().should('contain.text', 'Gated');
+      modelCatalog.openGatedDeniedAccessLabelPopover();
+    });
+    modelCatalog.expectAccessLabelPopoverText(
+      MODEL_CATALOG_POPOVER_MESSAGES.HF_GATED_ACCESS_DENIED,
+    );
+    modelCatalog.findModelCatalogCardDetailLinkByName(modelName).should('exist');
+    modelCatalog.findModelCatalogCardDescriptionByName(modelName).should('not.exist');
   });
 });

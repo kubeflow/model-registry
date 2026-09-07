@@ -1,30 +1,15 @@
-import {
-  Alert,
-  AlertActionCloseButton,
-  Button,
-  Content,
-  Flex,
-  Stack,
-  StackItem,
-  Toolbar,
-  ToolbarContent,
-  ToolbarGroup,
-  ToolbarItem,
-  ToolbarToggleGroup,
-} from '@patternfly/react-core';
-import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
+import { Alert, AlertActionCloseButton, Content, StackItem } from '@patternfly/react-core';
 import React from 'react';
-import { useThemeContext } from 'mod-arch-kubeflow';
-import { ThemeAwareSearchInput } from 'mod-arch-shared';
 import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/components/HardwareConfigurationFilterToolbar';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { getActiveSourceLabels, RESET_ALL_FILTERS_LABEL } from '~/app/shared/components/catalog';
+import { CatalogSourceLabelSelector, getActiveSourceLabels } from '~/app/shared/components/catalog';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogSortDropdown from '~/app/pages/modelCatalog/components/ModelCatalogSortDropdown';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
-import '~/app/shared/components/catalog/catalogToolbar.css';
+
+const noop = (): void => undefined;
 
 type ModelCatalogSourceLabelSelectorProps = {
   searchTerm?: string;
@@ -39,8 +24,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   onClearSearch,
   onResetAllFilters,
 }) => {
-  const [inputValue, setInputValue] = React.useState(searchTerm || '');
-  const { isMUITheme } = useThemeContext();
   const {
     catalogSources,
     catalogLabels,
@@ -98,38 +81,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   }, [hasSearchTerm, hasBasicFiltersApplied, performanceViewEnabled]);
 
   const shouldShowAlert = performanceViewEnabled && performanceFiltersChangedOnDetailsPage;
-
-  const handleClearAllFilters = React.useCallback(() => {
-    if (hasActiveFilters && onResetAllFilters) {
-      onResetAllFilters();
-    }
-  }, [hasActiveFilters, onResetAllFilters]);
-
-  React.useEffect(() => {
-    setInputValue(searchTerm || '');
-  }, [searchTerm]);
-
-  const handleModelSearch = () => {
-    if (onSearch && inputValue.trim() !== searchTerm) {
-      onSearch(inputValue.trim());
-    }
-  };
-
-  const handleClear = () => {
-    if (onClearSearch) {
-      onClearSearch();
-    }
-  };
-
-  const handleSearchInputChange = (value: string) => {
-    setInputValue(value);
-  };
-
-  const handleSearchInputSearch = (_: React.SyntheticEvent<HTMLButtonElement>, value: string) => {
-    if (onSearch) {
-      onSearch(value.trim());
-    }
-  };
 
   return (
     <Stack hasGutter>
@@ -241,13 +192,79 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                 onClose={() => {
                   setPerformanceFiltersChangedOnDetailsPage(false);
                 }}
-              />
-            }
-            data-testid="performance-filters-updated-alert"
-          />
-        </StackItem>
+    <CatalogSourceLabelSelector
+      searchTerm={searchTerm || ''}
+      onSearch={onSearch ?? noop}
+      onClearSearch={onClearSearch ?? noop}
+      onResetAllFilters={onResetAllFilters ?? noop}
+      hasFiltersApplied={hasActiveFilters}
+      showResetAllButton={
+        Boolean(onResetAllFilters) &&
+        !performanceViewEnabled &&
+        (hasBasicFiltersApplied || hasSearchTerm)
+      }
+      remountToolbarOnFilterChange={false}
+      searchPlaceholder="Filter by name, description and provider"
+      searchInputTestId="search-input"
+      searchButtonTestId="search-button"
+      alwaysMountActiveFilters={Boolean(onResetAllFilters)}
+      renderActiveFilters={() => (
+        <ModelCatalogActiveFilters
+          filtersToShow={filtersToShow}
+          forceHideLabels={performanceViewEnabled}
+        />
       )}
-    </Stack>
+      renderSourceLabelBlocks={
+        hasMultipleCategories ? () => <ModelCatalogSourceLabelBlocks /> : undefined
+      }
+      sourceLabelRowExtra={
+        hasMultipleCategories ? (
+          <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+        ) : undefined
+      }
+      additionalSections={
+        <>
+          {performanceViewEnabled && (
+            <>
+              <StackItem>
+                <Content component="h2" className="pf-v6-u-font-weight-bold">
+                  Workload and performance constraints
+                </Content>
+              </StackItem>
+              <StackItem>
+                <HardwareConfigurationFilterToolbar
+                  onResetAllFilters={onResetAllFilters}
+                  includeBasicFilters
+                  includePerformanceFilters={performanceViewEnabled}
+                />
+              </StackItem>
+            </>
+          )}
+          {shouldShowAlert && (
+            <StackItem>
+              <Alert
+                variant="info"
+                isInline
+                className="pf-v6-u-mb-lg"
+                title={
+                  lastViewedModelName
+                    ? `The performance constraints and results have been updated to match the constraints you applied to the ${lastViewedModelName} model details page.`
+                    : 'The performance constraints and results have been updated to match the constraints you applied to the model details page.'
+                }
+                actionClose={
+                  <AlertActionCloseButton
+                    onClose={() => {
+                      setPerformanceFiltersChangedOnDetailsPage(false);
+                    }}
+                  />
+                }
+                data-testid="performance-filters-updated-alert"
+              />
+            </StackItem>
+          )}
+        </>
+      }
+    />
   );
 };
 

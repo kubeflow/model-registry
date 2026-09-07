@@ -691,8 +691,11 @@ paths:
               huggingfaceSource:
                 summary: HuggingFace catalog source
                 description: |-
-                  Upload configuration for HuggingFace source with API credentials.
-                  The API key is passed per-request and not persisted anywhere.
+                  Upload configuration for a HuggingFace source.
+                  The API key is read from an environment variable (HF_API_KEY
+                  by default). Optionally set apiKeyEnvVar to HF_API_KEY or a
+                  name starting with HF_API_KEY_ to select a per-source key.
+                  Do not put the API key value in this configuration.
                 value: |
                   type: hf
                   includedModels:
@@ -701,8 +704,8 @@ paths:
                   excludedModels:
                     - "*-gguf"
                   properties:
-                    apiKey: "your-huggingface-api-key-here" # notsecret
-                    modelLimit: 100
+                    apiKeyEnvVar: "HF_API_KEY"
+                    maxModels: 100
               mcpStatelessPreview:
                 summary: Stateless MCP server preview
                 description: |-
@@ -1412,6 +1415,19 @@ components:
             This field is null or empty when the source is functioning normally.
           type: string
           nullable: true
+        hasApiKey:
+          description: |-
+            Whether an API token is stored for this source. The token value is never
+            returned. False for sources that have no stored token.
+          type: boolean
+          readOnly: true
+        authenticated:
+          description: |-
+            Whether the stored API token validated successfully.
+            Null when no token exists (`hasApiKey` is false).
+          type: boolean
+          nullable: true
+          readOnly: true
         includedModels:
           description: |-
             Optional list of glob patterns for models to include. If specified, only models matching
