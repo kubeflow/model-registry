@@ -7,7 +7,6 @@ import {
   Button,
   ActionList,
   Alert,
-  AlertActionCloseButton,
   Modal,
   ModalHeader,
   ModalBody,
@@ -40,6 +39,7 @@ type CredentialsSectionProps = {
   validationError?: Error;
   isValidationSuccess: boolean;
   onClearValidationSuccess: () => void;
+  hasExistingApiKey?: boolean;
 };
 
 const CredentialsSection: React.FC<CredentialsSectionProps> = ({
@@ -50,14 +50,18 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
   validationError,
   isValidationSuccess,
   onClearValidationSuccess,
+  hasExistingApiKey = false,
 }) => {
   const [isOrganizationTouched, setIsOrganizationTouched] = React.useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = React.useState(false);
 
   const isOrganizationValid = validateOrganization(formData.organization);
 
+  const isTokenLocked = hasExistingApiKey && !formData.tokenModified;
+
   const onClearToken = React.useCallback(() => {
     setData('accessToken', '');
+    setData('tokenModified', true);
     onClearValidationSuccess();
   }, [setData, onClearValidationSuccess]);
 
@@ -162,7 +166,21 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     </>
   );
 
-  const accessTokenInput = (
+  const accessTokenInput = isTokenLocked ? (
+    <PasswordInput
+      isRequired
+      id="access-token"
+      name="access-token"
+      data-testid="access-token-input"
+      value={PLACEHOLDERS.EXISTING_TOKEN}
+      onChange={() => undefined}
+      ariaLabelShow="Show access token"
+      ariaLabelHide="Hide access token"
+      isDisabled
+      hideToggleButton
+      forceHidden
+    />
+  ) : (
     <PasswordInput
       isRequired
       id="access-token"
@@ -178,36 +196,39 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
-  const accessTokenHelperTxtNode = isValidationSuccess ? (
-    <FormHelperText>
-      <HelperText>
-        <HelperTextItem data-testid="access-token-hidden-helper" icon={<InfoCircleIcon />}>
-          {HELPER_TEXT.ACCESS_TOKEN_HIDDEN}
-        </HelperTextItem>
-      </HelperText>
-    </FormHelperText>
-  ) : undefined;
+  const accessTokenHelperTxtNode =
+    isTokenLocked || isValidationSuccess ? (
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem data-testid="access-token-hidden-helper" icon={<InfoCircleIcon />}>
+            {HELPER_TEXT.ACCESS_TOKEN_HIDDEN}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    ) : undefined;
 
-  const tokenValidationBtn = isValidationSuccess ? undefined : (
-    <Button
-      isDisabled={!isOrganizationValid || isValidating}
-      variant="link"
-      onClick={onValidate}
-      isLoading={isValidating}
-    >
-      Validate
-    </Button>
-  );
+  const tokenValidationBtn =
+    isValidationSuccess || isTokenLocked ? undefined : (
+      <Button
+        isDisabled={!isOrganizationValid || isValidating}
+        variant="link"
+        onClick={onValidate}
+        isLoading={isValidating}
+      >
+        Validate
+      </Button>
+    );
 
-  const tokenClearBtn = !isValidationSuccess ? undefined : (
-    <Button
-      isDisabled={!isOrganizationValid || isValidating}
-      variant="link"
-      onClick={() => setIsClearModalOpen(true)}
-    >
-      Clear
-    </Button>
-  );
+  const tokenClearBtn =
+    !isValidationSuccess && !isTokenLocked ? undefined : (
+      <Button
+        isDisabled={!isOrganizationValid || isValidating}
+        variant="link"
+        onClick={() => setIsClearModalOpen(true)}
+      >
+        Clear
+      </Button>
+    );
 
   const accessTokenFormGroup = (
     <>
@@ -229,13 +250,12 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
           {validationError.message}
         </Alert>
       )}
-      {isValidationSuccess && (
+      {isValidationSuccess && !isTokenLocked && (
         <Alert
           isInline
           variant="success"
           className="pf-v6-u"
           title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}
-          actionClose={<AlertActionCloseButton onClose={onClearValidationSuccess} />}
         >
           {SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL_BODY}
         </Alert>

@@ -55,6 +55,7 @@ export const PLACEHOLDERS = {
   ORGANIZATION: 'Example: Google/',
   ALLOWED_MODELS: 'Example: Llama*, Llama-3.1-8B-Instruct',
   EXCLUDED_MODELS: 'Example: Llama*, Llama-3.1-8B-Instruct',
+  EXISTING_TOKEN: '••••••••',
 } as const;
 
 export const CLEAR_ACCESS_TOKEN_MODAL = {

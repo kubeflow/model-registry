@@ -9,6 +9,7 @@ export type ManageSourceFormData = {
   // Hugging Face fields
   accessToken: string;
   organization: string;
+  tokenModified: boolean;
   // YAML field
   yamlContent: string;
   // Filter fields
@@ -25,6 +26,7 @@ const manageSourceFormDataDefaults: ManageSourceFormData = {
   sourceType: CatalogSourceType.HUGGING_FACE,
   accessToken: '',
   organization: '',
+  tokenModified: true,
   yamlContent: '',
   allowedModels: '',
   excludedModels: '',

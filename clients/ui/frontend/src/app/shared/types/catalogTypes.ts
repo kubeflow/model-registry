@@ -18,6 +18,8 @@ export type CatalogSource = {
     | CatalogSourceStatus.DISABLED;
   error?: string;
   assetType?: CatalogAssetType;
+  hasApiKey?: boolean;
+  authenticated?: boolean;
 };
 
 export type PaginationParams = {

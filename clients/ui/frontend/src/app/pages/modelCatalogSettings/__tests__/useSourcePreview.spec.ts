@@ -27,6 +27,7 @@ const mockFormData: ManageSourceFormData = {
   sourceType: CatalogSourceType.YAML,
   accessToken: '',
   organization: '',
+  tokenModified: true,
   yamlContent: 'models:\n  - name: test',
   allowedModels: '',
   excludedModels: '',

@@ -112,6 +112,24 @@ class CatalogSourceConfigRow extends TableRow {
   }
 }
 
+class CatalogSourceStatusErrorModal extends Modal {
+  constructor() {
+    super('Source status');
+  }
+
+  find() {
+    return cy.findByTestId('catalog-source-status-error-modal');
+  }
+
+  findAlert() {
+    return cy.findByTestId('catalog-source-status-error-alert');
+  }
+
+  findMessage() {
+    return cy.findByTestId('catalog-source-status-error-message');
+  }
+}
+
 class ModelCatalogSettings {
   visit({
     wait = true,
@@ -405,8 +423,21 @@ class ManageSourcePage {
   findPreviewButtonPanel() {
     return cy.findByTestId('preview-button-panel');
   }
+
+  findAccessTokenHiddenHelper() {
+    return cy.findByTestId('access-token-hidden-helper');
+  }
+
+  findClearAccessTokenModal() {
+    return cy.findByTestId('clear-access-token-modal');
+  }
+
+  findClearAccessTokenConfirmButton() {
+    return cy.findByTestId('clear-access-token-confirm-button');
+  }
 }
 
 export const modelCatalogSettings = new ModelCatalogSettings();
 export const manageSourcePage = new ManageSourcePage();
 export const deleteSourceModal = new DeleteSourceModal();
+export const catalogSourceStatusErrorModal = new CatalogSourceStatusErrorModal();

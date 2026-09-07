@@ -2,6 +2,7 @@ import {
   modelCatalogSettings,
   manageSourcePage,
   deleteSourceModal,
+  catalogSourceStatusErrorModal,
 } from '~/__tests__/cypress/cypress/pages/modelCatalogSettings';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -592,19 +593,14 @@ describe('Catalog Source Configs Table', () => {
       row.clickValidationStatusErrorLink();
 
       // Check modal is displayed
-      cy.findByTestId('catalog-source-status-error-modal').should('exist');
-      cy.findByTestId('catalog-source-status-error-modal')
-        .contains('Source status')
-        .should('exist');
-      cy.findByTestId('catalog-source-status-error-modal').contains('Failed').should('exist');
-      cy.findByTestId('catalog-source-status-error-alert').should('exist');
-      cy.findByTestId('catalog-source-status-error-alert')
-        .contains('Validation failed')
-        .should('exist');
-      cy.findByTestId('catalog-source-status-error-message').should(
-        'contain',
-        'The provided API key is invalid or has expired.',
-      );
+      catalogSourceStatusErrorModal.find().should('exist');
+      catalogSourceStatusErrorModal.find().contains('Source status').should('exist');
+      catalogSourceStatusErrorModal.find().contains('Failed').should('exist');
+      catalogSourceStatusErrorModal.findAlert().should('exist');
+      catalogSourceStatusErrorModal.findAlert().contains('Validation failed').should('exist');
+      catalogSourceStatusErrorModal
+        .findMessage()
+        .should('contain', 'The provided API key is invalid or has expired.');
     });
 
     it('should close error modal when clicking close button', () => {
@@ -619,11 +615,9 @@ describe('Catalog Source Configs Table', () => {
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.clickValidationStatusErrorLink();
 
-      cy.findByTestId('catalog-source-status-error-modal').should('exist');
-      cy.findByTestId('catalog-source-status-error-modal')
-        .findByRole('button', { name: 'Close' })
-        .click();
-      cy.findByTestId('catalog-source-status-error-modal').should('not.exist');
+      catalogSourceStatusErrorModal.find().should('exist');
+      catalogSourceStatusErrorModal.find().findByRole('button', { name: 'Close' }).click();
+      catalogSourceStatusErrorModal.find().should('not.exist');
     });
   });
 
@@ -1374,7 +1368,7 @@ describe('HuggingFace Credentials Validation', () => {
       cy.findByRole('button', { name: 'Validate' }).click();
       cy.wait('@validateSuccess');
 
-      cy.findByTestId('access-token-hidden-helper').should('exist');
+      manageSourcePage.findAccessTokenHiddenHelper().should('exist');
       cy.contains('Credentials validated').should('exist');
     });
 
@@ -1465,15 +1459,15 @@ describe('HuggingFace Credentials Validation', () => {
 
     it('should open clear token modal when Clear button is clicked', () => {
       cy.findByRole('button', { name: 'Clear' }).click();
-      cy.findByTestId('clear-access-token-modal').should('exist');
+      manageSourcePage.findClearAccessTokenModal().should('exist');
     });
 
     it('should close modal and keep org and token when Cancel is clicked', () => {
       cy.findByRole('button', { name: 'Clear' }).click();
-      cy.findByTestId('clear-access-token-modal').should('exist');
+      manageSourcePage.findClearAccessTokenModal().should('exist');
 
       cy.findByRole('button', { name: 'Cancel' }).click();
-      cy.findByTestId('clear-access-token-modal').should('not.exist');
+      manageSourcePage.findClearAccessTokenModal().should('not.exist');
 
       manageSourcePage.findOrganizationInput().should('have.value', 'Google');
       cy.contains('Credentials validated').should('exist');
@@ -1481,10 +1475,10 @@ describe('HuggingFace Credentials Validation', () => {
 
     it('should clear token and close preview when Confirm is clicked', () => {
       cy.findByRole('button', { name: 'Clear' }).click();
-      cy.findByTestId('clear-access-token-modal').should('exist');
+      manageSourcePage.findClearAccessTokenModal().should('exist');
 
-      cy.findByTestId('clear-access-token-confirm-button').click();
-      cy.findByTestId('clear-access-token-modal').should('not.exist');
+      manageSourcePage.findClearAccessTokenConfirmButton().click();
+      manageSourcePage.findClearAccessTokenModal().should('not.exist');
 
       manageSourcePage.findAccessTokenInput().should('have.value', '');
       cy.contains('Credentials validated').should('not.exist');
@@ -1528,7 +1522,7 @@ describe('HuggingFace Credentials Validation', () => {
       cy.wait('@validateSuccess');
 
       cy.findByRole('button', { name: 'Clear' }).click();
-      cy.findByTestId('clear-access-token-confirm-button').click();
+      manageSourcePage.findClearAccessTokenConfirmButton().click();
 
       manageSourcePage.findSubmitButton().click();
 
