@@ -24,6 +24,10 @@ import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { ValidatedConfiguration } from '~/concepts/modelCatalog/const';
+import {
+  buildHfAccessCustomProperties,
+  type HfAccessModelConfig,
+} from '~/__tests__/utils/createHfAccessModel';
 
 /**
  * Options for setting up model catalog intercepts
@@ -552,10 +556,8 @@ export const setupModelDetailsIntercepts = (options: ModelCatalogInterceptOption
   });
 };
 
-export type HfAccessCardModelConfig = {
+export type HfAccessCardModelConfig = HfAccessModelConfig & {
   name: string;
-  hfAccessType: string;
-  hfGatedAccessGranted?: string;
   description?: string;
 };
 
@@ -571,27 +573,13 @@ export const createHfAccessCardModel = ({
   const isGated = hfAccessType.startsWith('gated');
   const isGatedDenied = isGated && hfGatedAccessGranted !== 'true';
 
-  const customProperties: ModelRegistryCustomProperties = {
-    hf_access_type: {
-      string_value: hfAccessType,
-      metadataType: ModelRegistryMetadataType.STRING,
-    },
-  };
-
-  if (isGated && hfGatedAccessGranted !== undefined) {
-    customProperties.hf_gated_access_granted = {
-      string_value: hfGatedAccessGranted,
-      metadataType: ModelRegistryMetadataType.STRING,
-    };
-  }
-
   return mockCatalogModel({
     name,
     source_id: 'hugging_face_source',
     provider: 'Meta',
     description: isGatedDenied ? '' : description,
     tasks: isGatedDenied ? [] : ['text-to-text'],
-    customProperties,
+    customProperties: buildHfAccessCustomProperties(hfAccessType, hfGatedAccessGranted),
   });
 };
 
@@ -606,7 +594,16 @@ export const setupHfAccessCardIntercepts = (models: CatalogModel[]): void => {
   });
 
   interceptSources([hfSource]);
-  interceptLabels();
+  interceptLabels({
+    items: [
+      {
+        name: null,
+        displayName: 'Other models',
+        description: 'Models without a specific category label.',
+      },
+    ],
+    size: 1,
+  });
   interceptFilterOptions();
 
   cy.interceptApi(

@@ -2,10 +2,7 @@ import * as React from 'react';
 import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
-import {
-  shouldShowValidatedInsights,
-  isHfGatedAccessDenied,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { shouldShowValidatedInsights } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import ModelDetailsView from './ModelDetailsView';
 import ModelGatedAccessRequiredView from './ModelGatedAccessRequiredView';
@@ -22,6 +19,7 @@ type ModelDetailsTabsProps = {
   artifacts: CatalogArtifactList;
   artifactLoaded: boolean;
   artifactsLoadError: Error | undefined;
+  gatedAccessDenied: boolean;
 };
 
 const ModelDetailsTabs = ({
@@ -30,10 +28,11 @@ const ModelDetailsTabs = ({
   artifacts,
   artifactLoaded,
   artifactsLoadError,
+  gatedAccessDenied,
 }: ModelDetailsTabsProps): React.JSX.Element => {
   const navigate = useNavigate();
 
-  if (isHfGatedAccessDenied(model)) {
+  if (gatedAccessDenied) {
     return (
       <PageSection
         hasBodyWrapper={false}

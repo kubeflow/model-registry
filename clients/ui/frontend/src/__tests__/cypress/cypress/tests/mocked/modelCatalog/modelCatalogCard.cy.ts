@@ -274,25 +274,31 @@ describe('ModelCatalogCard HF access labels', () => {
     setupHfAccessCardIntercepts([privateModel, gatedGrantedModel, gatedDeniedModel]);
     modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
-    modelCatalog.findModelCatalogCards().should('have.length', 3);
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-FP8-dynamic').should('exist');
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-INT4').should('exist');
+    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-INT8').should('exist');
   });
 
   it('should show Private label with popover on private HF model card', () => {
-    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-FP8-dynamic').within(() => {
+    const modelName = 'Llama-3.1-8B-Instruct-FP8-dynamic';
+
+    modelCatalog.findModelCatalogCardByName(modelName).within(() => {
       modelCatalog.findAccessLabelPrivate().should('contain.text', 'Private');
       modelCatalog.openPrivateAccessLabelPopover();
-      modelCatalog.findModelCatalogDescription().should('be.visible');
     });
     modelCatalog.expectAccessLabelPopoverText(MODEL_CATALOG_POPOVER_MESSAGES.HF_PRIVATE);
+    modelCatalog.findModelCatalogCardDescriptionByName(modelName).should('be.visible');
   });
 
   it('should show grey Gated label with popover on granted gated HF model card', () => {
-    modelCatalog.findModelCatalogCardByName('Llama-3.1-8B-Instruct-INT4').within(() => {
+    const modelName = 'Llama-3.1-8B-Instruct-INT4';
+
+    modelCatalog.findModelCatalogCardByName(modelName).within(() => {
       modelCatalog.findAccessLabelGated().should('contain.text', 'Gated');
       modelCatalog.openGatedAccessLabelPopover();
-      modelCatalog.findModelCatalogDescription().should('be.visible');
     });
     modelCatalog.expectAccessLabelPopoverText(MODEL_CATALOG_POPOVER_MESSAGES.HF_GATED);
+    modelCatalog.findModelCatalogCardDescriptionByName(modelName).should('be.visible');
   });
 
   it('should show warning Gated label with popover and minimal card for denied gated HF model', () => {

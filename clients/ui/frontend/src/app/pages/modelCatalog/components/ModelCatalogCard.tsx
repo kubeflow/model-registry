@@ -21,7 +21,6 @@ import { getLabels, getValueLabels } from '~/app/pages/modelRegistry/screens/uti
 import {
   isModelValidated,
   getModelName,
-  isHfGatedAccessDenied,
   getHfAccessLabelVariant,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import {
@@ -43,8 +42,8 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source }) =>
     ? getValueLabels(model.customProperties, CATALOG_VALUE_LABEL_KEYS)
     : [];
   const isValidated = isModelValidated(model);
-  const isGatedAccessDenied = isHfGatedAccessDenied(model);
-  const hasAccessLabel = getHfAccessLabelVariant(model) !== null;
+  const accessLabelVariant = getHfAccessLabelVariant(model);
+  const isGatedAccessDenied = accessLabelVariant === 'gated-denied';
 
   return (
     <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.source_id}`}>
@@ -68,8 +67,8 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source }) =>
                     Validated
                   </Label>
                 </Popover>
-              ) : hasAccessLabel ? (
-                <ModelCatalogAccessLabel model={model} />
+              ) : accessLabelVariant ? (
+                <ModelCatalogAccessLabel variant={accessLabelVariant} />
               ) : (
                 source && <Label data-testid="model-catalog-source-label">{source.name}</Label>
               )}

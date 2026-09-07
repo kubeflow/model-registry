@@ -25,7 +25,6 @@ import {
   getModelName,
   hasModelArtifacts,
   isModelValidated,
-  isHfGatedAccessDenied,
   getHfAccessLabelVariant,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
@@ -62,8 +61,8 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
     encodeURIComponent(`${decodedParams.modelName}`),
   );
 
-  const gatedAccessDenied = model ? isHfGatedAccessDenied(model) : false;
-  const hasAccessLabel = model ? getHfAccessLabelVariant(model) !== null : false;
+  const accessLabelVariant = model ? getHfAccessLabelVariant(model) : null;
+  const gatedAccessDenied = accessLabelVariant === 'gated-denied';
 
   const registerButtonTooltip = (headerContent: string, bodyContent: string) => (
     <Tooltip
@@ -185,8 +184,8 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
                           Validated
                         </Label>
                       </Popover>
-                    ) : hasAccessLabel ? (
-                      <ModelCatalogAccessLabel model={model} />
+                    ) : accessLabelVariant ? (
+                      <ModelCatalogAccessLabel variant={accessLabelVariant} />
                     ) : null}
                   </Flex>
                 </StackItem>
@@ -218,6 +217,7 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
             artifacts={artifacts}
             artifactLoaded={artifactLoaded}
             artifactsLoadError={artifactsLoadError}
+            gatedAccessDenied={gatedAccessDenied}
           />
         )}
       </ApplicationsPage>
