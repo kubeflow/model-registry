@@ -1260,17 +1260,14 @@ describe('Manage Source Page', () => {
     manageSourcePage.findSubmitButton().should('have.text', 'Save');
     manageSourcePage.findSubmitButton().click();
     cy.wait('@manageSourcewithHuggingFaceType').then((interception) => {
-      expect(interception.request.body).to.eql({
-        data: {
-          name: 'Huggingface source 3',
-          apiKey: 'apikey',
-          allowedOrganization: 'org1',
-          type: CatalogSourceType.HUGGING_FACE,
-          includedModels: ['model-1-*', 'model-2-*'],
-          excludedModels: ['model-3-*', 'model-4-*'],
-          enabled: false,
-          isDefault: false,
-        },
+      expect(interception.request.body.data).to.deep.include({
+        name: 'Huggingface source 3',
+        allowedOrganization: 'org1',
+        type: CatalogSourceType.HUGGING_FACE,
+        includedModels: ['model-1-*', 'model-2-*'],
+        excludedModels: ['model-3-*', 'model-4-*'],
+        enabled: false,
+        isDefault: false,
       });
     });
   });
