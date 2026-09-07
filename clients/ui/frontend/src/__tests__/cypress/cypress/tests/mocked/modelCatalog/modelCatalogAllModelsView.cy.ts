@@ -230,6 +230,14 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.findCategoryToggle('label-OpenVINO').should('not.exist');
     });
 
+    it('should show sort dropdown when performance toggle is enabled', () => {
+      // Default intercepts have multiple categories
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
+
+      modelCatalog.findSortDropdown().should('be.visible');
+    });
+
     it('should hide All models toggle when only one non-empty category remains', () => {
       initIntercepts({
         sources: [
