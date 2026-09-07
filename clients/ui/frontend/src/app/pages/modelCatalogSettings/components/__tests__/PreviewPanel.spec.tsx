@@ -312,6 +312,27 @@ describe('PreviewPanel', () => {
     expect(screen.getByText('model-3')).toBeInTheDocument();
   });
 
+  it('does not render panel body preview button when preview results are shown', () => {
+    const preview = createMockPreview(
+      {
+        canPreview: false,
+        hasFormChanged: true,
+        previewDisabledTooltip: 'Validate the access token to preview models.',
+      },
+      {
+        summary: mockSummary,
+        tabStates: {
+          [CatalogSettingsPreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: false },
+          [CatalogSettingsPreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
+
+    expect(screen.queryByTestId('preview-button-panel')).not.toBeInTheDocument();
+    expect(screen.getByTestId('preview-button-header')).toBeDisabled();
+  });
+
   it('disables preview button when canPreview is false', () => {
     const preview = createMockPreview(
       { canPreview: false },

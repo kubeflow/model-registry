@@ -4,6 +4,7 @@ import {
   useSourcePreview,
   isPreviewEnabled,
   getPreviewDisabledTooltip,
+  UseSourcePreviewOptions,
 } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
@@ -76,6 +77,19 @@ const createMockApiState = (
     deleteCatalogSourceConfig: jest.fn(),
     previewCatalogSource: jest.fn().mockResolvedValue(mockPreviewResult),
   },
+  ...overrides,
+});
+
+const createHookParams = (
+  formData: ManageSourceFormData = mockFormData,
+  overrides: Partial<Omit<UseSourcePreviewOptions, 'formData'>> & {
+    apiState?: ModelCatalogSettingsAPIState;
+  } = {},
+): UseSourcePreviewOptions => ({
+  formData,
+  existingSourceConfig: undefined,
+  apiState: overrides.apiState ?? createMockApiState(),
+  isEditMode: false,
   ...overrides,
 });
 
@@ -569,5 +583,73 @@ describe('useSourcePreview', () => {
     await waitFor(() => {
       expect(result.current.previewState.error?.message).toBe('Network error');
     });
+  });
+
+  it('should assert stability of handlers when hook props are unchanged', () => {
+    const hookParams = createHookParams();
+    const renderResult = testHook(useSourcePreview)(hookParams);
+
+    expect(renderResult).hookToHaveUpdateCount(1);
+
+    renderResult.rerender(hookParams);
+
+    expect(renderResult).hookToHaveUpdateCount(2);
+    expect(renderResult).hookToBeStable({
+      handlePreview: true,
+      handleValidate: true,
+      handleTabChange: true,
+      handleLoadMore: true,
+      clearValidationSuccess: true,
+      canPreview: true,
+      hasFormChanged: true,
+      previewDisabledTooltip: true,
+    });
+  });
+
+  it('should update preview gating when access token changes', () => {
+    const apiState = createMockApiState();
+    const formDataWithoutToken: ManageSourceFormData = { ...hfFormData, accessToken: '' };
+    const initialParams = createHookParams(formDataWithoutToken, { apiState });
+
+    const renderResult = testHook(useSourcePreview)(initialParams);
+
+    expect(renderResult).hookToHaveUpdateCount(1);
+    expect(renderResult.result.current.canPreview).toBe(true);
+    expect(renderResult.result.current.previewDisabledTooltip).toBeUndefined();
+
+    renderResult.rerender(
+      createHookParams({ ...formDataWithoutToken, accessToken: 'new-token' }, { apiState }),
+    );
+
+    expect(renderResult).hookToHaveUpdateCount(2);
+    expect(renderResult.result.current.canPreview).toBe(false);
+    expect(renderResult.result.current.previewDisabledTooltip).toBe(
+      'Validate the access token to preview models.',
+    );
+  });
+
+  it('should reset validation state when credentials change', async () => {
+    const apiState = createMockApiState();
+    const renderResult = testHook(useSourcePreview)(createHookParams(hfFormData, { apiState }));
+
+    expect(renderResult).hookToHaveUpdateCount(1);
+
+    await act(async () => {
+      await renderResult.result.current.handleValidate();
+    });
+
+    await waitFor(() => {
+      expect(renderResult.result.current.isValidationSuccess).toBe(true);
+    });
+
+    const updateCountAfterValidate = renderResult.getUpdateCount();
+
+    renderResult.rerender(
+      createHookParams({ ...hfFormData, accessToken: 'updated-token' }, { apiState }),
+    );
+
+    expect(renderResult.result.current.isValidationSuccess).toBe(false);
+    expect(renderResult.result.current.validationError).toBeUndefined();
+    expect(renderResult.getUpdateCount()).toBeGreaterThan(updateCountAfterValidate);
   });
 });
