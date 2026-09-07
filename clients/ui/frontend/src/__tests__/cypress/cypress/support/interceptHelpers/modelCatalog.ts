@@ -18,11 +18,16 @@ import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatal
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogLabelList, CatalogSource } from '~/app/shared/types/catalogTypes';
+import { SourceLabel } from '~/app/shared/types/catalogTypes';
 import type { CatalogModel } from '~/app/modelCatalogTypes';
 import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { ValidatedConfiguration } from '~/concepts/modelCatalog/const';
+import {
+  buildHfAccessCustomProperties,
+  type HfAccessModelConfig,
+} from '~/__tests__/utils/createHfAccessModel';
 
 /**
  * Options for setting up model catalog intercepts
@@ -549,4 +554,64 @@ export const setupModelDetailsIntercepts = (options: ModelCatalogInterceptOption
     includeModelRegistry: true,
     includePerformanceArtifacts: true,
   });
+};
+
+export type HfAccessCardModelConfig = HfAccessModelConfig & {
+  name: string;
+  description?: string;
+};
+
+/**
+ * Builds a catalog model mock for HF access card tests.
+ */
+export const createHfAccessCardModel = ({
+  name,
+  hfAccessType,
+  hfGatedAccessGranted,
+  description = 'Prototype HF model for card testing.',
+}: HfAccessCardModelConfig): CatalogModel => {
+  const isGated = hfAccessType.startsWith('gated');
+  const isGatedDenied = isGated && hfGatedAccessGranted !== 'true';
+
+  return mockCatalogModel({
+    name,
+    source_id: 'hugging_face_source',
+    provider: 'Meta',
+    description: isGatedDenied ? '' : description,
+    tasks: isGatedDenied ? [] : ['text-to-text'],
+    customProperties: buildHfAccessCustomProperties(hfAccessType, hfGatedAccessGranted),
+  });
+};
+
+/**
+ * Sets up intercepts for HF access label card tests in the Other models section.
+ */
+export const setupHfAccessCardIntercepts = (models: CatalogModel[]): void => {
+  const hfSource = mockCatalogSource({
+    id: 'hugging_face_source',
+    name: 'Hugging face source',
+    labels: [],
+  });
+
+  interceptSources([hfSource]);
+  interceptLabels({
+    items: [
+      {
+        name: null,
+        displayName: 'Other models',
+        description: 'Models without a specific category label.',
+      },
+    ],
+    size: 1,
+  });
+  interceptFilterOptions();
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/models`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+      query: { sourceLabel: SourceLabel.other },
+    },
+    mockCatalogModelList({ items: models }),
+  );
 };

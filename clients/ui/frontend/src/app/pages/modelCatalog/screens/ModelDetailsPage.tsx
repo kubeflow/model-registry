@@ -25,6 +25,7 @@ import {
   getModelName,
   hasModelArtifacts,
   isModelValidated,
+  getHfAccessLabelVariant,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
@@ -35,6 +36,7 @@ import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { ModelDetailsTab, MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import { MODEL_CATALOG_TITLE } from '~/app/pages/modelCatalog/const';
+import ModelCatalogAccessLabel from '~/app/pages/modelCatalog/components/ModelCatalogAccessLabel';
 import ModelDetailsTabs from './ModelDetailsTabs';
 
 type ModelDetailsPageProps = {
@@ -59,6 +61,9 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
     encodeURIComponent(`${decodedParams.modelName}`),
   );
 
+  const accessLabelVariant = model ? getHfAccessLabelVariant(model) : null;
+  const gatedAccessDenied = accessLabelVariant === 'gated-denied';
+
   const registerButtonTooltip = (headerContent: string, bodyContent: string) => (
     <Tooltip
       content={
@@ -80,6 +85,14 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
   );
 
   const registerModelButton = () => {
+    if (gatedAccessDenied) {
+      return (
+        <Button variant="primary" isDisabled data-testid="register-model-button">
+          Register model
+        </Button>
+      );
+    }
+
     if (!modelRegistriesLoaded || modelRegistriesLoadError) {
       return null;
     }
@@ -119,6 +132,12 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
     );
   };
 
+  const headerActions = () => (
+    <ActionList>
+      <ActionListGroup>{registerModelButton()}</ActionListGroup>
+    </ActionList>
+  );
+
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
@@ -154,7 +173,7 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
                     alignItems={{ default: 'alignItemsCenter' }}
                   >
                     <FlexItem>{getModelName(model.name)}</FlexItem>
-                    {isModelValidated(model) && (
+                    {isModelValidated(model) ? (
                       <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.VALIDATED}>
                         <Label
                           variant="outline"
@@ -165,7 +184,9 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
                           Validated
                         </Label>
                       </Popover>
-                    )}
+                    ) : accessLabelVariant ? (
+                      <ModelCatalogAccessLabel variant={accessLabelVariant} />
+                    ) : null}
                   </Flex>
                 </StackItem>
                 <StackItem>
@@ -187,15 +208,7 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
         loaded={modelLoaded}
         errorMessage="Unable to load model catalog"
         provideChildrenPadding
-        headerAction={
-          modelLoaded &&
-          !modelLoadError &&
-          model && (
-            <ActionList>
-              <ActionListGroup>{registerModelButton()}</ActionListGroup>
-            </ActionList>
-          )
-        }
+        headerAction={modelLoaded && !modelLoadError && model && headerActions()}
       >
         {model && (
           <ModelDetailsTabs
@@ -204,6 +217,7 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
             artifacts={artifacts}
             artifactLoaded={artifactLoaded}
             artifactsLoadError={artifactsLoadError}
+            gatedAccessDenied={gatedAccessDenied}
           />
         )}
       </ApplicationsPage>
