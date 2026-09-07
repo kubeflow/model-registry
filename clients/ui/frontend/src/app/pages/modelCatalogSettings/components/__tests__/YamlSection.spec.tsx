@@ -16,6 +16,7 @@ const createFormData = (overrides: Partial<ManageSourceFormData> = {}): ManageSo
   sourceType: CatalogSourceType.YAML,
   accessToken: '',
   organization: '',
+  tokenModified: true,
   yamlContent: '',
   allowedModels: '',
   excludedModels: '',

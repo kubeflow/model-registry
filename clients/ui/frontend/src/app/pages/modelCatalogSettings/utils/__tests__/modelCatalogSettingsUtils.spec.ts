@@ -20,6 +20,7 @@ const yamlFormData: ManageSourceFormData = {
   isDefault: false,
   name: 'Source 1',
   organization: '',
+  tokenModified: true,
   sourceType: CatalogSourceType.YAML,
   yamlContent: 'models:\n  - name: model1',
 };
@@ -32,6 +33,7 @@ const yamlDefaultFormData: ManageSourceFormData = {
   isDefault: true,
   name: 'Source 1',
   organization: '',
+  tokenModified: true,
   sourceType: CatalogSourceType.YAML,
   yamlContent: '',
 };
@@ -44,14 +46,21 @@ const hfFormData: ManageSourceFormData = {
   isDefault: false,
   name: 'Huggingface source 2',
   organization: 'org1',
+  tokenModified: true,
   sourceType: CatalogSourceType.HUGGING_FACE,
   yamlContent: '',
 };
 
 describe('catalogSourceConfigToFormData', () => {
   it('should convert the data from catalogSourceConfig to formData', () => {
+    // tokenModified is UI state managed separately and not returned by this function
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tokenModified: tokenModifiedDefault, ...yamlDefaultExpected } = yamlDefaultFormData;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tokenModified: tokenModifiedHf, ...hfExpected } = hfFormData;
+
     expect(catalogSourceConfigToFormData(catalogSourceDefaultConfigYAMLMock)).toEqual(
-      yamlDefaultFormData,
+      yamlDefaultExpected,
     );
     expect(catalogSourceConfigToFormData(catalogSourceConfigYAMLMock)).toEqual({
       accessToken: '',
@@ -65,7 +74,7 @@ describe('catalogSourceConfigToFormData', () => {
       sourceType: CatalogSourceType.YAML,
       yamlContent: '',
     });
-    expect(catalogSourceConfigToFormData(catalogSourceConfigHFMock)).toEqual(hfFormData);
+    expect(catalogSourceConfigToFormData(catalogSourceConfigHFMock)).toEqual(hfExpected);
   });
 });
 

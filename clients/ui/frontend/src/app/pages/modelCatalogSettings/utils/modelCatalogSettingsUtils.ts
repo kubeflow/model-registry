@@ -73,6 +73,7 @@ export const transformFormDataToConfig = (
 export const getPayloadForConfig = (
   sourceConfig: CatalogSourceConfig,
   isEditMode = false,
+  tokenModified = true,
 ): CatalogSourceConfigPayload => {
   if (sourceConfig.isDefault) {
     return {
@@ -92,11 +93,16 @@ export const getPayloadForConfig = (
       excludedModels: sourceConfig.excludedModels,
       ...(sourceConfig.type === CatalogSourceType.YAML && { yaml: sourceConfig.yaml }),
       ...(sourceConfig.type === CatalogSourceType.HUGGING_FACE && {
-        apiKey: sourceConfig.apiKey,
         allowedOrganization: sourceConfig.allowedOrganization,
+        ...(tokenModified && sourceConfig.apiKey ? { apiKey: sourceConfig.apiKey } : {}),
       }),
     };
   }
 
+  if (sourceConfig.type === CatalogSourceType.HUGGING_FACE && !sourceConfig.apiKey) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { apiKey, ...rest } = sourceConfig;
+    return rest;
+  }
   return sourceConfig;
 };

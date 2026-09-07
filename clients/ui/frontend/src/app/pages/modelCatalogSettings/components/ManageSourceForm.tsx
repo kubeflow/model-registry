@@ -47,7 +47,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const existingData = existingSourceConfig
-    ? catalogSourceConfigToFormData(existingSourceConfig)
+    ? { ...catalogSourceConfigToFormData(existingSourceConfig), tokenModified: false }
     : undefined;
   const [formData, setData] = useManageSourceData(existingData);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -71,6 +71,14 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
 
+  const hasExistingApiKey = React.useMemo(() => {
+    if (!isEditMode || !formData.id) {
+      return false;
+    }
+    const source = catalogSources?.items?.find((s) => s.id === formData.id);
+    return source?.hasApiKey ?? false;
+  }, [isEditMode, formData.id, catalogSources]);
+
   const handleSubmit = async () => {
     if (!apiState.apiAvailable) {
       setSubmitError(new Error('API is not available'));
@@ -81,7 +89,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
 
     try {
       const sourceConfig = transformFormDataToConfig(formData, existingSourceConfig);
-      const payload = getPayloadForConfig(sourceConfig, isEditMode);
+      const payload = getPayloadForConfig(sourceConfig, isEditMode, formData.tokenModified);
 
       if (isEditMode && existingData) {
         const previousStatus =
@@ -140,6 +148,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                     validationError={preview.validationError}
                     isValidationSuccess={preview.isValidationSuccess}
                     onClearValidationSuccess={preview.clearValidationSuccess}
+                    hasExistingApiKey={hasExistingApiKey}
                   />
                 </StackItem>
               )}
@@ -153,18 +162,6 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                   />
                 </StackItem>
               )}
-
-              <StackItem>
-                <ModelVisibilitySection
-                  formData={formData}
-                  setData={setData}
-                  isDefaultExpanded={
-                    existingData?.isDefault ||
-                    !!existingData?.allowedModels ||
-                    !!existingData?.excludedModels
-                  }
-                />
-              </StackItem>
 
               <StackItem>
                 <FormSection>
@@ -184,6 +181,17 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                     />
                   </FormGroup>
                 </FormSection>
+              </StackItem>
+              <StackItem>
+                <ModelVisibilitySection
+                  formData={formData}
+                  setData={setData}
+                  isDefaultExpanded={
+                    existingData?.isDefault ||
+                    !!existingData?.allowedModels ||
+                    !!existingData?.excludedModels
+                  }
+                />
               </StackItem>
             </Stack>
           </Form>
