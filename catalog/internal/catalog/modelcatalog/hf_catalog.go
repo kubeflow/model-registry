@@ -949,8 +949,12 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, erro
 // unchanged so a momentary outage doesn't tell operators to rotate a good key.
 func (p *hfModelProvider) refreshCredentialStatus(ctx context.Context) {
 	if p.apiKey == "" {
+		var authed *bool
+		if p.hasOriginalKey {
+			authed = boolPtr(false)
+		}
 		p.credOpts = []basecatalog.SourceStatusOption{
-			basecatalog.WithCredentials(p.hasOriginalKey, nil, ""),
+			basecatalog.WithCredentials(p.hasOriginalKey, authed, ""),
 		}
 		return
 	}
@@ -1518,4 +1522,3 @@ func setSourceCredentialStatus(source *basecatalog.ModelSource, hasApiKey bool, 
 
 // boolPtr returns a pointer to v.
 func boolPtr(v bool) *bool { return &v }
-
