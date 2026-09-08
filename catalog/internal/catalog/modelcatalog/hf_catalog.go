@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -107,6 +108,11 @@ type hfModelProvider struct {
 	// syncInterval is the interval for periodic syncing of models.
 	// This can be configured via the syncInterval property in the source configuration.
 	syncInterval time.Duration
+	// hasOriginalKey records whether a non-empty API key was resolved at
+	// construction time, before prefix validation may have cleared p.apiKey.
+	// Used by refreshCredentialStatus so hasApiKey stays consistent across
+	// sync ticks (a malformed key is still "key configured").
+	hasOriginalKey bool
 	// credOpts holds the latest credential status for this source, updated on
 	// each periodic sync via refreshCredentialStatus. Included on batch-completion
 	// records so the loader persists fresh hasApiKey/authenticated values.
@@ -462,18 +468,27 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 				// Re-validate credentials so expired/revoked tokens are detected.
 				p.refreshCredentialStatus(ctx)
 				catalog, err := p.getModelsFromHF(ctx)
-				// Always emit so the loader receives fresh credential status
-				// (updated by refreshCredentialStatus above). When there are
-				// zero models and an error, the loader will flip the source to
-				// error and persist the updated authenticated value.
-				if err != nil && len(catalog) == 0 {
-					// Wrap as PartiallyAvailableError so the loader's
-					// batch-completion branch processes it (and its
-					// SourceStatusOpts) instead of treating it as a
-					// per-model error.
-					err = &PartiallyAvailableError{FailedModels: []string{err.Error()}}
+				// Even if there's an error, emit successful models first, then signal the error
+				if len(catalog) > 0 || err == nil {
+					p.emitWithError(ctx, catalog, err, ch)
+				} else {
+					// Total failure: no models fetched. Emit a per-model
+					// error (populates failedModels so the loader's
+					// completeFailure guard prevents orphan wipe) followed
+					// by a bare completion record carrying fresh credential
+					// status from refreshCredentialStatus.
+					glog.Errorf("unable to reprocess Hugging Face models: %v", err)
+					done := ctx.Done()
+					select {
+					case ch <- ModelProviderRecord{Error: errors.New(err.Error())}:
+					case <-done:
+						continue
+					}
+					select {
+					case ch <- ModelProviderRecord{SourceStatusOpts: p.credOpts}:
+					case <-done:
+					}
 				}
-				p.emitWithError(ctx, catalog, err, ch)
 			}
 		}
 	}()
@@ -876,8 +891,15 @@ func (p *hfModelProvider) emitWithError(ctx context.Context, models []ModelProvi
 	}
 }
 
+// errHFAuthFailed is a sentinel indicating the token was rejected (401/403).
+// Other validateCredentials errors are transient and should not flip
+// authenticated to false.
+var errHFAuthFailed = errors.New("Hugging Face authentication failed")
+
 // validateCredentials checks if the Hugging Face API key credentials are valid.
 // On success it returns the HF username associated with the token.
+// Auth rejections (401/403) are wrapped with errHFAuthFailed so callers can
+// distinguish them from transient failures.
 func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, error) {
 	glog.Infof("Validating Hugging Face API credentials")
 
@@ -900,8 +922,8 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, erro
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		return "", fmt.Errorf("invalid Hugging Face API credentials")
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		return "", fmt.Errorf("%w: HTTP %d", errHFAuthFailed, resp.StatusCode)
 	}
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
@@ -923,25 +945,31 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, erro
 // refreshCredentialStatus re-validates the stored API key via /api/whoami-v2
 // and updates p.credOpts with the result. Called on each periodic sync tick
 // so that expired or revoked tokens are detected without a pod restart.
+// Transient errors (5xx, timeouts) leave the previous credential status
+// unchanged so a momentary outage doesn't tell operators to rotate a good key.
 func (p *hfModelProvider) refreshCredentialStatus(ctx context.Context) {
 	if p.apiKey == "" {
 		p.credOpts = []basecatalog.SourceStatusOption{
-			basecatalog.WithCredentials(false, nil, ""),
+			basecatalog.WithCredentials(p.hasOriginalKey, nil, ""),
 		}
 		return
 	}
 
 	username, err := p.validateCredentials(ctx)
 	if err != nil {
-		glog.Warningf("Credential re-validation failed for source %s: %v", p.sourceId, err)
-		p.credOpts = []basecatalog.SourceStatusOption{
-			basecatalog.WithCredentials(true, boolPtr(false), ""),
+		if errors.Is(err, errHFAuthFailed) {
+			glog.Warningf("Credential re-validation rejected for source %s: %v", p.sourceId, err)
+			p.credOpts = []basecatalog.SourceStatusOption{
+				basecatalog.WithCredentials(p.hasOriginalKey, boolPtr(false), ""),
+			}
+		} else {
+			glog.Warningf("Credential re-validation transient error for source %s (keeping previous status): %v", p.sourceId, err)
 		}
 		return
 	}
 
 	p.credOpts = []basecatalog.SourceStatusOption{
-		basecatalog.WithCredentials(true, boolPtr(true), username),
+		basecatalog.WithCredentials(p.hasOriginalKey, boolPtr(true), username),
 	}
 }
 
@@ -1067,7 +1095,13 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 		}
 	}
 
+	// Record whether a key was originally resolved, before prefix validation
+	// may clear p.apiKey. Used by refreshCredentialStatus so hasApiKey stays
+	// consistent across sync ticks.
+	p.hasOriginalKey = apiKey != ""
+
 	var hfUsername string
+	var authSuccess bool // true only when validateCredentials returned nil error
 	if p.apiKey != "" {
 		hasValidPrefix := strings.HasPrefix(p.apiKey, "hf_")
 		if !hasValidPrefix {
@@ -1084,19 +1118,22 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 				setSourceCredentialStatus(source, true, boolPtr(false), "")
 				return nil, fmt.Errorf("failed to validate Hugging Face catalog credentials: %w", err)
 			}
+			authSuccess = true
 			hfUsername = username
 		}
 	}
 
 	// Record credential status on the source for downstream status reporting.
-	hasKey := apiKey != ""
 	var authed *bool
-	if hasKey {
-		// A token was provided: true if validated, false if malformed or failed.
-		authed = boolPtr(p.apiKey != "" && hfUsername != "")
+	if p.hasOriginalKey {
+		// A token was provided: true if validation succeeded, false if
+		// malformed or failed. Derives from the error path, not from
+		// username, because validateCredentials returns ("", nil) when
+		// whoami is 200 but the body won't decode.
+		authed = boolPtr(authSuccess)
 	}
-	setSourceCredentialStatus(source, hasKey, authed, hfUsername)
-	p.credOpts = []basecatalog.SourceStatusOption{basecatalog.WithCredentials(hasKey, authed, hfUsername)}
+	setSourceCredentialStatus(source, p.hasOriginalKey, authed, hfUsername)
+	p.credOpts = []basecatalog.SourceStatusOption{basecatalog.WithCredentials(p.hasOriginalKey, authed, hfUsername)}
 
 	// Use top-level IncludedModels from Source as the list of models to fetch
 	// These can be specific model names (required for HF API) or patterns
@@ -1482,10 +1519,3 @@ func setSourceCredentialStatus(source *basecatalog.ModelSource, hasApiKey bool, 
 // boolPtr returns a pointer to v.
 func boolPtr(v bool) *bool { return &v }
 
-// boolPtrIf returns a pointer to val when cond is true, nil otherwise.
-func boolPtrIf(cond bool, val bool) *bool {
-	if cond {
-		return &val
-	}
-	return nil
-}
