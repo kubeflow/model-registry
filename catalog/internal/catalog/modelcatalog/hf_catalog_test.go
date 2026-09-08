@@ -1897,11 +1897,11 @@ func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                        string
-		hfInfo                      *hfModelInfo
-		expectedAccessType          string
-		expectGatedAccessGranted    bool
-		expectedGatedAccessGranted  string
+		name                       string
+		hfInfo                     *hfModelInfo
+		expectedAccessType         string
+		expectGatedAccessGranted   bool
+		expectedGatedAccessGranted string
 	}{
 		{
 			name: "public model has hf_access_type=public, no hf_gated_access_granted",
@@ -2004,7 +2004,7 @@ func TestSetSourceCredentialStatus(t *testing.T) {
 			name:              "no API key",
 			hasApiKey:         false,
 			authenticated:     nil,
-			hfUsername:         "",
+			hfUsername:        "",
 			expectHasApiKey:   false,
 			expectAuthSet:     false,
 			expectUsernameNil: true,
@@ -2013,7 +2013,7 @@ func TestSetSourceCredentialStatus(t *testing.T) {
 			name:            "API key with successful auth and username",
 			hasApiKey:       true,
 			authenticated:   boolPtr(true),
-			hfUsername:       "jdoe",
+			hfUsername:      "jdoe",
 			expectHasApiKey: true,
 			expectAuthSet:   true,
 			expectAuthValue: true,
@@ -2023,7 +2023,7 @@ func TestSetSourceCredentialStatus(t *testing.T) {
 			name:              "API key with failed auth",
 			hasApiKey:         true,
 			authenticated:     boolPtr(false),
-			hfUsername:         "",
+			hfUsername:        "",
 			expectHasApiKey:   true,
 			expectAuthSet:     true,
 			expectAuthValue:   false,
@@ -2048,8 +2048,7 @@ func TestSetSourceCredentialStatus(t *testing.T) {
 				assert.Equal(t, tt.expectAuthValue, source.GetAuthenticated())
 			}
 			if tt.expectUsernameNil {
-				_, ok := source.GetHfUsernameOk()
-				assert.False(t, ok || source.GetHfUsername() != "", "hfUsername should be nil/empty")
+				assert.Empty(t, source.GetHfUsername(), "hfUsername should be nil/empty")
 			} else {
 				assert.Equal(t, tt.expectUsername, source.GetHfUsername())
 			}
