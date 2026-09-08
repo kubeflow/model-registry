@@ -1871,7 +1871,7 @@ func TestDeriveHFAccessType(t *testing.T) {
 		{
 			name:     "gated boolean true (legacy format)",
 			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("true")},
-			expected: "gated_manual",
+			expected: "gated_auto",
 		},
 		{
 			name:     "private takes precedence over gated",
@@ -1956,7 +1956,7 @@ func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 				Gated:    gatedString("true"),
 				Siblings: nil,
 			},
-			expectedAccessType:         "gated_manual",
+			expectedAccessType:         "gated_auto",
 			expectGatedAccessGranted:   true,
 			expectedGatedAccessGranted: "false",
 		},

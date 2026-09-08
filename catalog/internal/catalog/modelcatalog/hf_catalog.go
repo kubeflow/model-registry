@@ -823,8 +823,8 @@ func deriveHFAccessType(hfInfo *hfModelInfo) string {
 	case "manual":
 		return "gated_manual"
 	case "true":
-		// Legacy boolean format from HF API; treated as manual gating.
-		return "gated_manual"
+		// Legacy boolean format from HF API; treated as automatic gating.
+		return "gated_auto"
 	default:
 		return "public"
 	}
