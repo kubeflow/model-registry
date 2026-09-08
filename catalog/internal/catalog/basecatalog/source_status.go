@@ -38,7 +38,8 @@ func CleanupOrphanedCatalogSources(repo dbmodels.CatalogSourceRepository, curren
 
 // SaveSourceStatus persists the operational status of a catalog source to the database.
 // Valid status values are the SourceStatus* constants defined in this package.
-func SaveSourceStatus(repo dbmodels.CatalogSourceRepository, sourceID, status, errorMsg string) {
+// Optional SourceCredentials can be provided to persist hasApiKey / authenticated.
+func SaveSourceStatus(repo dbmodels.CatalogSourceRepository, sourceID, status, errorMsg string, opts ...SourceStatusOption) {
 	switch status {
 	case SourceStatusAvailable, SourceStatusPartiallyAvailable, SourceStatusError, SourceStatusDisabled:
 		// valid
@@ -61,9 +62,47 @@ func SaveSourceStatus(repo dbmodels.CatalogSourceRepository, sourceID, status, e
 		props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
 	}
 
+	var cfg sourceStatusConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	if cfg.hasApiKey != nil {
+		props = append(props, mrmodels.NewBoolProperty("has_api_key", *cfg.hasApiKey, false))
+	}
+	if cfg.authenticated != nil {
+		props = append(props, mrmodels.NewBoolProperty("authenticated", *cfg.authenticated, false))
+	}
+	if cfg.hfUsername != nil {
+		props = append(props, mrmodels.NewStringProperty("hf_username", *cfg.hfUsername, false))
+	}
+
 	source.Properties = &props
 
 	if _, err := repo.Save(source); err != nil {
 		glog.Errorf("failed to save status for source %s: %v", sourceID, err)
+	}
+}
+
+// sourceStatusConfig holds optional parameters for SaveSourceStatus.
+type sourceStatusConfig struct {
+	hasApiKey     *bool
+	authenticated *bool
+	hfUsername    *string
+}
+
+// SourceStatusOption configures optional fields for SaveSourceStatus.
+type SourceStatusOption func(*sourceStatusConfig)
+
+// WithCredentials returns a SourceStatusOption that records API-key presence,
+// authentication status, and HF username alongside the source's operational status.
+// authenticated may be nil to indicate "no token exists".
+// hfUsername is the Hugging Face username associated with the token; empty when unknown.
+func WithCredentials(hasApiKey bool, authenticated *bool, hfUsername string) SourceStatusOption {
+	return func(c *sourceStatusConfig) {
+		c.hasApiKey = &hasApiKey
+		c.authenticated = authenticated
+		if hfUsername != "" {
+			c.hfUsername = &hfUsername
+		}
 	}
 }

@@ -362,6 +362,13 @@ components:
           type: boolean
           nullable: true
           readOnly: true
+        hfUsername:
+          description: |-
+            The Hugging Face username associated with the stored API token.
+            Null when no token exists or authentication failed.
+          type: string
+          nullable: true
+          readOnly: true
         includedModels:
           description: |-
             Optional list of glob patterns for models to include. If specified, only models matching

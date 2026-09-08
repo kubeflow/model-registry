@@ -423,12 +423,15 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
-			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusError, err.Error())
+			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusError, err.Error(), credentialOpts(source)...)
 			continue
 		}
 
+		// Capture credential status set by the provider (e.g. HF sets hasApiKey/authenticated).
+		credOpts := credentialOpts(source)
+
 		wg.Add(1)
-		go func(ctx context.Context, sourceID string) {
+		go func(ctx context.Context, sourceID string, credOpts []basecatalog.SourceStatusOption) {
 			defer wg.Done()
 
 			modelNames := []string{}
@@ -479,25 +482,25 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 						if successCount > 0 {
 							if hasPartialFailure {
 								glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
-								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error())
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error(), credOpts...)
 							} else if hasValidationFailures {
 								errMsg := fmt.Sprintf("Failed to load %d model(s): %v", len(failedModels), failedModels)
 								glog.Warningf("%s: %s", sourceID, errMsg)
-								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, errMsg)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, errMsg, credOpts...)
 							} else {
-								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "", credOpts...)
 							}
 						} else if hasPartialFailure || hasValidationFailures {
 							if hasPartialFailure {
 								glog.Warningf("%s: all catalog models failed to load from source: %v", sourceID, r.Error)
-								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, r.Error.Error())
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, r.Error.Error(), credOpts...)
 							} else {
 								errMsg := fmt.Sprintf("all catalog models failed to load from source %s (failed: %v)", sourceID, failedModels)
 								glog.Warningf("%s: %s", sourceID, errMsg)
-								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, errMsg)
+								basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusError, errMsg, credOpts...)
 							}
 						} else {
-							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
+							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "", credOpts...)
 						}
 					}
 
@@ -521,9 +524,9 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 			// If the channel closed without a nil Model marker (one-shot provider),
 			// save available status if context is still valid and we processed some models.
 			if ctx.Err() == nil && len(modelNames) > 0 {
-				basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
+				basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "", credOpts...)
 			}
-		}(ctx, source.Id)
+		}(ctx, source.Id, credOpts)
 	}
 
 	go func() {
@@ -651,4 +654,24 @@ func (l *ModelLoader) removeOrphanedModelsFromSource(sourceID string, valid maps
 	}
 
 	return count, nil
+}
+
+// credentialOpts extracts credential info from a ModelSource and returns
+// SourceStatusOption(s) to pass to SaveSourceStatus. If the provider set
+// hasApiKey/authenticated/hfUsername on the source's CatalogSource, these are captured.
+func credentialOpts(source basecatalog.ModelSource) []basecatalog.SourceStatusOption {
+	if !source.HasHasApiKey() {
+		return nil
+	}
+	hasApiKey := source.GetHasApiKey()
+	var authenticated *bool
+	if source.HasAuthenticated() {
+		v := source.GetAuthenticated()
+		authenticated = &v
+	}
+	var hfUsername string
+	if source.HasHfUsername() {
+		hfUsername = source.GetHfUsername()
+	}
+	return []basecatalog.SourceStatusOption{basecatalog.WithCredentials(hasApiKey, authenticated, hfUsername)}
 }

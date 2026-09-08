@@ -366,6 +366,28 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		},
 	}
 
+	// Determine hf_access_type: public | private | gated_auto | gated_manual
+	accessType := deriveHFAccessType(hfInfo)
+	customProps["hf_access_type"] = apimodels.MetadataValue{
+		MetadataStringValue: &apimodels.MetadataStringValue{
+			StringValue: accessType,
+		},
+	}
+
+	// For gated models, determine if the token holder has been granted access.
+	// Gated models without access return an empty siblings list from the HF API.
+	if strings.HasPrefix(accessType, "gated_") {
+		gatedAccessGranted := "false"
+		if len(hfInfo.Siblings) > 0 {
+			gatedAccessGranted = "true"
+		}
+		customProps["hf_gated_access_granted"] = apimodels.MetadataValue{
+			MetadataStringValue: &apimodels.MetadataStringValue{
+				StringValue: gatedAccessGranted,
+			},
+		}
+	}
+
 	if len(filteredTags) > 0 {
 		if tagsJSON, err := json.Marshal(filteredTags); err == nil {
 			customProps["hf_tags"] = apimodels.MetadataValue{
@@ -393,6 +415,13 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 				},
 			}
 		}
+	}
+
+	// HuggingFace model page URL
+	customProps["hf_url"] = apimodels.MetadataValue{
+		MetadataStringValue: &apimodels.MetadataStringValue{
+			StringValue: defaultHuggingFaceURL + "/" + hfInfo.ID,
+		},
 	}
 
 	if len(customProps) > 0 {
@@ -782,6 +811,25 @@ func parseHFTime(timeStr string) (int64, error) {
 	return t.UnixMilli(), nil
 }
 
+// deriveHFAccessType returns the access type classification for a Hugging Face model.
+// Possible values: "public", "private", "gated_auto", "gated_manual".
+func deriveHFAccessType(hfInfo *hfModelInfo) string {
+	if hfInfo.Private {
+		return "private"
+	}
+	switch hfInfo.Gated.String() {
+	case "auto":
+		return "gated_auto"
+	case "manual":
+		return "gated_manual"
+	case "true":
+		// Legacy boolean format from HF API; treated as manual gating.
+		return "gated_manual"
+	default:
+		return "public"
+	}
+}
+
 func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord, out chan<- ModelProviderRecord) {
 	p.emitWithError(ctx, models, nil, out)
 }
@@ -816,15 +864,16 @@ func (p *hfModelProvider) emitWithError(ctx context.Context, models []ModelProvi
 	}
 }
 
-// validateCredentials checks if the Hugging Face API key credentials are valid
-func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
+// validateCredentials checks if the Hugging Face API key credentials are valid.
+// On success it returns the HF username associated with the token.
+func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, error) {
 	glog.Infof("Validating Hugging Face API credentials")
 
 	// Make a simple API call to validate credentials
 	apiURL := p.baseURL + "/api/whoami-v2"
 	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
 	if err != nil {
-		return fmt.Errorf("failed to create validation request: %w", err)
+		return "", fmt.Errorf("failed to create validation request: %w", err)
 	}
 
 	req.Header.Set("User-Agent", "model-registry-catalog")
@@ -835,20 +884,28 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to validate Hugging Face credentials: %w", err)
+		return "", fmt.Errorf("failed to validate Hugging Face credentials: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("invalid Hugging Face API credentials")
+		return "", fmt.Errorf("invalid Hugging Face API credentials")
 	}
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("Hugging Face API validation failed with status: %d: %s", resp.StatusCode, string(bodyBytes))
+		return "", fmt.Errorf("Hugging Face API validation failed with status: %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	glog.Infof("Hugging Face credentials validated successfully")
-	return nil
+	var whoami struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&whoami); err != nil {
+		glog.Warningf("Hugging Face credentials validated but failed to parse whoami response: %v", err)
+		return "", nil
+	}
+
+	glog.Infof("Hugging Face credentials validated successfully (user: %s)", whoami.Name)
+	return whoami.Name, nil
 }
 
 // sanitizeHFProperties validates security-sensitive properties and returns the env var name to
@@ -973,6 +1030,7 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 		}
 	}
 
+	var hfUsername string
 	if p.apiKey != "" {
 		hasValidPrefix := strings.HasPrefix(p.apiKey, "hf_")
 		if !hasValidPrefix {
@@ -982,12 +1040,19 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 		}
 		if hasValidPrefix {
 			// Validate credentials only if API key has correct format
-			if err := p.validateCredentials(ctx); err != nil {
+			username, err := p.validateCredentials(ctx)
+			if err != nil {
 				glog.Errorf("Hugging Face catalog credential validation failed: %v", err)
+				// Record credential status on source before returning error
+				setSourceCredentialStatus(source, true, boolPtr(false), "")
 				return nil, fmt.Errorf("failed to validate Hugging Face catalog credentials: %w", err)
 			}
+			hfUsername = username
 		}
 	}
+
+	// Record credential status on the source for downstream status reporting.
+	setSourceCredentialStatus(source, apiKey != "", boolPtrIf(apiKey != "" && p.apiKey != "", true), hfUsername)
 
 	// Use top-level IncludedModels from Source as the list of models to fetch
 	// These can be specific model names (required for HF API) or patterns
@@ -1276,7 +1341,7 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 
 	// Validate credentials only if API key is provided
 	if p.apiKey != "" {
-		if err := p.validateCredentials(ctx); err != nil {
+		if _, err := p.validateCredentials(ctx); err != nil {
 			return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
 		}
 	}
@@ -1352,4 +1417,31 @@ func restrictToOrg(org string, included *[]string, excluded *[]string) {
 			(*excluded)[i] = prefix + (*excluded)[i]
 		}
 	}
+}
+
+// setSourceCredentialStatus records hasApiKey, authenticated, and hfUsername on the source's
+// CatalogSource so that the loader can persist them for the GET /sources response.
+func setSourceCredentialStatus(source *basecatalog.ModelSource, hasApiKey bool, authenticated *bool, hfUsername string) {
+	source.SetHasApiKey(hasApiKey)
+	if authenticated == nil {
+		source.SetAuthenticatedNil()
+	} else {
+		source.SetAuthenticated(*authenticated)
+	}
+	if hfUsername != "" {
+		source.SetHfUsername(hfUsername)
+	} else {
+		source.SetHfUsernameNil()
+	}
+}
+
+// boolPtr returns a pointer to v.
+func boolPtr(v bool) *bool { return &v }
+
+// boolPtrIf returns a pointer to val when cond is true, nil otherwise.
+func boolPtrIf(cond bool, val bool) *bool {
+	if cond {
+		return &val
+	}
+	return nil
 }

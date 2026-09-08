@@ -232,6 +232,12 @@ Legacy Hugging Face `gated: true` is treated as `gated_auto`. Private takes prec
 
 Present **only on gated models**. `"false"` means the token holder has not been granted access to the gated content (lock / "request access" state, readme empty). `"true"` means full access and full metadata.
 
+#### `hf_url`
+
+**Metadata Type**: `MetadataStringValue`
+
+Direct hyperlink to the model's page on Hugging Face (e.g., `https://huggingface.co/meta-llama/Llama-3-8B`). Present on every HF-sourced model. UI consumers can use this to link users to the original model page on Hugging Face.
+
 **Example: gated model, access granted**
 ```json
 {
@@ -239,7 +245,8 @@ Present **only on gated models**. `"false"` means the token holder has not been 
   "readme": "# Llama 3\n\nMeta's latest generation...",
   "customProperties": {
     "hf_access_type": { "string_value": "gated_auto", "metadataType": "MetadataStringValue" },
-    "hf_gated_access_granted": { "string_value": "true", "metadataType": "MetadataStringValue" }
+    "hf_gated_access_granted": { "string_value": "true", "metadataType": "MetadataStringValue" },
+    "hf_url": { "string_value": "https://huggingface.co/meta-llama/Llama-3-8B", "metadataType": "MetadataStringValue" }
   }
 }
 ```
@@ -254,7 +261,8 @@ Present **only on gated models**. `"false"` means the token holder has not been 
   "tasks": [],
   "customProperties": {
     "hf_access_type": { "string_value": "gated_auto", "metadataType": "MetadataStringValue" },
-    "hf_gated_access_granted": { "string_value": "false", "metadataType": "MetadataStringValue" }
+    "hf_gated_access_granted": { "string_value": "false", "metadataType": "MetadataStringValue" },
+    "hf_url": { "string_value": "https://huggingface.co/meta-llama/Llama-3-8B", "metadataType": "MetadataStringValue" }
   }
 }
 ```

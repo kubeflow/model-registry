@@ -341,6 +341,87 @@ func TestCatalogSourceRepository(t *testing.T) {
 		assert.Equal(t, "detailed error message here", status.Error)
 	})
 
+	t.Run("TestGetAllStatuses_WithCredentials", func(t *testing.T) {
+		// Test that has_api_key and authenticated are correctly extracted
+		trueVal := true
+		falseVal := false
+
+		hfUser := "jdoe"
+
+		// Source with API key, successful auth, and HF username
+		source1 := &models.CatalogSourceImpl{
+			Attributes: &models.CatalogSourceAttributes{
+				Name: new("cred-source-authed"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "status", StringValue: new("available")},
+				{Name: "has_api_key", BoolValue: &trueVal},
+				{Name: "authenticated", BoolValue: &trueVal},
+				{Name: "hf_username", StringValue: &hfUser},
+			},
+		}
+		_, err := repo.Save(source1)
+		require.NoError(t, err)
+
+		// Source with API key and failed auth (no username)
+		source2 := &models.CatalogSourceImpl{
+			Attributes: &models.CatalogSourceAttributes{
+				Name: new("cred-source-unauthed"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "status", StringValue: new("error")},
+				{Name: "error", StringValue: new("invalid credentials")},
+				{Name: "has_api_key", BoolValue: &trueVal},
+				{Name: "authenticated", BoolValue: &falseVal},
+			},
+		}
+		_, err = repo.Save(source2)
+		require.NoError(t, err)
+
+		// Source without API key
+		source3 := &models.CatalogSourceImpl{
+			Attributes: &models.CatalogSourceAttributes{
+				Name: new("cred-source-nokey"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "status", StringValue: new("available")},
+				{Name: "has_api_key", BoolValue: &falseVal},
+			},
+		}
+		_, err = repo.Save(source3)
+		require.NoError(t, err)
+
+		statuses, err := repo.GetAllStatuses()
+		require.NoError(t, err)
+
+		// Verify source with valid key and username
+		s1, ok := statuses["cred-source-authed"]
+		require.True(t, ok)
+		require.NotNil(t, s1.HasApiKey)
+		assert.True(t, *s1.HasApiKey)
+		require.NotNil(t, s1.Authenticated)
+		assert.True(t, *s1.Authenticated)
+		require.NotNil(t, s1.HfUsername)
+		assert.Equal(t, "jdoe", *s1.HfUsername)
+
+		// Verify source with invalid key (no username)
+		s2, ok := statuses["cred-source-unauthed"]
+		require.True(t, ok)
+		require.NotNil(t, s2.HasApiKey)
+		assert.True(t, *s2.HasApiKey)
+		require.NotNil(t, s2.Authenticated)
+		assert.False(t, *s2.Authenticated)
+		assert.Nil(t, s2.HfUsername)
+
+		// Verify source without key
+		s3, ok := statuses["cred-source-nokey"]
+		require.True(t, ok)
+		require.NotNil(t, s3.HasApiKey)
+		assert.False(t, *s3.HasApiKey)
+		assert.Nil(t, s3.Authenticated)
+		assert.Nil(t, s3.HfUsername)
+	})
+
 	t.Run("TestPropertiesPreserved", func(t *testing.T) {
 		// Test that all properties are correctly saved and retrieved
 		source := &models.CatalogSourceImpl{

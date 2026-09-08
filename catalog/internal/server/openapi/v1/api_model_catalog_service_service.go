@@ -469,6 +469,19 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 				} else {
 					v.Error = *model.NewNullableString(nil)
 				}
+				if status.HasApiKey != nil {
+					v.SetHasApiKey(*status.HasApiKey)
+				}
+				if status.Authenticated != nil {
+					v.SetAuthenticated(*status.Authenticated)
+				} else if status.HasApiKey != nil && !*status.HasApiKey {
+					v.SetAuthenticatedNil()
+				}
+				if status.HfUsername != nil {
+					v.SetHfUsername(*status.HfUsername)
+				} else {
+					v.SetHfUsernameNil()
+				}
 			}
 		}
 

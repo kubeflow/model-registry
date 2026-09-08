@@ -202,6 +202,18 @@ func (r *CatalogSourceRepositoryImpl) GetAllStatuses() (map[string]models.Source
 					if prop.StringValue != nil {
 						status.Error = *prop.StringValue
 					}
+				case "has_api_key":
+					if prop.BoolValue != nil {
+						status.HasApiKey = prop.BoolValue
+					}
+				case "authenticated":
+					if prop.BoolValue != nil {
+						status.Authenticated = prop.BoolValue
+					}
+				case "hf_username":
+					if prop.StringValue != nil {
+						status.HfUsername = prop.StringValue
+					}
 				}
 			}
 		}
