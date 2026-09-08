@@ -430,7 +430,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	// HuggingFace model page URL
 	customProps["hf_url"] = apimodels.MetadataValue{
 		MetadataStringValue: &apimodels.MetadataStringValue{
-			StringValue: defaultHuggingFaceURL + "/" + hfInfo.ID,
+			StringValue: provider.baseURL + "/" + hfInfo.ID,
 		},
 	}
 
