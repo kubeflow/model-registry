@@ -107,6 +107,10 @@ type hfModelProvider struct {
 	// syncInterval is the interval for periodic syncing of models.
 	// This can be configured via the syncInterval property in the source configuration.
 	syncInterval time.Duration
+	// credOpts holds the latest credential status for this source, updated on
+	// each periodic sync via refreshCredentialStatus. Included on batch-completion
+	// records so the loader persists fresh hasApiKey/authenticated values.
+	credOpts []basecatalog.SourceStatusOption
 }
 
 // hfModelInfo represents the structure of Hugging Face API model information
@@ -455,6 +459,8 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 				return
 			case <-ticker.C:
 				glog.Infof("Periodic sync: reprocessing all models for source %s", p.sourceId)
+				// Re-validate credentials so expired/revoked tokens are detected.
+				p.refreshCredentialStatus(ctx)
 				catalog, err := p.getModelsFromHF(ctx)
 				// Even if there's an error, emit successful models first, then signal the error
 				if len(catalog) > 0 || err == nil {
@@ -858,8 +864,9 @@ func (p *hfModelProvider) emitWithError(ctx context.Context, models []ModelProvi
 
 	// Send an empty record to indicate that we're done with the batch.
 	// Include any error to signal partial failure (models loaded, but some failed).
+	// Include current credential status so the loader can persist fresh values.
 	select {
-	case out <- ModelProviderRecord{Error: err}:
+	case out <- ModelProviderRecord{Error: err, SourceStatusOpts: p.credOpts}:
 	case <-done:
 	}
 }
@@ -906,6 +913,31 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) (string, erro
 
 	glog.Infof("Hugging Face credentials validated successfully (user: %s)", whoami.Name)
 	return whoami.Name, nil
+}
+
+// refreshCredentialStatus re-validates the stored API key via /api/whoami-v2
+// and updates p.credOpts with the result. Called on each periodic sync tick
+// so that expired or revoked tokens are detected without a pod restart.
+func (p *hfModelProvider) refreshCredentialStatus(ctx context.Context) {
+	if p.apiKey == "" {
+		p.credOpts = []basecatalog.SourceStatusOption{
+			basecatalog.WithCredentials(false, nil, ""),
+		}
+		return
+	}
+
+	username, err := p.validateCredentials(ctx)
+	if err != nil {
+		glog.Warningf("Credential re-validation failed for source %s: %v", p.sourceId, err)
+		p.credOpts = []basecatalog.SourceStatusOption{
+			basecatalog.WithCredentials(true, boolPtr(false), ""),
+		}
+		return
+	}
+
+	p.credOpts = []basecatalog.SourceStatusOption{
+		basecatalog.WithCredentials(true, boolPtr(true), username),
+	}
 }
 
 // sanitizeHFProperties validates security-sensitive properties and returns the env var name to
@@ -1052,7 +1084,10 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 	}
 
 	// Record credential status on the source for downstream status reporting.
-	setSourceCredentialStatus(source, apiKey != "", boolPtrIf(apiKey != "" && p.apiKey != "", true), hfUsername)
+	hasKey := apiKey != ""
+	authed := boolPtrIf(hasKey && p.apiKey != "", true)
+	setSourceCredentialStatus(source, hasKey, authed, hfUsername)
+	p.credOpts = []basecatalog.SourceStatusOption{basecatalog.WithCredentials(hasKey, authed, hfUsername)}
 
 	// Use top-level IncludedModels from Source as the list of models to fetch
 	// These can be specific model names (required for HF API) or patterns
