@@ -2046,6 +2046,10 @@ func TestSetSourceCredentialStatus(t *testing.T) {
 			if tt.expectAuthSet {
 				assert.True(t, source.HasAuthenticated())
 				assert.Equal(t, tt.expectAuthValue, source.GetAuthenticated())
+			} else {
+				val, isSet := source.GetAuthenticatedOk()
+				assert.True(t, isSet, "authenticated should be explicitly set (to nil)")
+				assert.Nil(t, val, "authenticated value should be nil (no token)")
 			}
 			if tt.expectUsernameNil {
 				assert.Empty(t, source.GetHfUsername(), "hfUsername should be nil/empty")

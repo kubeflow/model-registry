@@ -679,8 +679,7 @@ func credentialOpts(source basecatalog.ModelSource) []basecatalog.SourceStatusOp
 	hasApiKey := source.GetHasApiKey()
 	var authenticated *bool
 	if source.HasAuthenticated() {
-		v := source.GetAuthenticated()
-		authenticated = &v
+		authenticated, _ = source.GetAuthenticatedOk()
 	}
 	var hfUsername string
 	if source.HasHfUsername() {

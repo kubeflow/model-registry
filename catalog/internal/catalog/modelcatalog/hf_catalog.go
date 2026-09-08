@@ -462,13 +462,18 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 				// Re-validate credentials so expired/revoked tokens are detected.
 				p.refreshCredentialStatus(ctx)
 				catalog, err := p.getModelsFromHF(ctx)
-				// Even if there's an error, emit successful models first, then signal the error
-				if len(catalog) > 0 || err == nil {
-					p.emitWithError(ctx, catalog, err, ch)
-				} else {
-					// No models and an error - just log it
-					glog.Errorf("unable to reprocess Hugging Face models: %v", err)
+				// Always emit so the loader receives fresh credential status
+				// (updated by refreshCredentialStatus above). When there are
+				// zero models and an error, the loader will flip the source to
+				// error and persist the updated authenticated value.
+				if err != nil && len(catalog) == 0 {
+					// Wrap as PartiallyAvailableError so the loader's
+					// batch-completion branch processes it (and its
+					// SourceStatusOpts) instead of treating it as a
+					// per-model error.
+					err = &PartiallyAvailableError{FailedModels: []string{err.Error()}}
 				}
+				p.emitWithError(ctx, catalog, err, ch)
 			}
 		}
 	}()
@@ -1085,7 +1090,11 @@ func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, re
 
 	// Record credential status on the source for downstream status reporting.
 	hasKey := apiKey != ""
-	authed := boolPtrIf(hasKey && p.apiKey != "", true)
+	var authed *bool
+	if hasKey {
+		// A token was provided: true if validated, false if malformed or failed.
+		authed = boolPtr(p.apiKey != "" && hfUsername != "")
+	}
 	setSourceCredentialStatus(source, hasKey, authed, hfUsername)
 	p.credOpts = []basecatalog.SourceStatusOption{basecatalog.WithCredentials(hasKey, authed, hfUsername)}
 
