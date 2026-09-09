@@ -1680,12 +1680,11 @@ func TestClassifyModelTypeFromTasks(t *testing.T) {
 }
 
 func TestNewHFPreviewProvider_RejectsCustomURL(t *testing.T) {
-	t.Setenv("HF_API_KEY", "hf_test123")
-
 	config := &PreviewConfig{
 		Type: "hf",
 		Properties: map[string]any{
-			"url": "http://attacker.example.com",
+			"url":    "http://attacker.example.com",
+			"apiKey": "hf_test123",
 		},
 		IncludedModels: []string{"test-org/model-1"},
 	}
@@ -1698,8 +1697,42 @@ func TestNewHFPreviewProvider_RejectsCustomURL(t *testing.T) {
 	assert.False(t, exists, "url property should be deleted from config")
 }
 
-func TestNewHFPreviewProvider_IgnoresCustomApiKeyEnvVar(t *testing.T) {
-	t.Setenv("HF_API_KEY", "hf_real_key")
+func TestNewHFPreviewProvider_UsesDirectApiKey(t *testing.T) {
+	config := &PreviewConfig{
+		Type: "hf",
+		Properties: map[string]any{
+			"apiKey": "hf_direct_key",
+		},
+		IncludedModels: []string{"test-org/model-1"},
+	}
+
+	provider, err := NewHFPreviewProvider(config)
+	require.NoError(t, err)
+	assert.Equal(t, "hf_direct_key", provider.apiKey,
+		"should use the API key supplied directly in config properties")
+
+	_, exists := config.Properties["apiKey"]
+	assert.False(t, exists, "apiKey should be deleted from properties after extraction")
+}
+
+func TestNewHFPreviewProvider_IgnoresServerEnvVars(t *testing.T) {
+	t.Setenv("HF_API_KEY", "hf_server_key")
+	t.Setenv("HF_API_KEY_ORG1", "hf_org1_key")
+
+	config := &PreviewConfig{
+		Type:           "hf",
+		Properties:     map[string]any{},
+		IncludedModels: []string{"test-org/model-1"},
+	}
+
+	provider, err := NewHFPreviewProvider(config)
+	require.NoError(t, err)
+	assert.Empty(t, provider.apiKey,
+		"preview should not fall back to server-side env vars — only the caller-provided key is used")
+}
+
+func TestNewHFPreviewProvider_IgnoresApiKeyEnvVarProperty(t *testing.T) {
+	t.Setenv("HF_API_KEY", "hf_server_key")
 	t.Setenv("PGPASSWORD", "db_secret")
 
 	config := &PreviewConfig{
@@ -1712,59 +1745,35 @@ func TestNewHFPreviewProvider_IgnoresCustomApiKeyEnvVar(t *testing.T) {
 
 	provider, err := NewHFPreviewProvider(config)
 	require.NoError(t, err)
-	assert.Equal(t, "hf_real_key", provider.apiKey, "should use HF_API_KEY, not the custom env var")
+	assert.Empty(t, provider.apiKey,
+		"apiKeyEnvVar property should be ignored for preview — only direct apiKey is accepted")
 }
 
-func TestNewHFPreviewProvider_AcceptsHFAPIKeyPrefixedEnvVar(t *testing.T) {
-	t.Setenv("HF_API_KEY_ORG1", "hf_org1_val")
-	t.Setenv("HF_API_KEY", "hf_default_val")
-
+func TestNewHFPreviewProvider_RejectsInvalidKeyPrefix(t *testing.T) {
 	config := &PreviewConfig{
 		Type: "hf",
 		Properties: map[string]any{
-			"apiKeyEnvVar": "HF_API_KEY_ORG1",
+			"apiKey": "bad-prefix-key",
 		},
+		IncludedModels: []string{"test-org/model-1"},
+	}
+
+	_, err := NewHFPreviewProvider(config)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "hf_")
+}
+
+func TestNewHFPreviewProvider_WorksWithoutApiKey(t *testing.T) {
+	config := &PreviewConfig{
+		Type:           "hf",
+		Properties:     map[string]any{},
 		IncludedModels: []string{"test-org/model-1"},
 	}
 
 	provider, err := NewHFPreviewProvider(config)
 	require.NoError(t, err)
-	assert.Equal(t, "hf_org1_val", provider.apiKey, "should use HF_API_KEY_ORG1 when specified with valid prefix")
-}
-
-func TestNewHFPreviewProvider_RejectsNonPrefixedHFEnvVar(t *testing.T) {
-	t.Setenv("HF_CUSTOM_KEY", "hf_custom_val")
-	t.Setenv("HF_API_KEY", "hf_default_val")
-
-	config := &PreviewConfig{
-		Type: "hf",
-		Properties: map[string]any{
-			"apiKeyEnvVar": "HF_CUSTOM_KEY",
-		},
-		IncludedModels: []string{"test-org/model-1"},
-	}
-
-	provider, err := NewHFPreviewProvider(config)
-	require.NoError(t, err)
-	assert.Equal(t, "hf_default_val", provider.apiKey,
-		"should fall back to HF_API_KEY when apiKeyEnvVar does not match HF_API_KEY or HF_API_KEY_*")
-}
-
-func TestNewHFPreviewProvider_AcceptsExactHFAPIKey(t *testing.T) {
-	t.Setenv("HF_API_KEY", "hf_exact_val")
-
-	config := &PreviewConfig{
-		Type: "hf",
-		Properties: map[string]any{
-			"apiKeyEnvVar": "HF_API_KEY",
-		},
-		IncludedModels: []string{"test-org/model-1"},
-	}
-
-	provider, err := NewHFPreviewProvider(config)
-	require.NoError(t, err)
-	assert.Equal(t, "hf_exact_val", provider.apiKey,
-		"should accept explicit HF_API_KEY as apiKeyEnvVar")
+	assert.Empty(t, provider.apiKey,
+		"should succeed without an API key — public models are still accessible")
 }
 
 // TestNewHFModelProvider_SanitizesSecurityProperties verifies that the full catalog code path

@@ -1192,6 +1192,7 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 			return nil, fmt.Errorf("invalid Hugging Face API key: must start with 'hf_' prefix")
 		}
 		p.apiKey = apiKey
+		delete(config.Properties, "apiKey")
 	} else {
 		glog.Infof("No API key provided for Hugging Face preview. Only public models and limited data for gated models will be available.")
 	}

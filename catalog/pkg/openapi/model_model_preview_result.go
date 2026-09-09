@@ -100,7 +100,7 @@ func (o *ModelPreviewResult) SetIncluded(v bool) {
 
 // GetHfAccessType returns the HfAccessType field value if set, zero value otherwise.
 func (o *ModelPreviewResult) GetHfAccessType() string {
-	if o == nil || o.HfAccessType == nil {
+	if o == nil || IsNil(o.HfAccessType) {
 		var ret string
 		return ret
 	}
@@ -110,7 +110,7 @@ func (o *ModelPreviewResult) GetHfAccessType() string {
 // GetHfAccessTypeOk returns a tuple with the HfAccessType field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ModelPreviewResult) GetHfAccessTypeOk() (*string, bool) {
-	if o == nil || o.HfAccessType == nil {
+	if o == nil || IsNil(o.HfAccessType) {
 		return nil, false
 	}
 	return o.HfAccessType, true
@@ -118,7 +118,11 @@ func (o *ModelPreviewResult) GetHfAccessTypeOk() (*string, bool) {
 
 // HasHfAccessType returns a boolean if a field has been set.
 func (o *ModelPreviewResult) HasHfAccessType() bool {
-	return o != nil && o.HfAccessType != nil
+	if o != nil && !IsNil(o.HfAccessType) {
+		return true
+	}
+
+	return false
 }
 
 // SetHfAccessType gets a reference to the given string and assigns it to the HfAccessType field.
@@ -128,7 +132,7 @@ func (o *ModelPreviewResult) SetHfAccessType(v string) {
 
 // GetHfGatedAccessGranted returns the HfGatedAccessGranted field value if set, zero value otherwise.
 func (o *ModelPreviewResult) GetHfGatedAccessGranted() bool {
-	if o == nil || o.HfGatedAccessGranted == nil {
+	if o == nil || IsNil(o.HfGatedAccessGranted) {
 		var ret bool
 		return ret
 	}
@@ -138,7 +142,7 @@ func (o *ModelPreviewResult) GetHfGatedAccessGranted() bool {
 // GetHfGatedAccessGrantedOk returns a tuple with the HfGatedAccessGranted field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ModelPreviewResult) GetHfGatedAccessGrantedOk() (*bool, bool) {
-	if o == nil || o.HfGatedAccessGranted == nil {
+	if o == nil || IsNil(o.HfGatedAccessGranted) {
 		return nil, false
 	}
 	return o.HfGatedAccessGranted, true
@@ -146,7 +150,11 @@ func (o *ModelPreviewResult) GetHfGatedAccessGrantedOk() (*bool, bool) {
 
 // HasHfGatedAccessGranted returns a boolean if a field has been set.
 func (o *ModelPreviewResult) HasHfGatedAccessGranted() bool {
-	return o != nil && o.HfGatedAccessGranted != nil
+	if o != nil && !IsNil(o.HfGatedAccessGranted) {
+		return true
+	}
+
+	return false
 }
 
 // SetHfGatedAccessGranted gets a reference to the given bool and assigns it to the HfGatedAccessGranted field.
@@ -166,10 +174,10 @@ func (o ModelPreviewResult) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
 	toSerialize["included"] = o.Included
-	if o.HfAccessType != nil {
+	if !IsNil(o.HfAccessType) {
 		toSerialize["hfAccessType"] = o.HfAccessType
 	}
-	if o.HfGatedAccessGranted != nil {
+	if !IsNil(o.HfGatedAccessGranted) {
 		toSerialize["hfGatedAccessGranted"] = o.HfGatedAccessGranted
 	}
 	return toSerialize, nil
