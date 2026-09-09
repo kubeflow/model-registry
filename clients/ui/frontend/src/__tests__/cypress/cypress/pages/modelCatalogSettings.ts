@@ -446,14 +446,6 @@ class ManageSourcePage {
     return this.findPreviewPanel().findByTestId('preview-button-panel');
   }
 
-  findPreviewButtonHeader() {
-    return this.findPreviewPanelHeaderButton();
-  }
-
-  findPreviewButtonPanel() {
-    return this.findPreviewPanelBodyButton();
-  }
-
   findAccessTokenHiddenHelper() {
     return cy.findByTestId('access-token-hidden-helper');
   }

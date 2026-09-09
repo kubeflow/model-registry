@@ -121,6 +121,24 @@ describe('PreviewPanel', () => {
     expect(screen.getByTestId('preview-button-panel-retry')).toBeInTheDocument();
   });
 
+  it('renders error state when preview failed during edit auto-preview', () => {
+    const preview = createMockPreview(
+      {},
+      {
+        error: new Error('invalid Hugging Face API credentials'),
+        summary: undefined,
+        tabStates: {
+          [CatalogSettingsPreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [CatalogSettingsPreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
+
+    expect(screen.getByText('Preview failed')).toBeInTheDocument();
+    expect(screen.getByText('invalid Hugging Face API credentials')).toBeInTheDocument();
+  });
+
   it('renders tabs for included/excluded models', () => {
     const preview = createMockPreview();
     render(<PreviewPanel preview={preview} />);

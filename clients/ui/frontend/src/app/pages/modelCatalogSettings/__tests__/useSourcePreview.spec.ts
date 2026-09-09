@@ -116,6 +116,11 @@ describe('isPreviewEnabled', () => {
   it('disables preview for HF when token validation failed', () => {
     expect(isPreviewEnabled(hfFormData, 'invalid')).toBe(false);
   });
+
+  it('allows preview for HF in edit mode without token validation', () => {
+    expect(isPreviewEnabled(hfFormData, 'unknown', true)).toBe(true);
+    expect(isPreviewEnabled(hfFormData, 'invalid', true)).toBe(true);
+  });
 });
 
 describe('getPreviewDisabledTooltip', () => {
@@ -133,6 +138,10 @@ describe('getPreviewDisabledTooltip', () => {
       getPreviewDisabledTooltip({ ...hfFormData, accessToken: '' }, 'unknown'),
     ).toBeUndefined();
     expect(getPreviewDisabledTooltip(hfFormData, 'valid')).toBeUndefined();
+  });
+
+  it('returns undefined in edit mode even when HF token is not validated', () => {
+    expect(getPreviewDisabledTooltip(hfFormData, 'unknown', true)).toBeUndefined();
   });
 });
 
@@ -325,6 +334,27 @@ describe('useSourcePreview', () => {
     ).toHaveLength(0);
     expect(result.current.previewState.summary).toBeUndefined();
     expect(apiState.api.previewCatalogSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('should auto-preview on mount in edit mode for HF sources with token', async () => {
+    const apiState = createMockApiState();
+
+    testHook(useSourcePreview)(
+      createHookParams(hfFormData, { apiState, isEditMode: true }),
+    );
+
+    await waitFor(() => {
+      expect(apiState.api.previewCatalogSource).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('should enable preview on mount in edit mode without requiring validation', () => {
+    const { result } = testHook(useSourcePreview)(
+      createHookParams(hfFormData, { isEditMode: true }),
+    );
+
+    expect(result.current.canPreview).toBe(true);
+    expect(result.current.previewDisabledTooltip).toBeUndefined();
   });
 
   it('should enable preview after successful token validation for HF sources', async () => {

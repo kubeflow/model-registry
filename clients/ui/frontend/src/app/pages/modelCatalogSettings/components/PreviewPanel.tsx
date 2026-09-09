@@ -26,7 +26,6 @@ import {
 } from '~/app/pages/modelCatalogSettings/constants';
 import {
   UseSourcePreviewResult,
-  PreviewMode,
 } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { CatalogSettingsPreviewTab } from '~/app/shared/catalogSettings/hooks/previewTypes';
 import PreviewButton from './PreviewButton';
@@ -46,10 +45,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
     canPreview,
     previewDisabledTooltip,
   } = preview;
-  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
-    previewState;
+  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error } = previewState;
   const { items, hasMore } = tabStates[activeTab];
-  const previewError = mode === PreviewMode.PREVIEW ? error : undefined;
+  const previewError = error;
 
   const onPreview = () => handlePreview();
   const onLoadMore = () => handleLoadMore();
