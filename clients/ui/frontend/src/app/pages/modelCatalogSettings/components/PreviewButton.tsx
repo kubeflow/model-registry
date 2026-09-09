@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, ButtonProps } from '@patternfly/react-core';
+import { Button, ButtonProps, Tooltip } from '@patternfly/react-core';
 import { BUTTON_LABELS } from '~/app/pages/modelCatalogSettings/constants';
 
 type PreviewButtonProps = {
@@ -8,6 +8,7 @@ type PreviewButtonProps = {
   isLoading?: boolean;
   variant?: ButtonProps['variant'];
   testId?: string;
+  disabledTooltip?: string;
 };
 
 const PreviewButton: React.FC<PreviewButtonProps> = ({
@@ -16,16 +17,29 @@ const PreviewButton: React.FC<PreviewButtonProps> = ({
   isLoading = false,
   variant = 'primary',
   testId = 'preview-button',
-}) => (
-  <Button
-    variant={variant}
-    onClick={onClick}
-    isDisabled={isDisabled}
-    isLoading={isLoading}
-    data-testid={testId}
-  >
-    {BUTTON_LABELS.PREVIEW}
-  </Button>
-);
+  disabledTooltip,
+}) => {
+  const button = (
+    <Button
+      variant={variant}
+      onClick={onClick}
+      isDisabled={isDisabled}
+      isLoading={isLoading}
+      data-testid={testId}
+    >
+      {BUTTON_LABELS.PREVIEW}
+    </Button>
+  );
+
+  if (disabledTooltip && isDisabled) {
+    return (
+      <Tooltip content={disabledTooltip}>
+        <span className="pf-v6-u-display-inline-block">{button}</span>
+      </Tooltip>
+    );
+  }
+
+  return button;
+};
 
 export default PreviewButton;

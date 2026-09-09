@@ -121,6 +121,24 @@ describe('PreviewPanel', () => {
     expect(screen.getByTestId('preview-button-panel-retry')).toBeInTheDocument();
   });
 
+  it('renders error state when preview failed during edit auto-preview', () => {
+    const preview = createMockPreview(
+      {},
+      {
+        error: new Error('invalid Hugging Face API credentials'),
+        summary: undefined,
+        tabStates: {
+          [CatalogSettingsPreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [CatalogSettingsPreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
+
+    expect(screen.getByText('Preview failed')).toBeInTheDocument();
+    expect(screen.getByText('invalid Hugging Face API credentials')).toBeInTheDocument();
+  });
+
   it('renders tabs for included/excluded models', () => {
     const preview = createMockPreview();
     render(<PreviewPanel preview={preview} />);
@@ -223,6 +241,32 @@ describe('PreviewPanel', () => {
     expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
   });
 
+  it('shows refresh alert with disabled link when hasFormChanged is true and preview is disabled', () => {
+    const preview = createMockPreview({ hasFormChanged: true, canPreview: false });
+    render(<PreviewPanel preview={preview} />);
+
+    expect(
+      screen.getByText('Source configuration changed. Refresh the preview.'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
+    expect(screen.getByTestId('refresh-preview-link')).toBeDisabled();
+  });
+
+  it('shows preview disabled tooltip when token validation is required', async () => {
+    const user = userEvent.setup();
+    const preview = createMockPreview({
+      canPreview: false,
+      previewDisabledTooltip: 'Validate the access token to preview models.',
+    });
+
+    render(<PreviewPanel preview={preview} />);
+
+    await user.hover(screen.getByTestId('preview-button-header'));
+    expect(
+      await screen.findByText('Validate the access token to preview models.'),
+    ).toBeInTheDocument();
+  });
+
   it('calls handlePreview when refresh link clicked', async () => {
     const user = userEvent.setup();
     const handlePreview = jest.fn();
@@ -284,6 +328,27 @@ describe('PreviewPanel', () => {
     expect(screen.getByText('model-1')).toBeInTheDocument();
     expect(screen.getByText('model-2')).toBeInTheDocument();
     expect(screen.getByText('model-3')).toBeInTheDocument();
+  });
+
+  it('does not render panel body preview button when preview results are shown', () => {
+    const preview = createMockPreview(
+      {
+        canPreview: false,
+        hasFormChanged: true,
+        previewDisabledTooltip: 'Validate the access token to preview models.',
+      },
+      {
+        summary: mockSummary,
+        tabStates: {
+          [CatalogSettingsPreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: false },
+          [CatalogSettingsPreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
+
+    expect(screen.queryByTestId('preview-button-panel')).not.toBeInTheDocument();
+    expect(screen.getByTestId('preview-button-header')).toBeDisabled();
   });
 
   it('disables preview button when canPreview is false', () => {

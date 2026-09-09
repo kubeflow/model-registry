@@ -124,6 +124,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       onChange={(_event, value) => setData('organization', value)}
       onBlur={() => setIsOrganizationTouched(true)}
       validated={isOrganizationTouched && !isOrganizationValid ? 'error' : 'default'}
+      isDisabled={isValidating}
     />
   );
 
@@ -190,7 +191,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       onChange={(_event, value) => setData('accessToken', value)}
       ariaLabelShow="Show access token"
       ariaLabelHide="Hide access token"
-      isDisabled={isValidationSuccess}
+      isDisabled={isValidating || isValidationSuccess}
       hideToggleButton={isValidationSuccess}
       forceHidden={isValidationSuccess}
     />
@@ -241,27 +242,17 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         {accessTokenInput}
       </ThemeAwareFormGroupWrapper>
       {validationError && (
-        <Alert
-          isInline
-          variant="danger"
-          title={ERROR_MESSAGES.VALIDATION_FAILED}
-          className="pf-v6-u-mt-md"
-        >
+        <Alert isInline variant="danger" title={ERROR_MESSAGES.VALIDATION_FAILED}>
           {validationError.message}
         </Alert>
       )}
       {isValidationSuccess && !isTokenLocked && (
-        <Alert
-          isInline
-          variant="success"
-          className="pf-v6-u"
-          title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}
-        >
+        <Alert isInline variant="success" title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}>
           {SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL_BODY}
         </Alert>
       )}
 
-      <ActionList className="pf-v6-u">
+      <ActionList>
         {tokenValidationBtn}
         {tokenClearBtn}
       </ActionList>

@@ -24,10 +24,7 @@ import {
   ERROR_MESSAGES,
   EMPTY_STATE_TEXT,
 } from '~/app/pages/modelCatalogSettings/constants';
-import {
-  UseSourcePreviewResult,
-  PreviewMode,
-} from '~/app/pages/modelCatalogSettings/useSourcePreview';
+import { UseSourcePreviewResult } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { CatalogSettingsPreviewTab } from '~/app/shared/catalogSettings/hooks/previewTypes';
 import PreviewButton from './PreviewButton';
 
@@ -44,11 +41,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
     handleLoadMore,
     hasFormChanged,
     canPreview,
+    previewDisabledTooltip,
   } = preview;
-  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
-    previewState;
+  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error } = previewState;
   const { items, hasMore } = tabStates[activeTab];
-  const previewError = mode === PreviewMode.PREVIEW ? error : undefined;
+  const previewError = error;
 
   const onPreview = () => handlePreview();
   const onLoadMore = () => handleLoadMore();
@@ -76,6 +73,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
                 isLoading={isLoadingInitial}
                 variant="link"
                 testId="preview-button-panel-retry"
+                disabledTooltip={previewDisabledTooltip}
               />
             </EmptyStateActions>
           </EmptyStateFooter>
@@ -97,6 +95,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
               isLoading={isLoadingInitial}
               variant="link"
               testId="preview-button-panel"
+              disabledTooltip={previewDisabledTooltip}
             />
           </EmptyStateActions>
         </EmptyStateFooter>
@@ -136,7 +135,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
               title="Source configuration changed. Refresh the preview."
               className="pf-v6-u-mb-md"
               actionLinks={
-                <AlertActionLink onClick={onPreview} data-testid="refresh-preview-link">
+                <AlertActionLink
+                  onClick={onPreview}
+                  isDisabled={!canPreview}
+                  data-testid="refresh-preview-link"
+                >
                   Refresh preview
                 </AlertActionLink>
               }
@@ -218,6 +221,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
             isLoading={isLoadingInitial}
             variant="secondary"
             testId="preview-button-header"
+            disabledTooltip={previewDisabledTooltip}
           />
         </FlexItem>
       </Flex>
