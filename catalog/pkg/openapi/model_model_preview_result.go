@@ -23,6 +23,10 @@ type ModelPreviewResult struct {
 	Name string `json:"name"`
 	// Whether this model would be included based on the source configuration
 	Included bool `json:"included"`
+	// Hugging Face access type classification. Only present for Hugging Face sources. Possible values: public, private, gated_auto, gated_manual.
+	HfAccessType *string `json:"hfAccessType,omitempty"`
+	// Whether the configured API key has been granted access to this gated model. Only present for gated Hugging Face models when the information is available.
+	HfGatedAccessGranted *bool `json:"hfGatedAccessGranted,omitempty"`
 }
 
 type _ModelPreviewResult ModelPreviewResult
@@ -94,6 +98,70 @@ func (o *ModelPreviewResult) SetIncluded(v bool) {
 	o.Included = v
 }
 
+// GetHfAccessType returns the HfAccessType field value if set, zero value otherwise.
+func (o *ModelPreviewResult) GetHfAccessType() string {
+	if o == nil || IsNil(o.HfAccessType) {
+		var ret string
+		return ret
+	}
+	return *o.HfAccessType
+}
+
+// GetHfAccessTypeOk returns a tuple with the HfAccessType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelPreviewResult) GetHfAccessTypeOk() (*string, bool) {
+	if o == nil || IsNil(o.HfAccessType) {
+		return nil, false
+	}
+	return o.HfAccessType, true
+}
+
+// HasHfAccessType returns a boolean if a field has been set.
+func (o *ModelPreviewResult) HasHfAccessType() bool {
+	if o != nil && !IsNil(o.HfAccessType) {
+		return true
+	}
+
+	return false
+}
+
+// SetHfAccessType gets a reference to the given string and assigns it to the HfAccessType field.
+func (o *ModelPreviewResult) SetHfAccessType(v string) {
+	o.HfAccessType = &v
+}
+
+// GetHfGatedAccessGranted returns the HfGatedAccessGranted field value if set, zero value otherwise.
+func (o *ModelPreviewResult) GetHfGatedAccessGranted() bool {
+	if o == nil || IsNil(o.HfGatedAccessGranted) {
+		var ret bool
+		return ret
+	}
+	return *o.HfGatedAccessGranted
+}
+
+// GetHfGatedAccessGrantedOk returns a tuple with the HfGatedAccessGranted field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelPreviewResult) GetHfGatedAccessGrantedOk() (*bool, bool) {
+	if o == nil || IsNil(o.HfGatedAccessGranted) {
+		return nil, false
+	}
+	return o.HfGatedAccessGranted, true
+}
+
+// HasHfGatedAccessGranted returns a boolean if a field has been set.
+func (o *ModelPreviewResult) HasHfGatedAccessGranted() bool {
+	if o != nil && !IsNil(o.HfGatedAccessGranted) {
+		return true
+	}
+
+	return false
+}
+
+// SetHfGatedAccessGranted gets a reference to the given bool and assigns it to the HfGatedAccessGranted field.
+func (o *ModelPreviewResult) SetHfGatedAccessGranted(v bool) {
+	o.HfGatedAccessGranted = &v
+}
+
 func (o ModelPreviewResult) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -106,6 +174,12 @@ func (o ModelPreviewResult) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
 	toSerialize["included"] = o.Included
+	if !IsNil(o.HfAccessType) {
+		toSerialize["hfAccessType"] = o.HfAccessType
+	}
+	if !IsNil(o.HfGatedAccessGranted) {
+		toSerialize["hfGatedAccessGranted"] = o.HfGatedAccessGranted
+	}
 	return toSerialize, nil
 }
 

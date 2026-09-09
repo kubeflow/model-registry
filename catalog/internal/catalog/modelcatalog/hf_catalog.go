@@ -384,13 +384,10 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		},
 	}
 
-	// For gated models, determine if the token holder has been granted access.
-	// Gated models without access return an empty siblings list from the HF API.
+	// For gated models, determine if the token holder has been granted access
+	// by calling the HF auth-check endpoint (200 = granted, 401/403 = not).
 	if strings.HasPrefix(accessType, "gated_") {
-		gatedAccessGranted := "false"
-		if len(hfInfo.Siblings) > 0 {
-			gatedAccessGranted = "true"
-		}
+		gatedAccessGranted := strconv.FormatBool(provider.checkGatedAccess(ctx, hfInfo.ID))
 		customProps["hf_gated_access_granted"] = apimodels.MetadataValue{
 			MetadataStringValue: &apimodels.MetadataStringValue{
 				StringValue: gatedAccessGranted,
@@ -498,7 +495,7 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 
 // expandModelNames takes a list of model identifiers (which may include wildcards)
 // and returns a list of concrete model names by expanding any wildcard patterns.
-// Uses the same logic as FetchModelNamesForPreview.
+// Uses the same logic as FetchModelsForPreview.
 func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers []string) ([]string, error) {
 	var allNames []string
 	var failedPatterns []string
@@ -657,6 +654,39 @@ func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) 
 	}
 
 	return &modelInfo, nil
+}
+
+// checkGatedAccess checks whether the configured API key has been granted
+// access to a gated model by calling the HF auth-check endpoint.
+// Returns true when access is granted (HTTP 200), false otherwise (401/403).
+// When no API key is configured, returns false immediately.
+func (p *hfModelProvider) checkGatedAccess(ctx context.Context, modelName string) bool {
+	if p.apiKey == "" {
+		return false
+	}
+
+	modelName = strings.Trim(modelName, "/")
+	apiURL := fmt.Sprintf("%s/api/models/%s/auth-check", p.baseURL, modelName)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	if err != nil {
+		glog.Warningf("Failed to create auth-check request for %s: %v", modelName, err)
+		return false
+	}
+
+	req.Header.Set("User-Agent", "model-registry-catalog")
+	req.Header.Set("Authorization", "Bearer "+p.apiKey)
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		glog.Warningf("Failed to check gated access for %s: %v", modelName, err)
+		return false
+	}
+	defer resp.Body.Close()
+	// Drain the body so the connection can be reused.
+	_, _ = io.ReadAll(resp.Body)
+
+	return resp.StatusCode == http.StatusOK
 }
 
 // fetchFileContent fetches the content of a file from Hugging Face repository
@@ -1166,6 +1196,9 @@ func init() {
 
 // NewHFPreviewProvider creates an hfModelProvider for preview use.
 // It initializes the provider from a PreviewConfig without starting the full model loading.
+// The API key is read directly from the config properties (supplied by the caller)
+// rather than from server-side environment variables, so that preview works with
+// the user's token before it is saved as a Kubernetes Secret.
 func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	p := &hfModelProvider{
 		client:       &http.Client{Timeout: 30 * time.Second},
@@ -1174,16 +1207,25 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 		syncInterval: defaultSyncInterval,
 	}
 
-	// Reject custom URLs (SSRF prevention) and validate apiKeyEnvVar (must be HF_API_KEY or HF_API_KEY_*).
-	apiKeyEnvVar := sanitizeHFProperties(config.Properties, "HuggingFace preview")
-	if apiKeyEnvVar == "" {
-		apiKeyEnvVar = defaultAPIKeyEnvVar
+	// Reject custom URLs to prevent SSRF; the base URL is always the
+	// official HuggingFace API regardless of what the caller sends.
+	if customURL, exists := config.Properties[urlKey]; exists {
+		glog.Warningf("HuggingFace preview: custom URL %q was ignored for security reasons (SSRF prevention)", customURL)
+		delete(config.Properties, urlKey)
 	}
-	apiKey := os.Getenv(apiKeyEnvVar)
-	if apiKey == "" {
-		glog.Infof("No API key configured for Hugging Face preview. Only public models and limited data for gated models will be available.")
+
+	// Use the API key supplied directly in the request properties.
+	// Do NOT fall back to server-side env vars — preview should only
+	// authenticate with the caller-provided key.
+	if apiKey, ok := config.Properties["apiKey"].(string); ok && apiKey != "" {
+		if !strings.HasPrefix(apiKey, "hf_") {
+			return nil, fmt.Errorf("invalid Hugging Face API key: must start with 'hf_' prefix")
+		}
+		p.apiKey = apiKey
+		delete(config.Properties, "apiKey")
+	} else {
+		glog.Infof("No API key provided for Hugging Face preview. Only public models and limited data for gated models will be available.")
 	}
-	p.apiKey = apiKey
 
 	allowedOrg, _ := config.Properties[allowedOrgKey].(string)
 	restrictToOrg(allowedOrg, &config.IncludedModels, &config.ExcludedModels)
@@ -1210,13 +1252,21 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	return p, nil
 }
 
-// hfListResponse represents a single model in the Hugging Face list API response.
+// hfListModel represents a single model in the Hugging Face list API response.
 type hfListModel struct {
-	ID        string `json:"id"`
-	ModelID   string `json:"modelId,omitempty"`
-	Author    string `json:"author,omitempty"`
-	Private   bool   `json:"private,omitempty"`
-	Downloads int    `json:"downloads,omitempty"`
+	ID        string      `json:"id"`
+	ModelID   string      `json:"modelId,omitempty"`
+	Author    string      `json:"author,omitempty"`
+	Private   bool        `json:"private,omitempty"`
+	Gated     gatedString `json:"gated,omitempty"`
+	Downloads int         `json:"downloads,omitempty"`
+}
+
+// hfPreviewModelResult holds enriched model info for preview responses.
+type hfPreviewModelResult struct {
+	Name                 string
+	AccessType           string // "public", "private", "gated_auto", "gated_manual"
+	GatedAccessGranted   *bool  // nil when unknown (e.g. wildcard-listed models)
 }
 
 // PatternType indicates how to handle an includedModels pattern.
@@ -1386,6 +1436,118 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 	return allModels, nil
 }
 
+// listModelDetailsByAuthor is like listModelsByAuthor but requests expanded
+// fields (gated, private) and returns full hfListModel structs so callers can
+// derive access-type metadata without additional per-model API calls.
+func (p *hfModelProvider) listModelDetailsByAuthor(ctx context.Context, author string, searchPrefix string) ([]hfListModel, error) {
+	var allModels []hfListModel
+	limit := 100
+	cursor := ""
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		if p.maxModels > 0 && len(allModels) >= p.maxModels {
+			glog.Warningf("Reached maxModels limit (%d) for pattern author=%s, stopping pagination", p.maxModels, author)
+			break
+		}
+
+		apiURL := fmt.Sprintf("%s/api/models?author=%s&limit=%d&expand[]=gated", p.baseURL, author, limit)
+		if searchPrefix != "" {
+			apiURL += "&search=" + searchPrefix
+		}
+		if cursor != "" {
+			apiURL += "&cursor=" + cursor
+		}
+
+		glog.V(2).Infof("Fetching Hugging Face models list (details): %s", apiURL)
+
+		req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create list request: %w", err)
+		}
+
+		req.Header.Set("User-Agent", "model-registry-catalog")
+		if p.apiKey != "" {
+			req.Header.Set("Authorization", "Bearer "+p.apiKey)
+		}
+
+		resp, err := p.client.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list models for author %s: %w", author, err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return nil, fmt.Errorf("Hugging Face API returned status %d for author %s: %s", resp.StatusCode, author, string(bodyBytes))
+		}
+
+		var models []hfListModel
+		if err := json.NewDecoder(resp.Body).Decode(&models); err != nil {
+			resp.Body.Close()
+			return nil, fmt.Errorf("failed to decode models list for author %s: %w", author, err)
+		}
+		resp.Body.Close()
+
+		for _, m := range models {
+			if p.maxModels > 0 && len(allModels) >= p.maxModels {
+				break
+			}
+
+			if m.ID == "" {
+				m.ID = m.ModelID
+			}
+			if m.ID == "" {
+				continue
+			}
+
+			if searchPrefix != "" {
+				parts := strings.SplitN(m.ID, "/", 2)
+				if len(parts) == 2 {
+					modelName := parts[1]
+					if !strings.HasPrefix(strings.ToLower(modelName), strings.ToLower(searchPrefix)) {
+						continue
+					}
+				}
+			}
+
+			allModels = append(allModels, m)
+		}
+
+		linkHeader := resp.Header.Get("Link")
+		nextCursor := parseNextCursor(linkHeader)
+		if nextCursor == "" || len(models) < limit {
+			break
+		}
+		cursor = nextCursor
+	}
+
+	glog.Infof("Listed %d models (details) from author %s (maxModels: %d)", len(allModels), author, p.maxModels)
+	return allModels, nil
+}
+
+// deriveListModelAccessType derives the access type from an hfListModel.
+func deriveListModelAccessType(m *hfListModel) string {
+	if m.Private {
+		return "private"
+	}
+	switch m.Gated.String() {
+	case "auto":
+		return "gated_auto"
+	case "manual":
+		return "gated_manual"
+	case "true":
+		return "gated_auto"
+	default:
+		return "public"
+	}
+}
+
 // parseNextCursor extracts the cursor for the next page from the Link header.
 // Link header format: <url>; rel="next"
 func parseNextCursor(linkHeader string) string {
@@ -1416,22 +1578,26 @@ func parseNextCursor(linkHeader string) string {
 	return ""
 }
 
-// FetchModelNamesForPreview fetches model info from Hugging Face API for the given model identifiers
-// and returns the actual model names. This is used for preview functionality.
+// FetchModelsForPreview fetches model info from Hugging Face API for the given
+// model identifiers and returns enriched preview results including access type.
 // Supports patterns like "org/*" and "org/prefix*" which use the paginated list API.
-func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelIdentifiers []string) ([]string, error) {
+func (p *hfModelProvider) FetchModelsForPreview(ctx context.Context, modelIdentifiers []string) ([]hfPreviewModelResult, error) {
 	if len(modelIdentifiers) == 0 {
 		return nil, fmt.Errorf("includedModels is required for Hugging Face source preview")
 	}
 
-	// Validate credentials only if API key is provided
+	// Pre-flight whoami check: verify the token before doing any work.
+	// An invalid token is an immediate error; no API key means we skip
+	// gated-access lookups later.
+	authenticated := false
 	if p.apiKey != "" {
 		if _, err := p.validateCredentials(ctx); err != nil {
 			return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
 		}
+		authenticated = true
 	}
 
-	names := make([]string, 0)
+	var results []hfPreviewModelResult
 
 	for _, pattern := range modelIdentifiers {
 		select {
@@ -1444,26 +1610,36 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 
 		switch patternType {
 		case PatternInvalid:
-			// Reject unsupported wildcard patterns
 			return nil, fmt.Errorf("wildcard pattern %q is not supported - Hugging Face requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
 
 		case PatternOrgAll, PatternOrgPrefix:
-			// Use paginated list API
+			// Use paginated list API with expanded gated field
 			glog.Infof("Using Hugging Face list API for pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
-			models, err := p.listModelsByAuthor(ctx, org, searchPrefix)
+			models, err := p.listModelDetailsByAuthor(ctx, org, searchPrefix)
 			if err != nil {
 				glog.Warningf("Failed to list models for pattern %s: %v", pattern, err)
-				// Don't fail completely, just skip this pattern
 				continue
 			}
-			names = append(names, models...)
+			for i := range models {
+				r := hfPreviewModelResult{
+					Name:       models[i].ID,
+					AccessType: deriveListModelAccessType(&models[i]),
+				}
+				// For gated models, check whether the token holder has been
+				// granted access via the HF auth-check endpoint.
+				if authenticated && strings.HasPrefix(r.AccessType, "gated_") {
+					granted := p.checkGatedAccess(ctx, r.Name)
+					r.GatedAccessGranted = &granted
+				}
+				results = append(results, r)
+			}
 
 		case PatternExact:
-			// Direct fetch for exact model name
+			// Direct fetch for exact model name — full info available
 			modelInfo, err := p.fetchModelInfo(ctx, pattern)
 			if err != nil {
 				glog.Warningf("Failed to fetch model info for preview: %s: %v", pattern, err)
-				names = append(names, pattern)
+				results = append(results, hfPreviewModelResult{Name: pattern})
 				continue
 			}
 
@@ -1471,11 +1647,24 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 			if actualName == "" {
 				actualName = pattern
 			}
-			names = append(names, actualName)
+
+			r := hfPreviewModelResult{
+				Name:       actualName,
+				AccessType: deriveHFAccessType(modelInfo),
+			}
+
+			// For gated models, check whether the token holder has been
+			// granted access via the HF auth-check endpoint.
+			if authenticated && strings.HasPrefix(r.AccessType, "gated_") {
+				granted := p.checkGatedAccess(ctx, actualName)
+				r.GatedAccessGranted = &granted
+			}
+
+			results = append(results, r)
 		}
 	}
 
-	return names, nil
+	return results, nil
 }
 
 // restrictToOrg prefixes included and excluded model lists with an

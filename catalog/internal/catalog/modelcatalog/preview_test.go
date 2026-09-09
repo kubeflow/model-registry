@@ -583,16 +583,19 @@ func TestPreviewSourceModels_HuggingFace_Errors(t *testing.T) {
 		assert.Contains(t, err.Error(), "includedModels is required")
 	})
 
-	t.Run("hf preview without API key works for public models", func(t *testing.T) {
-		// Ensure HF_API_KEY is not set - should still work for public models
-		oldKey := os.Getenv("HF_API_KEY")
-		os.Unsetenv("HF_API_KEY")
-		defer func() {
-			if oldKey != "" {
-				os.Setenv("HF_API_KEY", oldKey)
-			}
-		}()
+	t.Run("hf preview with invalid API key prefix returns error", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type:           "hf",
+			IncludedModels: []string{"some-org/some-model"},
+			Properties:     map[string]any{"apiKey": "bad-prefix-key"},
+		}
 
+		_, err := PreviewSourceModels(context.Background(), config, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must start with 'hf_' prefix")
+	})
+
+	t.Run("hf preview without API key works for public models", func(t *testing.T) {
 		config := &PreviewConfig{
 			Type: "hf",
 			IncludedModels: []string{

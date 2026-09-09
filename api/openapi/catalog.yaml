@@ -692,10 +692,11 @@ paths:
                 summary: HuggingFace catalog source
                 description: |-
                   Upload configuration for a HuggingFace source.
-                  The API key is read from an environment variable (HF_API_KEY
-                  by default). Optionally set apiKeyEnvVar to HF_API_KEY or a
-                  name starting with HF_API_KEY_ to select a per-source key.
-                  Do not put the API key value in this configuration.
+                  For preview, the Hugging Face API key must be provided directly
+                  in the `apiKey` property. Server-side environment variables are
+                  not used because the source has not been saved yet. The key must
+                  start with the `hf_` prefix. Without a key, only public models
+                  and limited metadata for gated models will be available.
                 value: |
                   type: hf
                   includedModels:
@@ -704,7 +705,7 @@ paths:
                   excludedModels:
                     - "*-gguf"
                   properties:
-                    apiKeyEnvVar: "HF_API_KEY"
+                    apiKey: "hf_your_token_here"
                     maxModels: 100
               mcpStatelessPreview:
                 summary: Stateless MCP server preview
@@ -2357,6 +2358,17 @@ components:
         included:
           type: boolean
           description: Whether this model would be included based on the source configuration
+        hfAccessType:
+          type: string
+          description: |-
+            Hugging Face access type classification. Only present for Hugging Face sources.
+            Possible values: public, private, gated_auto, gated_manual.
+          example: gated_auto
+        hfGatedAccessGranted:
+          type: boolean
+          description: |-
+            Whether the configured API key has been granted access to this gated model.
+            Only present for gated Hugging Face models when the information is available.
     OrderByField:
       description: |-
         Supported fields for ordering result entities.
