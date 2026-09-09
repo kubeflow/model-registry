@@ -1836,3 +1836,226 @@ func TestResolveHFAPIKey(t *testing.T) {
 		assert.Equal(t, "", resolveHFAPIKey("my-source", ""))
 	})
 }
+
+func TestDeriveHFAccessType(t *testing.T) {
+	tests := []struct {
+		name     string
+		hfInfo   *hfModelInfo
+		expected string
+	}{
+		{
+			name:     "public model (not private, not gated)",
+			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("false")},
+			expected: "public",
+		},
+		{
+			name:     "public model (empty gated)",
+			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("")},
+			expected: "public",
+		},
+		{
+			name:     "private model",
+			hfInfo:   &hfModelInfo{Private: true, Gated: gatedString("false")},
+			expected: "private",
+		},
+		{
+			name:     "gated auto model",
+			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("auto")},
+			expected: "gated_auto",
+		},
+		{
+			name:     "gated manual model",
+			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("manual")},
+			expected: "gated_manual",
+		},
+		{
+			name:     "gated boolean true (legacy format)",
+			hfInfo:   &hfModelInfo{Private: false, Gated: gatedString("true")},
+			expected: "gated_auto",
+		},
+		{
+			name:     "private takes precedence over gated",
+			hfInfo:   &hfModelInfo{Private: true, Gated: gatedString("auto")},
+			expected: "private",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := deriveHFAccessType(tt.hfInfo)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
+	ctx := context.Background()
+	provider := &hfModelProvider{
+		sourceId: "test-source",
+		client:   &http.Client{},
+		baseURL:  "http://localhost", // unused; no HTTP calls in populate
+	}
+
+	tests := []struct {
+		name                       string
+		hfInfo                     *hfModelInfo
+		expectedAccessType         string
+		expectGatedAccessGranted   bool
+		expectedGatedAccessGranted string
+	}{
+		{
+			name: "public model has hf_access_type=public, no hf_gated_access_granted",
+			hfInfo: &hfModelInfo{
+				ID:      "test-org/public-model",
+				Private: false,
+				Gated:   gatedString("false"),
+			},
+			expectedAccessType:       "public",
+			expectGatedAccessGranted: false,
+		},
+		{
+			name: "private model has hf_access_type=private, no hf_gated_access_granted",
+			hfInfo: &hfModelInfo{
+				ID:       "my-org/private-llm",
+				Private:  true,
+				Gated:    gatedString("false"),
+				Siblings: []hfFile{{RFileName: "config.json"}},
+			},
+			expectedAccessType:       "private",
+			expectGatedAccessGranted: false,
+		},
+		{
+			name: "gated auto model with access granted (has siblings)",
+			hfInfo: &hfModelInfo{
+				ID:       "meta-llama/Llama-3-8B",
+				Private:  false,
+				Gated:    gatedString("auto"),
+				Siblings: []hfFile{{RFileName: "config.json"}, {RFileName: "model.safetensors"}},
+			},
+			expectedAccessType:         "gated_auto",
+			expectGatedAccessGranted:   true,
+			expectedGatedAccessGranted: "true",
+		},
+		{
+			name: "gated manual model without access (no siblings)",
+			hfInfo: &hfModelInfo{
+				ID:       "meta-llama/Llama-3-8B",
+				Private:  false,
+				Gated:    gatedString("manual"),
+				Siblings: nil,
+			},
+			expectedAccessType:         "gated_manual",
+			expectGatedAccessGranted:   true,
+			expectedGatedAccessGranted: "false",
+		},
+		{
+			name: "gated boolean true without access (no siblings)",
+			hfInfo: &hfModelInfo{
+				ID:       "org/gated-model",
+				Private:  false,
+				Gated:    gatedString("true"),
+				Siblings: nil,
+			},
+			expectedAccessType:         "gated_auto",
+			expectGatedAccessGranted:   true,
+			expectedGatedAccessGranted: "false",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hfm := &hfModel{}
+			hfm.populateFromHFInfo(ctx, provider, tt.hfInfo, "test-source", tt.hfInfo.ID)
+
+			customProps := hfm.GetCustomProperties()
+
+			// Check hf_access_type
+			accessTypeProp, ok := customProps["hf_access_type"]
+			require.True(t, ok, "hf_access_type should be present")
+			require.NotNil(t, accessTypeProp.MetadataStringValue)
+			assert.Equal(t, tt.expectedAccessType, accessTypeProp.MetadataStringValue.StringValue)
+
+			// Check hf_gated_access_granted
+			gatedProp, hasGatedProp := customProps["hf_gated_access_granted"]
+			assert.Equal(t, tt.expectGatedAccessGranted, hasGatedProp,
+				"hf_gated_access_granted presence mismatch")
+			if tt.expectGatedAccessGranted {
+				require.NotNil(t, gatedProp.MetadataStringValue)
+				assert.Equal(t, tt.expectedGatedAccessGranted,
+					gatedProp.MetadataStringValue.StringValue)
+			}
+		})
+	}
+}
+
+func TestSetSourceCredentialStatus(t *testing.T) {
+	tests := []struct {
+		name              string
+		hasApiKey         bool
+		authenticated     *bool
+		hfUsername        string
+		expectHasApiKey   bool
+		expectAuthSet     bool
+		expectAuthValue   bool
+		expectUsername    string
+		expectUsernameNil bool
+	}{
+		{
+			name:              "no API key",
+			hasApiKey:         false,
+			authenticated:     nil,
+			hfUsername:        "",
+			expectHasApiKey:   false,
+			expectAuthSet:     false,
+			expectUsernameNil: true,
+		},
+		{
+			name:            "API key with successful auth and username",
+			hasApiKey:       true,
+			authenticated:   boolPtr(true),
+			hfUsername:      "jdoe",
+			expectHasApiKey: true,
+			expectAuthSet:   true,
+			expectAuthValue: true,
+			expectUsername:  "jdoe",
+		},
+		{
+			name:              "API key with failed auth",
+			hasApiKey:         true,
+			authenticated:     boolPtr(false),
+			hfUsername:        "",
+			expectHasApiKey:   true,
+			expectAuthSet:     true,
+			expectAuthValue:   false,
+			expectUsernameNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			source := &basecatalog.ModelSource{
+				CatalogSource: apimodels.CatalogSource{
+					Id:   "test-source",
+					Name: "Test Source",
+				},
+			}
+
+			setSourceCredentialStatus(source, tt.hasApiKey, tt.authenticated, tt.hfUsername)
+
+			assert.Equal(t, tt.expectHasApiKey, source.GetHasApiKey())
+			if tt.expectAuthSet {
+				assert.True(t, source.HasAuthenticated())
+				assert.Equal(t, tt.expectAuthValue, source.GetAuthenticated())
+			} else {
+				val, isSet := source.GetAuthenticatedOk()
+				assert.True(t, isSet, "authenticated should be explicitly set (to nil)")
+				assert.Nil(t, val, "authenticated value should be nil (no token)")
+			}
+			if tt.expectUsernameNil {
+				assert.Empty(t, source.GetHfUsername(), "hfUsername should be nil/empty")
+			} else {
+				assert.Equal(t, tt.expectUsername, source.GetHfUsername())
+			}
+		})
+	}
+}

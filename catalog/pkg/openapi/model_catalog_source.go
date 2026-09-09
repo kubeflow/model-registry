@@ -34,6 +34,8 @@ type CatalogSource struct {
 	HasApiKey *bool `json:"hasApiKey,omitempty"`
 	// Whether the stored API token validated successfully. Null when no token exists (`hasApiKey` is false).
 	Authenticated NullableBool `json:"authenticated,omitempty"`
+	// The Hugging Face username associated with the stored API token. Null when no token exists or authentication failed.
+	HfUsername NullableString `json:"hfUsername,omitempty"`
 	// Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/_*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/_*`, `*-beta`, `*deprecated*`, `*_/old*`  Examples: - `ibm-granite/_*` - matches all models starting with \"ibm-granite/\" - `meta-llama/_*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
 	IncludedModels []string `json:"includedModels,omitempty"`
 	// Optional list of glob patterns for models to exclude. Models matching any pattern will be excluded even if they match an includedModels pattern. Exclusions take precedence over inclusions.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere in the pattern  Examples: - `*-draft` - excludes all models ending with \"-draft\" - `*-experimental` - excludes experimental models - `*deprecated*` - excludes models with \"deprecated\" anywhere in the name - `*_/beta-*` - excludes models with \"/beta-\" in the path  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
@@ -325,6 +327,49 @@ func (o *CatalogSource) UnsetAuthenticated() {
 	o.Authenticated.Unset()
 }
 
+// GetHfUsername returns the HfUsername field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CatalogSource) GetHfUsername() string {
+	if o == nil || IsNil(o.HfUsername.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.HfUsername.Get()
+}
+
+// GetHfUsernameOk returns a tuple with the HfUsername field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CatalogSource) GetHfUsernameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.HfUsername.Get(), o.HfUsername.IsSet()
+}
+
+// HasHfUsername returns a boolean if a field has been set.
+func (o *CatalogSource) HasHfUsername() bool {
+	if o != nil && o.HfUsername.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetHfUsername gets a reference to the given NullableString and assigns it to the HfUsername field.
+func (o *CatalogSource) SetHfUsername(v string) {
+	o.HfUsername.Set(&v)
+}
+
+// SetHfUsernameNil sets the value for HfUsername to be an explicit nil
+func (o *CatalogSource) SetHfUsernameNil() {
+	o.HfUsername.Set(nil)
+}
+
+// UnsetHfUsername ensures that no value is present for HfUsername, not even an explicit nil
+func (o *CatalogSource) UnsetHfUsername() {
+	o.HfUsername.Unset()
+}
+
 // GetIncludedModels returns the IncludedModels field value if set, zero value otherwise.
 func (o *CatalogSource) GetIncludedModels() []string {
 	if o == nil || IsNil(o.IncludedModels) {
@@ -448,6 +493,9 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	}
 	if o.Authenticated.IsSet() {
 		toSerialize["authenticated"] = o.Authenticated.Get()
+	}
+	if o.HfUsername.IsSet() {
+		toSerialize["hfUsername"] = o.HfUsername.Get()
 	}
 	if !IsNil(o.IncludedModels) {
 		toSerialize["includedModels"] = o.IncludedModels

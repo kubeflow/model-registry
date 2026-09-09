@@ -461,6 +461,19 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		if statuses != nil {
 			if status, ok := statuses[v.Id]; ok {
 				v.Status, v.Error = sourceStatusFields(status)
+				if status.HasApiKey != nil {
+					v.SetHasApiKey(*status.HasApiKey)
+				}
+				if status.Authenticated != nil {
+					v.SetAuthenticated(*status.Authenticated)
+				} else if status.HasApiKey != nil {
+					v.SetAuthenticatedNil()
+				}
+				if status.HfUsername != nil {
+					v.SetHfUsername(*status.HfUsername)
+				} else if status.HasApiKey != nil {
+					v.SetHfUsernameNil()
+				}
 			}
 		}
 
