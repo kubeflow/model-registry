@@ -1586,11 +1586,15 @@ func (p *hfModelProvider) FetchModelsForPreview(ctx context.Context, modelIdenti
 		return nil, fmt.Errorf("includedModels is required for Hugging Face source preview")
 	}
 
-	// Validate credentials only if API key is provided
+	// Pre-flight whoami check: verify the token before doing any work.
+	// An invalid token is an immediate error; no API key means we skip
+	// gated-access lookups later.
+	authenticated := false
 	if p.apiKey != "" {
 		if _, err := p.validateCredentials(ctx); err != nil {
 			return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
 		}
+		authenticated = true
 	}
 
 	var results []hfPreviewModelResult
@@ -1623,7 +1627,7 @@ func (p *hfModelProvider) FetchModelsForPreview(ctx context.Context, modelIdenti
 				}
 				// For gated models, check whether the token holder has been
 				// granted access via the HF auth-check endpoint.
-				if strings.HasPrefix(r.AccessType, "gated_") {
+				if authenticated && strings.HasPrefix(r.AccessType, "gated_") {
 					granted := p.checkGatedAccess(ctx, r.Name)
 					r.GatedAccessGranted = &granted
 				}
@@ -1651,7 +1655,7 @@ func (p *hfModelProvider) FetchModelsForPreview(ctx context.Context, modelIdenti
 
 			// For gated models, check whether the token holder has been
 			// granted access via the HF auth-check endpoint.
-			if strings.HasPrefix(r.AccessType, "gated_") {
+			if authenticated && strings.HasPrefix(r.AccessType, "gated_") {
 				granted := p.checkGatedAccess(ctx, actualName)
 				r.GatedAccessGranted = &granted
 			}

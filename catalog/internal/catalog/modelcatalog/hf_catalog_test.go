@@ -1061,6 +1061,29 @@ func TestFetchModelsForPreviewWithPatterns(t *testing.T) {
 		assert.Contains(t, err.Error(), "wildcard pattern")
 		assert.Contains(t, err.Error(), "not supported")
 	})
+
+	t.Run("returns error when token is rejected", func(t *testing.T) {
+		rejMux := http.NewServeMux()
+		rejMux.HandleFunc("/api/whoami-v2", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusUnauthorized)
+		})
+		rejServer := httptest.NewServer(rejMux)
+		defer rejServer.Close()
+
+		config := &PreviewConfig{
+			Type:           "hf",
+			IncludedModels: []string{"exact-org/exact-model"},
+			Properties:     map[string]any{"apiKey": "hf_bad-token"},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+		provider.baseURL = rejServer.URL
+
+		_, err = provider.FetchModelsForPreview(context.Background(), config.IncludedModels)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to validate HuggingFace credentials")
+	})
 }
 
 func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
