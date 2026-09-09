@@ -26,7 +26,9 @@ class ModelPreviewResult(BaseModel):
     """ # noqa: E501
     name: StrictStr = Field(description="Name of the model")
     included: StrictBool = Field(description="Whether this model would be included based on the source configuration")
-    __properties: ClassVar[list[str]] = ["name", "included"]
+    hf_access_type: StrictStr | None = Field(default=None, description="Hugging Face access type classification. Only present for Hugging Face sources. Possible values: public, private, gated_auto, gated_manual.", alias="hfAccessType")
+    hf_gated_access_granted: StrictBool | None = Field(default=None, description="Whether the configured API key has been granted access to this gated model. Only present for gated Hugging Face models when the information is available.", alias="hfGatedAccessGranted")
+    __properties: ClassVar[list[str]] = ["name", "included", "hfAccessType", "hfGatedAccessGranted"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -80,7 +82,9 @@ class ModelPreviewResult(BaseModel):
 
         _obj = cls.model_validate({
             "name": obj.get("name"),
-            "included": obj.get("included")
+            "included": obj.get("included"),
+            "hfAccessType": obj.get("hfAccessType"),
+            "hfGatedAccessGranted": obj.get("hfGatedAccessGranted")
         })
         return _obj
 

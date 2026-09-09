@@ -33,10 +33,13 @@ class CatalogSource(BaseModel):
     labels: list[StrictStr] = Field(description="Labels for the catalog source.")
     status: CatalogSourceStatus | None = None
     error: StrictStr | None = Field(default=None, description='Detailed error information when the status is "Error". This field is null or empty when the source is functioning normally.')
+    has_api_key: StrictBool | None = Field(default=None, description="Whether an API token is stored for this source. The token value is never returned. False for sources that have no stored token.", alias="hasApiKey")
+    authenticated: StrictBool | None = Field(default=None, description="Whether the stored API token validated successfully. Null when no token exists (`hasApiKey` is false).")
+    hf_username: StrictStr | None = Field(default=None, description="The Hugging Face username associated with the stored API token. Null when no token exists or authentication failed.", alias="hfUsername")
     included_models: list[StrictStr] | None = Field(default=None, description='Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/*`, `*-beta`, `*deprecated*`, `*/old*`  Examples: - `ibm-granite/*` - matches all models starting with "ibm-granite/" - `meta-llama/*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels', alias="includedModels")
     excluded_models: list[StrictStr] | None = Field(default=None, description='Optional list of glob patterns for models to exclude. Models matching any pattern will be excluded even if they match an includedModels pattern. Exclusions take precedence over inclusions.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere in the pattern  Examples: - `*-draft` - excludes all models ending with "-draft" - `*-experimental` - excludes experimental models - `*deprecated*` - excludes models with "deprecated" anywhere in the name - `*/beta-*` - excludes models with "/beta-" in the path  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels', alias="excludedModels")
     asset_type: CatalogAssetType | None = Field(default=CatalogAssetType.MODELS, alias="assetType")
-    __properties: ClassVar[list[str]] = ["id", "name", "enabled", "labels", "status", "error", "includedModels", "excludedModels", "assetType"]
+    __properties: ClassVar[list[str]] = ["id", "name", "enabled", "labels", "status", "error", "hasApiKey", "authenticated", "hfUsername", "includedModels", "excludedModels", "assetType"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -68,8 +71,14 @@ class CatalogSource(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: set[str] = set([
+            "has_api_key",
+            "authenticated",
+            "hf_username",
         ])
 
         _dict = self.model_dump(
@@ -81,6 +90,16 @@ class CatalogSource(BaseModel):
         # and model_fields_set contains the field
         if self.error is None and "error" in self.model_fields_set:
             _dict["error"] = None
+
+        # set to None if authenticated (nullable) is None
+        # and model_fields_set contains the field
+        if self.authenticated is None and "authenticated" in self.model_fields_set:
+            _dict["authenticated"] = None
+
+        # set to None if hf_username (nullable) is None
+        # and model_fields_set contains the field
+        if self.hf_username is None and "hf_username" in self.model_fields_set:
+            _dict["hfUsername"] = None
 
         return _dict
 
@@ -100,6 +119,9 @@ class CatalogSource(BaseModel):
             "labels": obj.get("labels"),
             "status": obj.get("status"),
             "error": obj.get("error"),
+            "hasApiKey": obj.get("hasApiKey"),
+            "authenticated": obj.get("authenticated"),
+            "hfUsername": obj.get("hfUsername"),
             "includedModels": obj.get("includedModels"),
             "excludedModels": obj.get("excludedModels"),
             "assetType": obj.get("assetType") if obj.get("assetType") is not None else CatalogAssetType.MODELS
