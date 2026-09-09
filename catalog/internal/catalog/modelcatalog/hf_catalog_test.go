@@ -910,7 +910,7 @@ func TestListModelsByAuthor(t *testing.T) {
 	})
 }
 
-func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
+func TestFetchModelsForPreviewWithPatterns(t *testing.T) {
 	// Setup mock HF server
 	mux := http.NewServeMux()
 
@@ -919,13 +919,13 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]string{"name": "test-user"})
 	})
 
-	// Mock list API
+	// Mock list API — returns gated field when expand[]=gated is requested
 	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
 		author := r.URL.Query().Get("author")
 		if author == "test-org" {
 			models := []map[string]any{
-				{"id": "test-org/model-a"},
-				{"id": "test-org/model-b"},
+				{"id": "test-org/model-a", "gated": false},
+				{"id": "test-org/model-b", "gated": "auto"},
 			}
 			_ = json.NewEncoder(w).Encode(models)
 		} else {
@@ -935,13 +935,24 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 
 	// Mock individual model endpoints
 	mux.HandleFunc("/api/models/exact-org/exact-model", func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]any{"id": "exact-org/exact-model"})
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id":       "exact-org/exact-model",
+			"gated":    "manual",
+			"siblings": []map[string]any{{"rfilename": "README.md"}},
+		})
+	})
+
+	// Mock individual fetch for gated model-b (called during wildcard follow-up)
+	mux.HandleFunc("/api/models/test-org/model-b", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id":       "test-org/model-b",
+			"gated":    "auto",
+			"siblings": []map[string]any{}, // empty = access NOT granted
+		})
 	})
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
-
-	t.Setenv("HF_API_KEY", "test-api-key")
 
 	t.Run("mixed patterns: org/* and exact", func(t *testing.T) {
 		config := &PreviewConfig{
@@ -950,20 +961,42 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 				"test-org/*",            // Should use list API
 				"exact-org/exact-model", // Should use direct fetch
 			},
-			Properties: map[string]any{},
+			Properties: map[string]any{
+				"apiKey": "hf_test-api-key",
+			},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
 		require.NoError(t, err)
 		provider.baseURL = server.URL
 
-		names, err := provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		results, err := provider.FetchModelsForPreview(context.Background(), config.IncludedModels)
 		require.NoError(t, err)
 
-		assert.Len(t, names, 3)
-		assert.Contains(t, names, "test-org/model-a")
-		assert.Contains(t, names, "test-org/model-b")
-		assert.Contains(t, names, "exact-org/exact-model")
+		assert.Len(t, results, 3)
+
+		// Find results by name
+		byName := make(map[string]hfPreviewModelResult)
+		for _, r := range results {
+			byName[r.Name] = r
+		}
+
+		// Wildcard-listed model: public — no gated access info needed
+		a := byName["test-org/model-a"]
+		assert.Equal(t, "public", a.AccessType)
+		assert.Nil(t, a.GatedAccessGranted)
+
+		// Wildcard-listed model: gated_auto — follow-up fetch shows access NOT granted
+		b := byName["test-org/model-b"]
+		assert.Equal(t, "gated_auto", b.AccessType)
+		require.NotNil(t, b.GatedAccessGranted)
+		assert.False(t, *b.GatedAccessGranted)
+
+		// Exact model: gated_manual with access granted (has siblings)
+		exact := byName["exact-org/exact-model"]
+		assert.Equal(t, "gated_manual", exact.AccessType)
+		require.NotNil(t, exact.GatedAccessGranted)
+		assert.True(t, *exact.GatedAccessGranted)
 	})
 
 	t.Run("rejects * wildcard pattern", func(t *testing.T) {
@@ -979,7 +1012,7 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 		require.NoError(t, err)
 		provider.baseURL = server.URL
 
-		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		_, err = provider.FetchModelsForPreview(context.Background(), config.IncludedModels)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "wildcard pattern")
 		assert.Contains(t, err.Error(), "not supported")
@@ -998,7 +1031,7 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 		require.NoError(t, err)
 		provider.baseURL = server.URL
 
-		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		_, err = provider.FetchModelsForPreview(context.Background(), config.IncludedModels)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "wildcard pattern")
 		assert.Contains(t, err.Error(), "not supported")
@@ -1017,7 +1050,7 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 		require.NoError(t, err)
 		provider.baseURL = server.URL
 
-		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		_, err = provider.FetchModelsForPreview(context.Background(), config.IncludedModels)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "wildcard pattern")
 		assert.Contains(t, err.Error(), "not supported")
@@ -1037,9 +1070,9 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 		author := r.URL.Query().Get("author")
 		if author == "test-org" {
 			models := []map[string]any{
-				{"id": "test-org/model-stable"},
-				{"id": "test-org/model-experimental"},
-				{"id": "test-org/model-draft"},
+				{"id": "test-org/model-stable", "gated": false},
+				{"id": "test-org/model-experimental", "gated": false},
+				{"id": "test-org/model-draft", "gated": false},
 			}
 			_ = json.NewEncoder(w).Encode(models)
 		} else {
@@ -1049,8 +1082,6 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
-
-	t.Setenv("HF_API_KEY", "test-api-key")
 
 	t.Run("org/* pattern with excludedModels filter", func(t *testing.T) {
 		// Note: We test the filtering logic by calling NewHFPreviewProvider directly
@@ -1064,27 +1095,27 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 			Type:           "hf",
 			IncludedModels: includedModels,
 			ExcludedModels: excludedModels,
-			Properties:     map[string]any{},
+			Properties:     map[string]any{"apiKey": "hf_test-api-key"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
 		require.NoError(t, err)
 		provider.baseURL = server.URL
 
-		modelNames, err := provider.FetchModelNamesForPreview(context.Background(), includedModels)
+		results, err := provider.FetchModelsForPreview(context.Background(), includedModels)
 		require.NoError(t, err)
-		require.Len(t, modelNames, 3)
+		require.Len(t, results, 3)
 
 		// Create filter and apply it (same logic as PreviewSourceModels)
 		filter, err := NewModelFilter(includedModels, excludedModels)
 		require.NoError(t, err)
 
 		var included, excluded []string
-		for _, name := range modelNames {
-			if filter.Allows(name) {
-				included = append(included, name)
+		for _, r := range results {
+			if filter.Allows(r.Name) {
+				included = append(included, r.Name)
 			} else {
-				excluded = append(excluded, name)
+				excluded = append(excluded, r.Name)
 			}
 		}
 

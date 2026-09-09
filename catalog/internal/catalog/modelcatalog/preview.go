@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/golang/glog"
 	model "github.com/kubeflow/hub/catalog/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -44,19 +43,27 @@ func ParsePreviewConfig(configBytes []byte) (*PreviewConfig, error) {
 // preview results showing which models would be included or excluded.
 // If catalogDataBytes is provided, it will be used directly instead of reading from yamlCatalogPath.
 func PreviewSourceModels(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]model.ModelPreviewResult, error) {
-	// Load all model names from the source (without filtering)
+	switch config.Type {
+	case "hf", "huggingface":
+		return previewHFModels(ctx, config)
+	default:
+		return previewModelsByName(ctx, config, catalogDataBytes)
+	}
+}
+
+// previewModelsByName is the name-only preview path used for YAML and other
+// non-HF sources where no extra metadata is available.
+func previewModelsByName(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]model.ModelPreviewResult, error) {
 	modelNames, err := loadModelNamesFromSource(ctx, config, catalogDataBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a ModelFilter from the config
 	filter, err := NewModelFilter(config.IncludedModels, config.ExcludedModels)
 	if err != nil {
 		return nil, fmt.Errorf("invalid filter configuration: %w", err)
 	}
 
-	// Create preview results for each model
 	results := make([]model.ModelPreviewResult, 0, len(modelNames))
 	for _, name := range modelNames {
 		included := filter == nil || filter.Allows(name)
@@ -69,44 +76,59 @@ func PreviewSourceModels(ctx context.Context, config *PreviewConfig, catalogData
 	return results, nil
 }
 
+// previewHFModels fetches enriched model data from the HuggingFace API
+// and populates HfAccessType / HfGatedAccessGranted on each result.
+func previewHFModels(ctx context.Context, config *PreviewConfig) ([]model.ModelPreviewResult, error) {
+	hfModels, err := loadHFModels(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+
+	filter, err := NewModelFilter(config.IncludedModels, config.ExcludedModels)
+	if err != nil {
+		return nil, fmt.Errorf("invalid filter configuration: %w", err)
+	}
+
+	results := make([]model.ModelPreviewResult, 0, len(hfModels))
+	for _, m := range hfModels {
+		included := filter == nil || filter.Allows(m.Name)
+		r := model.ModelPreviewResult{
+			Name:     m.Name,
+			Included: included,
+		}
+		if m.AccessType != "" {
+			r.HfAccessType = &m.AccessType
+		}
+		r.HfGatedAccessGranted = m.GatedAccessGranted
+		results = append(results, r)
+	}
+
+	return results, nil
+}
+
 // loadModelNamesFromSource loads model names from the specified source type.
 // If catalogDataBytes is provided, it takes precedence over reading from file paths.
 func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]string, error) {
 	switch config.Type {
 	case "yaml":
 		return loadYamlModelNames(ctx, config, catalogDataBytes)
-	case "hf", "huggingface":
-		return loadHFModelNames(ctx, config)
 	default:
 		return nil, fmt.Errorf("unsupported source type: %s", config.Type)
 	}
 }
 
-// loadHFModelNames fetches model names from the HuggingFace API for preview.
-// For HF sources, includedModels specifies which models to fetch from HuggingFace.
-// This function calls the HF API to validate models exist and get their actual names.
-func loadHFModelNames(ctx context.Context, config *PreviewConfig) ([]string, error) {
-	// SECURITY: Override the URL property to prevent SSRF attacks.
-	// An attacker could otherwise set a custom URL to leak the HF API key
-	// to an attacker-controlled domain.
-	// We ensure requests only go to the official HuggingFace API.
+// loadHFModels fetches enriched model info from the HuggingFace API for preview.
+func loadHFModels(ctx context.Context, config *PreviewConfig) ([]hfPreviewModelResult, error) {
 	if config.Properties == nil {
 		config.Properties = make(map[string]any)
 	}
 
-	if customURL, exists := config.Properties["url"]; exists {
-		glog.Warningf("HuggingFace preview: custom URL %q was ignored for security reasons (SSRF prevention)", customURL)
-		delete(config.Properties, "url")
-	}
-
-	// Create HF preview provider (reuses hfModelProvider from hf_catalog.go)
 	provider, err := NewHFPreviewProvider(config)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch model names from HuggingFace API
-	return provider.FetchModelNamesForPreview(ctx, config.IncludedModels)
+	return provider.FetchModelsForPreview(ctx, config.IncludedModels)
 }
 
 // loadYamlModelNames loads model names from a YAML catalog.
