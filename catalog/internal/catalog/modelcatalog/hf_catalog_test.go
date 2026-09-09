@@ -934,21 +934,27 @@ func TestFetchModelsForPreviewWithPatterns(t *testing.T) {
 	})
 
 	// Mock individual model endpoints
-	mux.HandleFunc("/api/models/exact-org/exact-model", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/models/exact-org/exact-model", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"id":       "exact-org/exact-model",
 			"gated":    "manual",
 			"siblings": []map[string]any{{"rfilename": "README.md"}},
 		})
 	})
+	mux.HandleFunc("/api/models/exact-org/exact-model/auth-check", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK) // access granted
+	})
 
 	// Mock individual fetch for gated model-b (called during wildcard follow-up)
-	mux.HandleFunc("/api/models/test-org/model-b", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/models/test-org/model-b", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"id":       "test-org/model-b",
 			"gated":    "auto",
-			"siblings": []map[string]any{}, // empty = access NOT granted
+			"siblings": []map[string]any{{"rfilename": "config.json"}},
 		})
+	})
+	mux.HandleFunc("/api/models/test-org/model-b/auth-check", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusForbidden) // access NOT granted
 	})
 
 	server := httptest.NewServer(mux)
@@ -1930,10 +1936,33 @@ func TestDeriveHFAccessType(t *testing.T) {
 
 func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 	ctx := context.Background()
+
+	// Mock auth-check endpoint: 200 for granted models, 403 for others.
+	grantedModels := map[string]bool{
+		"meta-llama/Llama-3-8B": true,
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/auth-check") {
+			modelID := strings.TrimPrefix(r.URL.Path, "/api/models/")
+			modelID = strings.TrimSuffix(modelID, "/auth-check")
+			if grantedModels[modelID] {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				w.WriteHeader(http.StatusForbidden)
+			}
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	})
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
 	provider := &hfModelProvider{
 		sourceId: "test-source",
 		client:   &http.Client{},
-		baseURL:  "http://localhost", // unused; no HTTP calls in populate
+		baseURL:  server.URL,
+		apiKey:   "hf_test-key",
 	}
 
 	tests := []struct {
@@ -1965,7 +1994,7 @@ func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 			expectGatedAccessGranted: false,
 		},
 		{
-			name: "gated auto model with access granted (has siblings)",
+			name: "gated auto model with access granted (auth-check 200)",
 			hfInfo: &hfModelInfo{
 				ID:       "meta-llama/Llama-3-8B",
 				Private:  false,
@@ -1977,24 +2006,24 @@ func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 			expectedGatedAccessGranted: "true",
 		},
 		{
-			name: "gated manual model without access (no siblings)",
+			name: "gated manual model without access (auth-check 403)",
 			hfInfo: &hfModelInfo{
-				ID:       "meta-llama/Llama-3-8B",
+				ID:       "org/not-granted-model",
 				Private:  false,
 				Gated:    gatedString("manual"),
-				Siblings: nil,
+				Siblings: []hfFile{{RFileName: "config.json"}},
 			},
 			expectedAccessType:         "gated_manual",
 			expectGatedAccessGranted:   true,
 			expectedGatedAccessGranted: "false",
 		},
 		{
-			name: "gated boolean true without access (no siblings)",
+			name: "gated boolean true without access (auth-check 403)",
 			hfInfo: &hfModelInfo{
 				ID:       "org/gated-model",
 				Private:  false,
 				Gated:    gatedString("true"),
-				Siblings: nil,
+				Siblings: []hfFile{{RFileName: "config.json"}},
 			},
 			expectedAccessType:         "gated_auto",
 			expectGatedAccessGranted:   true,
@@ -2026,6 +2055,44 @@ func TestPopulateFromHFInfo_AccessTypeProperties(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCheckGatedAccess(t *testing.T) {
+	mux := http.NewServeMux()
+
+	// Simulate HF auth-check: 200 for granted, 401 for unauthenticated, 403 for denied.
+	mux.HandleFunc("/api/models/org/granted-model/auth-check", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc("/api/models/org/denied-model/auth-check", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	})
+	mux.HandleFunc("/api/models/org/unauthed-model/auth-check", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	t.Run("returns true when auth-check returns 200", func(t *testing.T) {
+		p := &hfModelProvider{client: &http.Client{}, baseURL: server.URL, apiKey: "hf_key"}
+		assert.True(t, p.checkGatedAccess(context.Background(), "org/granted-model"))
+	})
+
+	t.Run("returns false when auth-check returns 403", func(t *testing.T) {
+		p := &hfModelProvider{client: &http.Client{}, baseURL: server.URL, apiKey: "hf_key"}
+		assert.False(t, p.checkGatedAccess(context.Background(), "org/denied-model"))
+	})
+
+	t.Run("returns false when auth-check returns 401", func(t *testing.T) {
+		p := &hfModelProvider{client: &http.Client{}, baseURL: server.URL, apiKey: "hf_key"}
+		assert.False(t, p.checkGatedAccess(context.Background(), "org/unauthed-model"))
+	})
+
+	t.Run("returns false when no API key is configured", func(t *testing.T) {
+		p := &hfModelProvider{client: &http.Client{}, baseURL: server.URL, apiKey: ""}
+		assert.False(t, p.checkGatedAccess(context.Background(), "org/granted-model"))
+	})
 }
 
 func TestSetSourceCredentialStatus(t *testing.T) {
