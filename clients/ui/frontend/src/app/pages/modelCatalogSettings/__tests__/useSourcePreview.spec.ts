@@ -339,9 +339,7 @@ describe('useSourcePreview', () => {
   it('should auto-preview on mount in edit mode for HF sources with token', async () => {
     const apiState = createMockApiState();
 
-    testHook(useSourcePreview)(
-      createHookParams(hfFormData, { apiState, isEditMode: true }),
-    );
+    testHook(useSourcePreview)(createHookParams(hfFormData, { apiState, isEditMode: true }));
 
     await waitFor(() => {
       expect(apiState.api.previewCatalogSource).toHaveBeenCalledTimes(1);

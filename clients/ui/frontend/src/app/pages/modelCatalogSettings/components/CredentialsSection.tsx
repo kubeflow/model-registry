@@ -242,20 +242,12 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         {accessTokenInput}
       </ThemeAwareFormGroupWrapper>
       {validationError && (
-        <Alert
-          isInline
-          variant="danger"
-          title={ERROR_MESSAGES.VALIDATION_FAILED}
-        >
+        <Alert isInline variant="danger" title={ERROR_MESSAGES.VALIDATION_FAILED}>
           {validationError.message}
         </Alert>
       )}
       {isValidationSuccess && !isTokenLocked && (
-        <Alert
-          isInline
-          variant="success"
-          title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}
-        >
+        <Alert isInline variant="success" title={SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL}>
           {SUCCESS_MESSAGES.VALIDATION_SUCCESSFUL_BODY}
         </Alert>
       )}

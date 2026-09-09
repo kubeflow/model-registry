@@ -24,9 +24,7 @@ import {
   ERROR_MESSAGES,
   EMPTY_STATE_TEXT,
 } from '~/app/pages/modelCatalogSettings/constants';
-import {
-  UseSourcePreviewResult,
-} from '~/app/pages/modelCatalogSettings/useSourcePreview';
+import { UseSourcePreviewResult } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { CatalogSettingsPreviewTab } from '~/app/shared/catalogSettings/hooks/previewTypes';
 import PreviewButton from './PreviewButton';
 
