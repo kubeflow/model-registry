@@ -400,14 +400,16 @@ func (s *PerformanceArtifactService) paginate(list *dbmodels.ListWrapper[sharedm
 	}
 
 	if cursor != nil {
-		var index int
-		for index = range list.Items {
-			id := list.Items[index].GetID()
+		// A cursor that is not in this list, or an empty list, has nothing after it.
+		start := len(list.Items)
+		for i := range list.Items {
+			id := list.Items[i].GetID()
 			if id != nil && *id == cursor.ID {
+				start = i + 1
 				break
 			}
 		}
-		list.Items = list.Items[index+1:]
+		list.Items = list.Items[start:]
 	}
 
 	list.NextPageToken = ""

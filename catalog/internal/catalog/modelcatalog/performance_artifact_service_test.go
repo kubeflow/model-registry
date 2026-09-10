@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/hub/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/hub/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/hub/internal/platform/db/entity"
+	"github.com/kubeflow/hub/internal/platform/db/scopes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -831,4 +832,59 @@ func TestGetMinimumRecommendedLatency_NoArtifacts(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Nil(t, minLatency) // Should return nil for models without data
+}
+
+func TestPerformanceArtifactService_PaginateCursor(t *testing.T) {
+	service := NewPerformanceArtifactService(nil, nil)
+
+	newArtifact := func(id int32) sharedmodels.CatalogMetricsArtifact {
+		return &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			ID:         &id,
+			Attributes: &models.CatalogMetricsArtifactAttributes{},
+		}
+	}
+	newList := func(ids ...int32) *dbmodels.ListWrapper[sharedmodels.CatalogMetricsArtifact] {
+		items := make([]sharedmodels.CatalogMetricsArtifact, 0, len(ids))
+		for _, id := range ids {
+			items = append(items, newArtifact(id))
+		}
+		return &dbmodels.ListWrapper[sharedmodels.CatalogMetricsArtifact]{Items: items}
+	}
+
+	t.Run("cursor in list returns the items after it", func(t *testing.T) {
+		list := newList(1, 2, 3, 4)
+		token := scopes.CreateNextPageToken(2, "")
+		service.paginate(list, 10, &token)
+		require.Len(t, list.Items, 2)
+		assert.Equal(t, int32(3), *list.Items[0].GetID())
+		assert.Equal(t, int32(4), *list.Items[1].GetID())
+		assert.Empty(t, list.NextPageToken)
+		assert.Equal(t, int32(2), list.Size)
+	})
+
+	t.Run("cursor over an empty list does not panic", func(t *testing.T) {
+		list := newList()
+		token := scopes.CreateNextPageToken(1, "")
+		assert.NotPanics(t, func() { service.paginate(list, 10, &token) })
+		assert.Empty(t, list.Items)
+		assert.Empty(t, list.NextPageToken)
+		assert.Equal(t, int32(0), list.Size)
+	})
+
+	t.Run("cursor not in list returns no items", func(t *testing.T) {
+		list := newList(1, 2, 3)
+		token := scopes.CreateNextPageToken(99, "")
+		service.paginate(list, 10, &token)
+		assert.Empty(t, list.Items)
+		assert.Empty(t, list.NextPageToken)
+	})
+
+	t.Run("undecodable token returns the first page", func(t *testing.T) {
+		list := newList(1, 2, 3)
+		token := "not-a-token"
+		service.paginate(list, 2, &token)
+		require.Len(t, list.Items, 2)
+		assert.Equal(t, int32(1), *list.Items[0].GetID())
+		assert.NotEmpty(t, list.NextPageToken)
+	})
 }
