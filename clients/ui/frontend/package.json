@@ -85,7 +85,7 @@
     "webpack": "^5.105.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.6",
+    "webpack-dev-server": "^6.0.0",
     "webpack-merge": "^6.0.1"
   },
   "dependencies": {
@@ -132,7 +132,7 @@
     "cypress": "^15.17.0",
     "cypress-axe": "^1.5.0",
     "cypress-high-resolution": "^1.0.0",
-    "cypress-mochawesome-reporter": "^3.8.2",
+    "cypress-mochawesome-reporter": "^5.0.0",
     "cypress-multi-reporters": "^2.0.5",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
